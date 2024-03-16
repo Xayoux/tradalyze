@@ -7,13 +7,71 @@
 #' @param exporter vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.
 #' @param importer vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.
 #' @param path_output Chemin où sauvegarder le dataframe. Si non spécifié, le dataframe ne sera pas sauvegardé.
+#' @param path_country_codes Chemin du fichier country_codes.csv pour formater le dataframe. Si non spécifié, le dataframe ne sera pas formaté.
 #'
 #' @return Un dataframe contenant les données de la base de données BACI importée et filtrée.
 #' @export
 #'
 #' @examples # Pas d'exemple pour cette fonction.
 create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
-                           product_code, exporter = NULL, importer = NULL, path_output = NULL){
+                           product_code = NULL, exporter = NULL, importer = NULL,
+                           path_output = NULL, path_country_codes = NULL){
+
+  # Message d'erreur si baci_folder n'est pas une chaine de caractère
+  if (!is.character(baci_folder)){
+    stop("baci_folder doit \uEAtre une cha\uEEne de caract\uE8re.")
+  }
+
+  # Message d'erreur si baci_folder n'est pas un dossier
+  if (!dir.exists(baci_folder)){
+    stop("baci_folder doit \uEAtre un dossier ou exister.")
+  }
+
+  # Message d'erreur si year_start n'est pas un entier
+  if (!is.null(year_start) & !is.integer(year_start)){
+    stop("year_start doit \uEAtre un entier ou NULL.")
+  }
+
+  # Message d'erreur si year_end n'est pas un entier
+  if (!is.null(year_end) & !is.integer(year_end)){
+    stop("year_end doit \uEAtre un entier ou NULL.")
+  }
+
+  # Message d'erreur si product_code n'est pas un vecteur, un dataframe ou NULL
+  if (!is.null(product_code) & !is.vector(product_code) & !is.data.frame(product_code)){
+    stop("product_code doit \uEAtre un vecteur, un dataframe ou NULL.")
+  }
+
+  # Message d'erreur si exporter n'est pas un vecteur ou NULL
+  if (!is.null(exporter) & !is.vector(exporter)){
+    stop("exporter doit \uEAtre un vecteur ou NULL.")
+  }
+
+  # Message d'erreur si importer n'est pas un vecteur ou NULL
+  if (!is.null(importer) & !is.vector(importer)){
+    stop("importer doit \uEAtre un vecteur ou NULL.")
+  }
+
+  # Message d'erreur si path_output n'est pas une chaine de caractère
+  if (!is.null(path_output) & !is.character(path_output)){
+    stop("path_output doit \uEAtre une cha\uEEne de caract\uE8re.")
+  }
+
+  # Message d'erreur si path_output n'est pas un csv
+  if (!is.null(path_output) & !stringr::str_detect(path_output, ".csv$")){
+    stop("path_output doit \uEAtre un fichier csv.")
+  }
+
+  # Message d'erreur si path_country_codes n'est pas une chaine de caractère
+  if (!is.null(path_country_codes) & !is.character(path_country_codes)){
+    stop("path_country_codes doit \uEAtre une cha\uEEne de caract\uE8re.")
+  }
+
+  # Message d'erreur si path_country_codes n'est pas un fichier csv
+  if (!is.null(path_country_codes) & !stringr::str_detect(path_country_codes, ".csv$")){
+    stop("path_country_codes doit \uEAtre un fichier csv.")
+  }
+
 
   # Stocke les noms des fichiers BACI (toutes les années)
   vector_baci_name <-
@@ -76,7 +134,8 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
     baci_folder |>
     list.files(pattern = regex_years, full.names = TRUE)
 
-  # Si product_code est un dataframe, on ne garde que les codes HS6 (part du principe que le dataframe contient une colonne 'code' car créé par la fonction 'extract_product")
+  # Si product_code est un dataframe, on ne garde que les codes HS6
+  # (part du principe que le dataframe contient une colonne 'code' car créé par la fonction 'extract_product")
   if (is.data.frame(product_code)){
     product_code <- unique(product_code$code)
   }
@@ -88,6 +147,17 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
 
     # Appliquer la fonction import_baci_file à chaque élément du vecteur vector_baci_path
     purrr::pmap(vector_baci_path, product_code, exporter, importer, import_baci_file) |>
+
+    purrr::map(
+      vector_baci_path,
+      \(file_path) import_baci_file(
+        path_baci_file = file_path,
+        product_code = product_code,
+        exporter = exporter,
+        importer = importer,
+        path_country_codes = path_country_codes
+      )
+    )
 
     # Collapser les dataframes en un seul
     purrr::list_rbind()

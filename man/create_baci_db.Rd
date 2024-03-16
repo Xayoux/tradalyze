@@ -8,10 +8,11 @@ create_baci_db(
   baci_folder,
   year_start = NULL,
   year_end = NULL,
-  product_code,
+  product_code = NULL,
   exporter = NULL,
   importer = NULL,
-  path_output = NULL
+  path_output = NULL,
+  path_country_codes = NULL
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ create_baci_db(
 \item{importer}{vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.}
 
 \item{path_output}{Chemin où sauvegarder le dataframe. Si non spécifié, le dataframe ne sera pas sauvegardé.}
+
+\item{path_country_codes}{Chemin du fichier country_codes.csv pour formater le dataframe. Si non spécifié, le dataframe ne sera pas formaté.}
 }
 \value{
 Un dataframe contenant les données de la base de données BACI importée et filtrée.

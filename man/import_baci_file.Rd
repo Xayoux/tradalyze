@@ -8,7 +8,8 @@ import_baci_file(
   path_baci_file,
   product_code = NULL,
   exporter = NULL,
-  importer = NULL
+  importer = NULL,
+  path_country_codes = NULL
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ import_baci_file(
 \item{exporter}{vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe}
 
 \item{importer}{vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.}
+
+\item{path_country_codes}{Chemin du fichier country_codes.csv pour formater le dataframe. Si non spécifié, le dataframe ne sera pas formaté.}
 }
 \value{
 Un dataframe contenant les données du fichier BACI importé et filtré.
