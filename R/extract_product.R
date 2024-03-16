@@ -4,30 +4,34 @@
 #' @param codes Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.
 #' @param path_output Chemin d'acces au fichier de sortie. Doit etre un fichier .xlsx ou .csv.
 #' @param export Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.
+#' @param return_df Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.
 #'
 #' @return Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaites ainsi que leur description.
 #' @export
 #'
 #' @examples # Pas d'exemple disponible.
-extract_product <- function(path_product_code, codes, path_output, export = TRUE){
+extract_product <- function(path_product_code, codes, path_output, export = TRUE,
+                            return_df = TRUE){
 
   # Genere une erreur si path_product_code n'est pas un fichier .csv ou .xlsx
-  if (!stringr::str_detect(path_output) %in% c(".xlsx$", ".csv$")) {
-    stop("path_output doit etre un fichier .xlsx ou .csv")
+  if (!stringr::str_detect(path_output, ".xlsx$|.csv$")) {
+    stop("path_output doit \uEAtre un fichier .xlsx ou .csv")
   }
 
   # Genere une erreur si path_product_code ou path_output n'est pas une chaine de caractere
   if (!is.character(path_product_code)) {
-    stop("path_product_code doit etre une chaine de caractere")
+    stop("path_product_code doit \uEAtre une cha\uEEne de caract\uE8re")
   }
   if (!is.character(path_output)) {
-    stop("path_output doit etre une chaine de caractere")
+    stop("path_output doit \uEAtre une cha\uEEne de caract\uE8re")
   }
+
 
   # Importe le fichier contenant tous les codes produits HS6
   df_product_code <-
     path_product_code |>
     readr::read_csv()
+
 
   # Creer une expression reguliere pour ne garder que les codes HS6 voulus
   regex_codes <-
@@ -42,10 +46,11 @@ extract_product <- function(path_product_code, codes, path_output, export = TRUE
     # Cree une seule chaine de caractere ou chaque code est separe par indiquant ainsi un ou exclusif
     stringr::str_c(collapse = "|")
 
+
   # Filtre le dataframe pour ne garder que les codes HS6 voulus
   df_product_code <-
     df_product_code |>
-    dplyr::filter(stringr::str_detect(df_product_code, regex_codes))
+    dplyr::filter(stringr::str_detect(code, regex_codes))
 
   if (export == TRUE){
     # Exporte le dataframe dans le format souhaite
@@ -58,6 +63,8 @@ extract_product <- function(path_product_code, codes, path_output, export = TRUE
     }
   }
 
-  # Retourne le dataframe
-  return(df_product_code)
+  # Retourne le dataframe si return_df = TRUE
+  if (return_df == TRUE){
+    return(df_product_code)
+  }
 }

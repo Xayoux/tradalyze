@@ -4,7 +4,13 @@
 \alias{extract_product}
 \title{Fonction qui permet de creer un fichier xlsx ou csv contenant tous les codes hs6 souhaites ainsi que leur description.}
 \usage{
-extract_product(path_product_code, codes, path_output, export = TRUE)
+extract_product(
+  path_product_code,
+  codes,
+  path_output,
+  export = TRUE,
+  return_df = TRUE
+)
 }
 \arguments{
 \item{path_product_code}{Chemin d'acces au fichier contenant tous les codes produits HS6 (disponible dans le dossier BACI)}
@@ -14,6 +20,8 @@ extract_product(path_product_code, codes, path_output, export = TRUE)
 \item{path_output}{Chemin d'acces au fichier de sortie. Doit etre un fichier .xlsx ou .csv.}
 
 \item{export}{Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.}
+
+\item{return_df}{Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.}
 }
 \value{
 Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaites ainsi que leur description.
