@@ -8,6 +8,7 @@
 #' @param importer vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.
 #' @param path_output Chemin où sauvegarder le dataframe. Si non spécifié, le dataframe ne sera pas sauvegardé.
 #' @param path_country_codes Chemin du fichier country_codes.csv pour formater le dataframe. Si non spécifié, le dataframe ne sera pas formaté.
+#' @param return_df Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.
 #'
 #' @return Un dataframe contenant les données de la base de données BACI importée et filtrée.
 #' @export
@@ -15,7 +16,8 @@
 #' @examples # Pas d'exemple pour cette fonction.
 create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
                            product_code = NULL, exporter = NULL, importer = NULL,
-                           path_output = NULL, path_country_codes = NULL){
+                           path_output = NULL, path_country_codes = NULL,
+                           return_df = TRUE){
 
   # Message d'erreur si baci_folder n'est pas une chaine de caractère
   if (!is.character(baci_folder)){
@@ -167,9 +169,10 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
       readr::write_csv(path_output)
   }
 
-
-  # Retourner le dataframe
-  return(df_baci)
+  # Retourner le dataframe si return_df = TRUE
+  if (return_df == TRUE){
+    return(df_baci)
+  }
 }
 
 
