@@ -146,8 +146,6 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
     vector_baci_path |>
 
     # Appliquer la fonction import_baci_file à chaque élément du vecteur vector_baci_path
-    purrr::pmap(vector_baci_path, product_code, exporter, importer, import_baci_file) |>
-
     purrr::map(
       vector_baci_path,
       \(file_path) import_baci_file(
@@ -157,7 +155,7 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
         importer = importer,
         path_country_codes = path_country_codes
       )
-    )
+    ) |>
 
     # Collapser les dataframes en un seul
     purrr::list_rbind()
