@@ -1,8 +1,9 @@
 #' Fonction qui permet de creer un fichier xlsx ou csv contenant tous les codes hs6 souhaites ainsi que leur description.
 #'
-#' @param path_product_code Chemin d'acces au fichier contenant tous les codes produits HS6 (disponible dans le dossier BACI)
-#' @param codes Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.
+#' @param codes_vector Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.
 #' @param path_output Chemin d'acces au fichier de sortie. Doit etre un fichier .xlsx ou .csv.
+#' @param revision_origin Un caractere indiquant la revision des codes HS d'origine. Par defaut, revision_origin = "HS22". Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
+#' @param revision_destination Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = "HS92". Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
 #' @param export Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.
 #' @param return_df Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.
 #'
@@ -10,58 +11,225 @@
 #' @export
 #'
 #' @examples # Pas d'exemple disponible.
-extract_product <- function(path_product_code, codes, path_output, export = TRUE,
-                            return_df = TRUE){
+extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
+                            revision_destination = "HS92",
+                            export = TRUE, return_df = TRUE){
 
-  # Genere une erreur si path_product_code n'est pas un fichier .csv ou .xlsx
+
+# Générer des erreurs si les paramètres sont mal remplis ------------------
+
+    # Genere une erreur si path_product_code n'est pas un fichier .csv ou .xlsx
   if (!stringr::str_detect(path_output, ".xlsx$|.csv$")) {
     stop("path_output doit \uEAtre un fichier .xlsx ou .csv")
   }
 
-  # Genere une erreur si path_product_code ou path_output n'est pas une chaine de caractere
-  if (!is.character(path_product_code)) {
-    stop("path_product_code doit \uEAtre une cha\uEEne de caract\uE8re")
-  }
+  # Genere une erreur si path_output n'est pas une chaine de caractere
   if (!is.character(path_output)) {
     stop("path_output doit \uEAtre une cha\uEEne de caract\uE8re")
   }
 
+  # Génère une erreur si revision_origin n'est pas un caractère
+  if (!is.character(revision_origin)){
+    stop("revision_origine doit \uEAtre un caract\uE8re.")
+  }
 
-  # Importe le fichier contenant tous les codes produits HS6
-  df_product_code <-
-    path_product_code |>
-    readr::read_csv()
+  # génère une erreur si revision_origin n'est pas un des caractères suivants
+  if (!revision_origin %in% c("HS22", "HS92", "HS96", "HS02", "HS07", "HS12", "HS17")){
+    stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS22', 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'.")
+  }
 
+  # génère une erreur si revision_destination n'est pas un caractère
+  if (!is.character(revision_destination)){
+    stop("revision_destination doit \uEAtre un caract\uE8re.")
+  }
+
+  # Génère une erreur si revision_destination n'est pas un des caractères suivants
+  if (!revision_destination %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17")){
+    stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'.")
+  }
+
+
+# Sélectionner la db de codes HS à utiliser -------------------------------
+
+  # Si revision_origin = "HS22", utiliser la base de donnée product_codes_HS22_V202401.rda du package
+  if (revision_origin == "HS22"){
+    df_product_code <- analyse.competitivite::product_codes_HS22_V202401
+  }
+
+  # Sinon si revision_origin = "HS92", utiliser la base de donnée product_codes_HS92_V202401.rda du package
+  else if (revision_origin == "HS92"){
+    df_product_code <- analyse.competitivite::product_codes_HS92_V202401
+  }
+
+  # Sinon si revision_origin = "HS96", utiliser la base de donnée product_codes_HS96_V202401.rda du package
+  else if (revision_origin == "HS96"){
+    df_product_code <- analyse.competitivite::product_codes_HS96_V202401
+  }
+
+  # Sinon si revision_origin = "HS02", utiliser la base de donnée product_codes_HS02_V202401.rda du package
+  else if (revision_origin == "HS02"){
+    df_product_code <- analyse.competitivite::product_codes_HS02_V202401
+  }
+
+  # Sinon si revision_origin = "HS07", utiliser la base de donnée product_codes_HS07_V202401.rda du package
+  else if (revision_origin == "HS07"){
+    df_product_code <- analyse.competitivite::product_codes_HS07_V202401
+  }
+
+  # Sinon si revision_origin = "HS12", utiliser la base de donnée product_codes_HS12_V202401.rda du package
+  else if (revision_origin == "HS12"){
+    df_product_code <- analyse.competitivite::product_codes_HS12_V202401
+  }
+
+  # Sinon si revision_origin = "HS17", utiliser la base de donnée product_codes_HS17_V202401.rda du package
+  else if (revision_origin == "HS17"){
+    df_product_code <- analyse.competitivite::product_codes_HS17_V202401
+  }
+
+# sélectionner la db de codes hs à utiliser pour les description des codes de destination -------------------------------
+  if (revision_destination == "HS22"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS22_V202401
+  }
+
+  else if (revision_destination == "HS92"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS92_V202401
+  }
+
+  else if (revision_destination == "HS96"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS96_V202401
+  }
+
+  else if (revision_destination == "HS02"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS02_V202401
+  }
+
+  else if (revision_destination == "HS07"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS07_V202401
+  }
+
+  else if (revision_destination == "HS12"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS12_V202401
+  }
+
+  else if (revision_destination == "HS17"){
+    df_product_code_destination <- analyse.competitivite::product_codes_HS17_V202401
+  }
+
+
+# Garder uniquement les produits voulus -----------------------------------
 
   # Creer une expression reguliere pour ne garder que les codes HS6 voulus
   regex_codes <-
 
-    # Prendre le vecteur de codes que l'on souhaite avoir
-    codes |>
+    # Prendre le vecteur de codes/chapitres que l'on souhaite avoir
+    codes_vector |>
 
-    # Ajouter devant chaque code pour indiquer qu'on souhaite tous les codes qui commencent par ces chiffres
+    # Ajouter '^' devant chaque code pour indiquer qu'on souhaite tous les codes qui commencent par ces chiffres
     # Permet de trier par chapitres et pas uniquement par code precis
     purrr::map(~glue::glue("^{.}")) |>
 
-    # Cree une seule chaine de caractere ou chaque code est separe par indiquant ainsi un ou exclusif
+    # Créer une seule chaine de caractère où chaque code est séparé par '|' indiquant ainsi un 'ou' exclusif
     stringr::str_c(collapse = "|")
 
 
-  # Filtre le dataframe pour ne garder que les codes HS6 voulus
+  # créer la variable destination_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
+  if (revision_destination == "HS17"){
+    destination_concordance <- "HS5"
+  }
+
+  else if (revision_destination == "HS12"){
+    destination_concordance <- "HS4"
+  }
+
+  else if (revision_destination == "HS07"){
+    destination_concordance <- "HS3"
+  }
+
+  else if (revision_destination == "HS02"){
+    destination_concordance <- "HS2"
+  }
+
+  else if (revision_destination == "HS96"){
+    destination_concordance <- "HS1"
+  }
+
+  else if (revision_destination == "HS92"){
+    destination_concordance <- "HS0"
+  }
+
+  # Créer la variable origin_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
+  if (revision_origin == "HS17"){
+    origin_concordance <- "HS5"
+  }
+
+  else if (revision_origin == "HS12"){
+    origin_concordance <- "HS4"
+  }
+
+  else if (revision_origin == "HS07"){
+    origin_concordance <- "HS3"
+  }
+
+  else if (revision_origin == "HS02"){
+    origin_concordance <- "HS2"
+  }
+
+  else if (revision_origin == "HS96"){
+    origin_concordance <- "HS1"
+  }
+
+  else if (revision_origin == "HS92"){
+    origin_concordance <- "HS0"
+  }
+
+
+  # Créer le dataframe qui va contenir les codes voulus, leur correspondance avec la révision voulue et leur description
   df_product_code <-
     df_product_code |>
-    dplyr::filter(stringr::str_detect(code, regex_codes))
 
+    # Filtre le dataframe pour ne garder que les codes HS6 voulus
+    dplyr::filter(stringr::str_detect(code, regex_codes)) |>
+
+    # Utilise la fonction concord_hs pour trouver la correspondance entre les codes HS6 voulus et la révision voulue
+    dplyr::mutate(
+      code_destination = concordance::concord_hs(
+        sourcevar = code,
+        origin = origin_concordance,
+        destination = destination_concordance,
+        dest.digit = 6
+      )
+    ) |>
+
+    # Ajoute la description des codes de destination
+    left_join(df_product_code_destination, by = c("code_destination" = "code"))
+
+
+
+  # Renommer la colonne code par la valeur de la variable revision_origin
+  colnames(df_product_code)[colnames(df_product_code) == "code"] <- revision_origin
+
+  # Renommer la colonne code_destination par la valeur de la variable revision_destination
+  colnames(df_product_code)[colnames(df_product_code) == "code_destination"] <- revision_destination
+
+  # Renommer la colonne description par la valeur de la variable revision_origin
+  colnames(df_product_code)[colnames(df_product_code) == "description.x"] <- glue::glue("description_{revision_origin}")
+
+  # Renommer la colonne description par la valeur de la variable revision_destination
+  colnames(df_product_code)[colnames(df_product_code) == "description.y"] <- glue::glue("description_{revision_destination}")
+
+
+  # Exporte le dataframe si export = TRUE
   if (export == TRUE){
     # Exporte le dataframe dans le format souhaite
     if (stringr::str_detect(path_output, ".xlsx$")){
       df_product_code |>
-        openxlsx::write.xlsx(path_output, row.names = FALSE)
+        openxlsx::write.xlsx(path_output, rowNames = FALSE)
     } else if (stringr::str_detect(path_output, ".csv$")) {
       df_product_code |>
         readr::write_csv(path_output)
     }
   }
+
 
   # Retourne le dataframe si return_df = TRUE
   if (return_df == TRUE){

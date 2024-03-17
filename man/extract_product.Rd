@@ -5,19 +5,22 @@
 \title{Fonction qui permet de creer un fichier xlsx ou csv contenant tous les codes hs6 souhaites ainsi que leur description.}
 \usage{
 extract_product(
-  path_product_code,
-  codes,
+  codes_vector,
   path_output,
+  revision_origin = "HS22",
+  revision_destination = "HS92",
   export = TRUE,
   return_df = TRUE
 )
 }
 \arguments{
-\item{path_product_code}{Chemin d'acces au fichier contenant tous les codes produits HS6 (disponible dans le dossier BACI)}
-
-\item{codes}{Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.}
+\item{codes_vector}{Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.}
 
 \item{path_output}{Chemin d'acces au fichier de sortie. Doit etre un fichier .xlsx ou .csv.}
+
+\item{revision_origin}{Un caractere indiquant la revision des codes HS d'origine. Par defaut, revision_origin = "HS22". Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
+
+\item{revision_destination}{Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = "HS92". Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
 
 \item{export}{Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.}
 

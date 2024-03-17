@@ -12,6 +12,7 @@ RoxygenNote: 7.3.1
 URL: https://github.com/Xayoux/analyse.competitivite
 BugReports: https://github.com/Xayoux/analyse.competitivite/issues
 Imports: 
+    concordance,
     dplyr,
     glue,
     openxlsx,

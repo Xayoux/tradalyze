@@ -12,7 +12,8 @@ create_baci_db(
   exporter = NULL,
   importer = NULL,
   path_output = NULL,
-  path_country_codes = NULL
+  path_country_codes = NULL,
+  return_df = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ create_baci_db(
 \item{path_output}{Chemin où sauvegarder le dataframe. Si non spécifié, le dataframe ne sera pas sauvegardé.}
 
 \item{path_country_codes}{Chemin du fichier country_codes.csv pour formater le dataframe. Si non spécifié, le dataframe ne sera pas formaté.}
+
+\item{return_df}{Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.}
 }
 \value{
 Un dataframe contenant les données de la base de données BACI importée et filtrée.

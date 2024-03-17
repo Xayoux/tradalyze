@@ -150,7 +150,7 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
     # Appliquer la fonction import_baci_file à chaque élément du vecteur vector_baci_path
     purrr::map(
       vector_baci_path,
-      \(file_path) import_baci_file(
+      \(file_path) analyse.competitivite::import_baci_file(
         path_baci_file = file_path,
         product_code = product_code,
         exporter = exporter,
