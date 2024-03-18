@@ -24,12 +24,13 @@ devtools::install_github("Xayoux/analyse.competitivite")
 
 Pour utiliser ce package, vous aurez besoin de télécharger les données
 de la base de donnée BACI (Base pour l’Analyse du Commerce
-International) du CEPII :
-<http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37>
+International) du
+[CEPII](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
 
-Afin de pouvoir effectuerfaire correspondre les codes HS de la
-nomenclature la plus récente à une autre nomenclature, vous aurez
-également besoin de télécharger le package `concordance` depuis
+Afin de pouvoir faire correspondre les codes HS de la nomenclature la
+plus récente à une autre nomenclature, vous aurez également besoin de
+télécharger le package
+[concordance](https://github.com/insongkim/concordance.git) depuis
 [GitHub](https://github.com/insongkim/concordance.git) avec :
 
 ``` r
@@ -43,4 +44,6 @@ devtools::install_github("insongkim/concordance")
   complets, des numéros de chapitres ou de section d’une nomenclature
   donnée, de créer la liste des codes HS utilisés, ainsi que d’afficher
   leur description. Il est possible d’établir la correspondance entre
-  ces codes et ceux d’une autre nomenclature.
+  ces codes et ceux d’une autre nomenclature. Cette fonctionnalité
+  utilise la fonction `concord_hs` du package
+  [concordance](https://github.com/insongkim/concordance.git).
