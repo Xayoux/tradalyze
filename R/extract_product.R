@@ -61,7 +61,7 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
 
 
 
-# Sélectionner la db de codes HS à utiliser -------------------------------
+# Sélectionner la db de codes HS à utiliser pour la sélection de codes--------
 
   # Si revision_origin = "HS22", utiliser la base de donnée product_codes_HS22_V202401.rda du package
   if (revision_origin == "HS22"){
@@ -100,19 +100,15 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
 
 
 
-
-# Garder uniquement les produits voulus -----------------------------------
+# Création du fichier contenant les codes ---------------------------------
 
   # Creer une expression reguliere pour ne garder que les codes HS6 voulus
   regex_codes <-
-
     # Prendre le vecteur de codes/chapitres que l'on souhaite avoir
     codes_vector |>
-
     # Ajouter '^' devant chaque code pour indiquer qu'on souhaite tous les codes qui commencent par ces chiffres
     # Permet de trier par chapitres et pas uniquement par code precis
     purrr::map(~glue::glue("^{.}")) |>
-
     # Créer une seule chaine de caractère où chaque code est séparé par '|' indiquant ainsi un 'ou' exclusif
     stringr::str_c(collapse = "|")
 
@@ -120,14 +116,13 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
   # Créer le dataframe qui va contenir les codes voulus et leur description
   df_product_code <-
     df_product_code |>
-
     # Filtre le dataframe pour ne garder que les codes HS6 voulus
     dplyr::filter(stringr::str_detect(code, regex_codes))
 
 
   # Si correspondance = TRUE : faire la correspondance entre les deux révisions voulues
   if(correspondance == TRUE){
-    # sélectionner la db de codes hs à utiliser pour les description des codes de destination -------------------------------
+    # sélectionner la db de codes hs à utiliser pour les description des codes de destination
     if (revision_destination == "HS22"){
       df_product_code_destination <- analyse.competitivite::product_codes_HS22_V202401
     }
@@ -252,7 +247,9 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
     if (stringr::str_detect(path_output, ".xlsx$")){
       df_product_code |>
         openxlsx::write.xlsx(path_output, rowNames = FALSE)
-    } else if (stringr::str_detect(path_output, ".csv$")) {
+    }
+
+    else if (stringr::str_detect(path_output, ".csv$")) {
       df_product_code |>
         readr::write_csv(path_output)
     }
