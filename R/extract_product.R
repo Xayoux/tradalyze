@@ -3,17 +3,18 @@
 #' @param codes_vector Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.
 #' @param path_output Chemin d'acces au fichier de sortie. Doit etre un fichier .xlsx ou .csv.
 #' @param revision_origin Un caractere indiquant la revision des codes HS d'origine. Par defaut, revision_origin = "HS22". Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
-#' @param revision_destination Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = "HS92". Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
+#' @param revision_destination Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = NULL. Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
 #' @param export Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.
 #' @param return_df Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.
+#' @param correspondance Un booleen qui indique si l'on souhaite convertir les codes HS6 données en des codes HS6 d'une autre révision. Par defaut, correspondance = FALSE
 #'
 #' @return Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaites ainsi que leur description.
 #' @export
 #'
 #' @examples # Pas d'exemple disponible.
 extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
-                            revision_destination = "HS92",
-                            export = TRUE, return_df = TRUE){
+                            revision_destination = NULL,
+                            export = TRUE, return_df = TRUE, correspondance = FALSE){
 
 
 # Générer des erreurs si les paramètres sont mal remplis ------------------
@@ -38,15 +39,26 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
     stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS22', 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'.")
   }
 
-  # génère une erreur si revision_destination n'est pas un caractère
-  if (!is.character(revision_destination)){
-    stop("revision_destination doit \uEAtre un caract\uE8re.")
+  # génère une erreur si revision_destination n'est pas un caractère ou NULL
+  if (!is.character(revision_destination) | !is.null(revision_destination)){
+    stop("revision_destination doit \uEAtre un caract\uE8re ou NULL.")
   }
 
-  # Génère une erreur si revision_destination n'est pas un des caractères suivants
-  if (!revision_destination %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17")){
+  # Génère une erreur si revision_destination n'est pas un des caractères suivants s'il s'agit d'un caractère
+  if (is.character(revision_destination) & !revision_destination %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17")){
     stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'.")
   }
+
+  # Génère une erreur si correspondance = TRUE et revision_destination n'est pas un des caractères suivants
+  if (correspondance == TRUE & is.null(revision_destination)){
+    stop("Si correspondance = TRUE, revision_destination ne peut pas \uEAtre NULL.")
+  }
+
+  # Génère un avertissement si correspondance = FALSE et revision_destination n'est pas NULL
+  if (correspondance == FALSE & !is.null(revision_destination)){
+    warning("Si correspondance = FALSE, revision_destination doit \uEAtre NULL.")
+  }
+
 
 
 # Sélectionner la db de codes HS à utiliser -------------------------------
@@ -86,34 +98,7 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
     df_product_code <- analyse.competitivite::product_codes_HS17_V202401
   }
 
-# sélectionner la db de codes hs à utiliser pour les description des codes de destination -------------------------------
-  if (revision_destination == "HS22"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS22_V202401
-  }
 
-  else if (revision_destination == "HS92"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS92_V202401
-  }
-
-  else if (revision_destination == "HS96"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS96_V202401
-  }
-
-  else if (revision_destination == "HS02"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS02_V202401
-  }
-
-  else if (revision_destination == "HS07"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS07_V202401
-  }
-
-  else if (revision_destination == "HS12"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS12_V202401
-  }
-
-  else if (revision_destination == "HS17"){
-    df_product_code_destination <- analyse.competitivite::product_codes_HS17_V202401
-  }
 
 
 # Garder uniquement les produits voulus -----------------------------------
@@ -132,90 +117,133 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
     stringr::str_c(collapse = "|")
 
 
-  # créer la variable destination_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
-  if (revision_destination == "HS17"){
-    destination_concordance <- "HS5"
-  }
-
-  else if (revision_destination == "HS12"){
-    destination_concordance <- "HS4"
-  }
-
-  else if (revision_destination == "HS07"){
-    destination_concordance <- "HS3"
-  }
-
-  else if (revision_destination == "HS02"){
-    destination_concordance <- "HS2"
-  }
-
-  else if (revision_destination == "HS96"){
-    destination_concordance <- "HS1"
-  }
-
-  else if (revision_destination == "HS92"){
-    destination_concordance <- "HS0"
-  }
-
-  # Créer la variable origin_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
-  if (revision_origin == "HS17"){
-    origin_concordance <- "HS5"
-  }
-
-  else if (revision_origin == "HS12"){
-    origin_concordance <- "HS4"
-  }
-
-  else if (revision_origin == "HS07"){
-    origin_concordance <- "HS3"
-  }
-
-  else if (revision_origin == "HS02"){
-    origin_concordance <- "HS2"
-  }
-
-  else if (revision_origin == "HS96"){
-    origin_concordance <- "HS1"
-  }
-
-  else if (revision_origin == "HS92"){
-    origin_concordance <- "HS0"
-  }
-
-
-  # Créer le dataframe qui va contenir les codes voulus, leur correspondance avec la révision voulue et leur description
+  # Créer le dataframe qui va contenir les codes voulus et leur description
   df_product_code <-
     df_product_code |>
 
     # Filtre le dataframe pour ne garder que les codes HS6 voulus
-    dplyr::filter(stringr::str_detect(code, regex_codes)) |>
-
-    # Utilise la fonction concord_hs pour trouver la correspondance entre les codes HS6 voulus et la révision voulue
-    dplyr::mutate(
-      code_destination = concordance::concord_hs(
-        sourcevar = code,
-        origin = origin_concordance,
-        destination = destination_concordance,
-        dest.digit = 6
-      )
-    ) |>
-
-    # Ajoute la description des codes de destination
-    left_join(df_product_code_destination, by = c("code_destination" = "code"))
+    dplyr::filter(stringr::str_detect(code, regex_codes))
 
 
+  # Si correspondance = TRUE : faire la correspondance entre les deux révisions voulues
+  if(correspondance == TRUE){
+    # sélectionner la db de codes hs à utiliser pour les description des codes de destination -------------------------------
+    if (revision_destination == "HS22"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS22_V202401
+    }
 
-  # Renommer la colonne code par la valeur de la variable revision_origin
-  colnames(df_product_code)[colnames(df_product_code) == "code"] <- revision_origin
+    else if (revision_destination == "HS92"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS92_V202401
+    }
 
-  # Renommer la colonne code_destination par la valeur de la variable revision_destination
-  colnames(df_product_code)[colnames(df_product_code) == "code_destination"] <- revision_destination
+    else if (revision_destination == "HS96"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS96_V202401
+    }
 
-  # Renommer la colonne description par la valeur de la variable revision_origin
-  colnames(df_product_code)[colnames(df_product_code) == "description.x"] <- glue::glue("description_{revision_origin}")
+    else if (revision_destination == "HS02"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS02_V202401
+    }
 
-  # Renommer la colonne description par la valeur de la variable revision_destination
-  colnames(df_product_code)[colnames(df_product_code) == "description.y"] <- glue::glue("description_{revision_destination}")
+    else if (revision_destination == "HS07"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS07_V202401
+    }
+
+    else if (revision_destination == "HS12"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS12_V202401
+    }
+
+    else if (revision_destination == "HS17"){
+      df_product_code_destination <- analyse.competitivite::product_codes_HS17_V202401
+    }
+
+    # créer la variable destination_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
+    if (revision_destination == "HS17"){
+      destination_concordance <- "HS5"
+    }
+
+    else if (revision_destination == "HS12"){
+      destination_concordance <- "HS4"
+    }
+
+    else if (revision_destination == "HS07"){
+      destination_concordance <- "HS3"
+    }
+
+    else if (revision_destination == "HS02"){
+      destination_concordance <- "HS2"
+    }
+
+    else if (revision_destination == "HS96"){
+      destination_concordance <- "HS1"
+    }
+
+    else if (revision_destination == "HS92"){
+      destination_concordance <- "HS0"
+    }
+
+    # Créer la variable origin_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
+    if (revision_origin == "HS17"){
+      origin_concordance <- "HS5"
+    }
+
+    else if (revision_origin == "HS12"){
+      origin_concordance <- "HS4"
+    }
+
+    else if (revision_origin == "HS07"){
+      origin_concordance <- "HS3"
+    }
+
+    else if (revision_origin == "HS02"){
+      origin_concordance <- "HS2"
+    }
+
+    else if (revision_origin == "HS96"){
+      origin_concordance <- "HS1"
+    }
+
+    else if (revision_origin == "HS92"){
+      origin_concordance <- "HS0"
+    }
+
+    # Créer le dataframe qui va contenir les codes voulus, leur correspondance avec la révision voulue et leur description
+    df_product_code <-
+      df_product_code |>
+      # Utilise la fonction concord_hs pour trouver la correspondance entre les codes HS6 voulus et la révision voulue
+      dplyr::mutate(
+        code_destination = concordance::concord_hs(
+          sourcevar = code,
+          origin = origin_concordance,
+          destination = destination_concordance,
+          dest.digit = 6
+        )
+      ) |>
+      # Ajoute la description des codes de destination
+      left_join(df_product_code_destination, by = c("code_destination" = "code"))
+
+
+
+    # Renommer la colonne code par la valeur de la variable revision_origin
+    colnames(df_product_code)[colnames(df_product_code) == "code"] <- revision_origin
+
+    # Renommer la colonne code_destination par la valeur de la variable revision_destination
+    colnames(df_product_code)[colnames(df_product_code) == "code_destination"] <- revision_destination
+
+    # Renommer la colonne description par la valeur de la variable revision_origin
+    colnames(df_product_code)[colnames(df_product_code) == "description.x"] <- glue::glue("description_{revision_origin}")
+
+    # Renommer la colonne description par la valeur de la variable revision_destination
+    colnames(df_product_code)[colnames(df_product_code) == "description.y"] <- glue::glue("description_{revision_destination}")
+  }
+
+  # Si correspondance = FALSE : juste renommer les deux variables pour inclure la révision
+  else{
+    # Renommer la colonne code par la valeur de la variable revision_origin
+    colnames(df_product_code)[colnames(df_product_code) == "code"] <- revision_origin
+
+    # Renommer la colonne description par la valeur de la variable revision_origin
+    colnames(df_product_code)[colnames(df_product_code) == "description"] <- glue::glue("description_{revision_origin}")
+  }
 
 
   # Exporte le dataframe si export = TRUE

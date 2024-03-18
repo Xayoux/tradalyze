@@ -8,9 +8,10 @@ extract_product(
   codes_vector,
   path_output,
   revision_origin = "HS22",
-  revision_destination = "HS92",
+  revision_destination = NULL,
   export = TRUE,
-  return_df = TRUE
+  return_df = TRUE,
+  correspondance = FALSE
 )
 }
 \arguments{
@@ -20,11 +21,13 @@ extract_product(
 
 \item{revision_origin}{Un caractere indiquant la revision des codes HS d'origine. Par defaut, revision_origin = "HS22". Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
 
-\item{revision_destination}{Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = "HS92". Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
+\item{revision_destination}{Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = NULL. Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
 
 \item{export}{Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.}
 
 \item{return_df}{Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.}
+
+\item{correspondance}{Un booleen qui indique si l'on souhaite convertir les codes HS6 données en des codes HS6 d'une autre révision. Par defaut, correspondance = FALSE}
 }
 \value{
 Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaites ainsi que leur description.
