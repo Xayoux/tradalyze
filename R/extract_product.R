@@ -19,7 +19,7 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
 
 # Générer des erreurs si les paramètres sont mal remplis ------------------
 
-    # Genere une erreur si path_product_code n'est pas un fichier .csv ou .xlsx
+    # Genere une erreur si path_output n'est pas un fichier .csv ou .xlsx
   if (!stringr::str_detect(path_output, ".xlsx$|.csv$")) {
     stop("path_output doit \uEAtre un fichier .xlsx ou .csv")
   }
@@ -40,13 +40,15 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
   }
 
   # génère une erreur si revision_destination n'est pas un caractère ou NULL
-  if (!is.character(revision_destination) | !is.null(revision_destination)){
+  if (!is.character(revision_destination) & !is.null(revision_destination)){
     stop("revision_destination doit \uEAtre un caract\uE8re ou NULL.")
   }
 
   # Génère une erreur si revision_destination n'est pas un des caractères suivants s'il s'agit d'un caractère
-  if (is.character(revision_destination) & !revision_destination %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17")){
-    stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'.")
+    if (!is.null(revision_destination)){
+    if (!revision_destination %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17") & is.character(revision_destination)){
+      stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'. Ou bien doit \uEAtre NULL")
+    }
   }
 
   # Génère une erreur si correspondance = TRUE et revision_destination n'est pas un des caractères suivants
@@ -152,6 +154,10 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
     }
 
     # créer la variable destination_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
+    if (revision_destination == "HS22"){ # Uniquement si version du package de github
+      destination_concordance <- "HS6"
+    }
+
     if (revision_destination == "HS17"){
       destination_concordance <- "HS5"
     }
@@ -177,6 +183,10 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
     }
 
     # Créer la variable origin_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
+    if (revision_origin == "HS22"){ # uniquement si version du package de github
+      origin_concordance <- "HS6"
+    }
+
     if (revision_origin == "HS17"){
       origin_concordance <- "HS5"
     }
@@ -214,7 +224,7 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
         )
       ) |>
       # Ajoute la description des codes de destination
-      left_join(df_product_code_destination, by = c("code_destination" = "code"))
+      dplyr::left_join(df_product_code_destination, by = c("code_destination" = "code"))
 
 
 
