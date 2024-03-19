@@ -9,7 +9,7 @@
 #' @param add_iso3 Un booléen indiquant si les codes iso3 doivent être ajoutés aux codes pays (TRUE par défaut).
 #' @param calc_uv Un booléen indiquant si les valeurs unitaires doivent être calculées (TRUE par défaut).
 #' @param path_output Un chemin d'accès vers le fichier csv de sortie (Si NULL alors aucun fichier n'est créé).
-#' @param return_output Un booléen indiquant si le dataframe doit être retourné (FALSE par défaut).
+#' @param return_output Un booléen indiquant si le dataframe doit être retourné (FALSE par défaut). Attention si TRUE, le processus peut prendre très longtemps.
 #'
 #' @return Un dataframe et/ou un fichier csv selon les paramètres.
 #' @export
@@ -233,6 +233,6 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
 # Return df_baci si return = TRUE -----------------------------------------
   if (return_output == TRUE){
     return(df_baci |>
-             collect())
+             arrow::collect())
   }
 }

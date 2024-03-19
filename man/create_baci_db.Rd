@@ -36,11 +36,14 @@ create_baci_db(
 
 \item{path_output}{Un chemin d'accès vers le fichier csv de sortie (Si NULL alors aucun fichier n'est créé).}
 
-\item{return_output}{Un booléen indiquant si le dataframe doit être retourné (FALSE par défaut).}
+\item{return_output}{Un booléen indiquant si le dataframe doit être retourné (FALSE par défaut). Attention si TRUE, le processus peut prendre très longtemps.}
 }
 \value{
 Un dataframe et/ou un fichier csv selon les paramètres.
 }
 \description{
 Fonction pour créer un dataframe/fichier csv à partir des données BACI, filtré selon les critères voulus.
+}
+\examples{
+# Pas d'exemple pour cette fonction.
 }
