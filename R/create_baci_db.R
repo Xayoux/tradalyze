@@ -189,13 +189,15 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
         analyse.competitivite::country_codes_V202401,
         by = c("i" = "country_code")
       ) |>
-      dplyr::rename(exporter = country_iso3) |>
+      dplyr::select(-i) |>
+      dplyr::rename(i = country_iso3) |>
       # Ajouter les iso3 correspondant aux importateurs
       dplyr::left_join(
         analyse.competitivite::country_codes_V202401,
         by = c("j" = "country_code")
       ) |>
-      dplyr::rename(importer = country_iso3) |>
+      dplyr::select(-j) |>
+      dplyr::rename(j = country_iso3) |>
       # Sommer les lignes si doublons dans codes iso3 pour exportateur et importateur sur le m^me produit et même année
       # Cas si un code iso pour plusieurs codes pays
       dplyr::summarize(
