@@ -16,6 +16,7 @@ Imports:
     concordance,
     dplyr,
     glue,
+    matrixStats,
     openxlsx,
     purrr,
     readr,
