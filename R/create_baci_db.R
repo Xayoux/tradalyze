@@ -201,7 +201,7 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
       # Sommer les lignes si doublons dans codes iso3 pour exportateur et importateur sur le m^me produit et même année
       # Cas si un code iso pour plusieurs codes pays
       dplyr::summarize(
-        .by = c(t, exporter, importer, k),
+        .by = c(t, i, j, k),
         v = sum(v, na.rm = TRUE),
         q = sum(q, na.rm = TRUE)
       ) |>
