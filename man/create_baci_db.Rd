@@ -2,45 +2,45 @@
 % Please edit documentation in R/create_baci_db.R
 \name{create_baci_db}
 \alias{create_baci_db}
-\title{Fonction qui permet de créer la databse BACI à partir des fichiers BACI et des critères choisis.}
+\title{Fonction pour créer un dataframe/fichier csv à partir des données BACI, filtré selon les critères voulus.}
 \usage{
 create_baci_db(
-  baci_folder,
+  folder_baci,
   year_start = NULL,
   year_end = NULL,
-  product_code = NULL,
-  exporter = NULL,
-  importer = NULL,
+  hs_codes = NULL,
+  exporter_codes = NULL,
+  importer_codes = NULL,
+  add_iso3 = TRUE,
+  calc_uv = TRUE,
   path_output = NULL,
-  path_country_codes = NULL,
-  return_df = TRUE
+  return_output = FALSE
 )
 }
 \arguments{
-\item{baci_folder}{Chemin du dossier contenant les fichiers BACI (Ne modifier aucun nom par rapport à ce qui est téléchargé sur le site de la CEPII : http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37).}
+\item{folder_baci}{Un chemin d'accès vers le dossier contenant les fichiers BACI (ne pas modifier les noms des fichiers par rapport aux noms originaux).}
 
-\item{year_start}{Année de début de la base de données. Si non spécifiée, l'année la plus ancienne sera utilisée.}
+\item{year_start}{Année de début de la base de données (Si NULL alors la date de départ sera l'année la plus ancienne des fichiers BACI).}
 
-\item{year_end}{Année de fin de la base de données. Si non spécifiée, l'année la plus récente sera utilisée.}
+\item{year_end}{Année de fin de la base de données (Si NULL alors la date de fin sera l'année la plus récente des fichiers BACI).}
 
-\item{product_code}{vecteur de codes HS6 utilisés pour filtrer le dataframe. Peut également être le dataframe créé par la fonction 'extract_product'.}
+\item{hs_codes}{Un vecteur de caractères indiquant les codes HS à garder (Si NULL alors tous les codes HS sont gardés).}
 
-\item{exporter}{vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.}
+\item{exporter_codes}{Un vecteur de numériques indiquant les codes pays exportateurs à garder (Si NULL alors tous les pays exportateurs sont gardés).}
 
-\item{importer}{vecteur de numéros de pays (correspondance avec codes ISO3 trouvables dans le fichier country_codes.csv) utilisés pour filtrer le dataframe.}
+\item{importer_codes}{Un vecteur de numériques indiquant les codes pays importateurs à garder (Si NULL alors tous les pays importateurs sont gardés).}
 
-\item{path_output}{Chemin où sauvegarder le dataframe. Si non spécifié, le dataframe ne sera pas sauvegardé.}
+\item{add_iso3}{Un booléen indiquant si les codes iso3 doivent être ajoutés aux codes pays (TRUE par défaut).}
 
-\item{path_country_codes}{Chemin du fichier country_codes.csv pour formater le dataframe. Si non spécifié, le dataframe ne sera pas formaté.}
+\item{calc_uv}{Un booléen indiquant si les valeurs unitaires doivent être calculées (TRUE par défaut).}
 
-\item{return_df}{Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.}
+\item{path_output}{Un chemin d'accès vers le fichier csv de sortie (Si NULL alors aucun fichier n'est créé).}
+
+\item{return_output}{Un booléen indiquant si le dataframe doit être retourné (FALSE par défaut).}
 }
 \value{
-Un dataframe contenant les données de la base de données BACI importée et filtrée.
+Un dataframe et/ou un fichier csv selon les paramètres.
 }
 \description{
-Fonction qui permet de créer la databse BACI à partir des fichiers BACI et des critères choisis.
-}
-\examples{
-# Pas d'exemple pour cette fonction.
+Fonction pour créer un dataframe/fichier csv à partir des données BACI, filtré selon les critères voulus.
 }
