@@ -14,7 +14,7 @@
 #' @return Un dataframe et/ou un fichier csv selon les paramètres.
 #' @export
 #'
-#' @examples
+#' @examples # Pas d'exemple pour cette fonction.
 create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
                            hs_codes = NULL, exporter_codes = NULL,
                            importer_codes = NULL, add_iso3 = TRUE,
@@ -78,7 +78,7 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
 # Définir les fichiers BACI de travail ------------------------------------
   # Stocke les noms des fichiers BACI (toutes les années) + trie
   vector_baci_name <-
-    baci_folder |>
+    folder_baci |>
     list.files(full.names = FALSE, pattern = "^BACI") |>
     sort()
 
@@ -121,7 +121,7 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
 
   # Filtrer les chemin vers BACI pour ne garder que ceux qui correspondent aux années voulues
   vector_baci_path <-
-    baci_folder |>
+    folder_baci |>
     list.files(pattern = regex_years, full.names = TRUE)
 
 
@@ -134,9 +134,9 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
   # v en str par mesure de précaution si ca fait la même chose que pour q
   schema_baci <-
     arrow::schema(
-      arrow::Field$create("t", type = arrow::int64()),
-      arrow::Field$create("i", type = arrow::int64()),
-      arrow::Field$create("j", type = arrow::int64()),
+      arrow::Field$create("t", type = arrow::int32()),
+      arrow::Field$create("i", type = arrow::int32()),
+      arrow::Field$create("j", type = arrow::int32()),
       arrow::Field$create("k", type = arrow::string()),
       arrow::Field$create("v", type = arrow::string()),
       arrow::Field$create("q", type = arrow::string())
@@ -223,12 +223,16 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
 
 # Enregistrer au format csv si path_output est un chemin d'accès ----------
   if (!is.null(path_output)){
-    arrow::write_csv_arrow(df_baci, path_output)
+    df_baci <-
+      df_baci |>
+      arrow::as_arrow_table() |>
+      arrow::write_csv_arrow(path_output)
   }
 
 
 # Return df_baci si return = TRUE -----------------------------------------
   if (return_output == TRUE){
-    return(df_baci)
+    return(df_baci |>
+             collect())
   }
 }
