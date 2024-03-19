@@ -28,17 +28,10 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
   if (missing(folder_baci)){
     stop("Le chemin vers le dossier BACI doit être renseigné")
   }
-<<<<<<< HEAD
-  fezfez
-  # Message d'erreur si baci_folder n'est pas un dossier
-  if (!dir.exists(baci_folder)){
-    stop("baci_folder doit \uEAtre un dossier ou exister.")
-=======
 
   # Vérifier si year_start est NULL ou un nombre entier
   if (!is.null(year_start) & !is.numeric(year_start)){
     stop("year_start doit être NULL ou un nombre entier")
->>>>>>> baci-db-arrow
   }
 
   # Vérifier si year_end est NULL ou un nombre entier
