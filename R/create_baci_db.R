@@ -23,7 +23,7 @@ create_baci_db <- function(baci_folder, year_start = NULL, year_end = NULL,
   if (!is.character(baci_folder)){
     stop("baci_folder doit \uEAtre une cha\uEEne de caract\uE8re.")
   }
-
+  fezfez
   # Message d'erreur si baci_folder n'est pas un dossier
   if (!dir.exists(baci_folder)){
     stop("baci_folder doit \uEAtre un dossier ou exister.")
