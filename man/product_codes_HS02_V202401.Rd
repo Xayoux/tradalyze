@@ -3,7 +3,7 @@
 \docType{data}
 \name{product_codes_HS02_V202401}
 \alias{product_codes_HS02_V202401}
-\title{Codes H6 de la nomenclature 2002 utilisés dans la base de donnée BACI sur la période 2002-2022}
+\title{Codes HS6 de la nomenclature 2002 utilisés dans la base de donnée BACI sur la période 2002-2022}
 \format{
 \subsection{\code{product_codes_HS92_V202401}}{
 
@@ -21,6 +21,6 @@ Un dataframe avec 5223 lignes et 2 colonnes :
 product_codes_HS02_V202401
 }
 \description{
-Codes H6 de la nomenclature 2002 utilisés dans la base de donnée BACI sur la période 2002-2022
+Codes HS6 de la nomenclature 2002 utilisés dans la base de donnée BACI sur la période 2002-2022
 }
 \keyword{datasets}
