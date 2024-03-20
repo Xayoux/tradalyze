@@ -2,4 +2,3 @@
 
 export(create_baci_db)
 export(extract_product)
-export(import_baci_file)

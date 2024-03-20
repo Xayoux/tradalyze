@@ -30,8 +30,6 @@ create_baci_db(
 
 \item{importer_codes}{Un vecteur de numériques indiquant les codes pays importateurs à garder (Si NULL alors tous les pays importateurs sont gardés).}
 
-\item{add_iso3}{Un booléen indiquant si les codes iso3 doivent être ajoutés aux codes pays (TRUE par défaut).}
-
 \item{calc_uv}{Un booléen indiquant si les valeurs unitaires doivent être calculées (TRUE par défaut).}
 
 \item{path_output}{Un chemin d'accès vers le fichier csv de sortie (Si NULL alors aucun fichier n'est créé).}
