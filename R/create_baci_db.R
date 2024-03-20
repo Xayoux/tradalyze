@@ -6,7 +6,6 @@
 #' @param hs_codes Un vecteur de caractères indiquant les codes HS à garder (Si NULL alors tous les codes HS sont gardés).
 #' @param exporter_codes Un vecteur de numériques indiquant les codes pays exportateurs à garder (Si NULL alors tous les pays exportateurs sont gardés).
 #' @param importer_codes Un vecteur de numériques indiquant les codes pays importateurs à garder (Si NULL alors tous les pays importateurs sont gardés).
-#' @param add_iso3 Un booléen indiquant si les codes iso3 doivent être ajoutés aux codes pays (TRUE par défaut).
 #' @param calc_uv Un booléen indiquant si les valeurs unitaires doivent être calculées (TRUE par défaut).
 #' @param path_output Un chemin d'accès vers le fichier csv de sortie (Si NULL alors aucun fichier n'est créé).
 #' @param return_output Un booléen indiquant si le dataframe doit être retourné (FALSE par défaut). Attention si TRUE, le processus peut prendre très longtemps.
@@ -52,11 +51,6 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
   # Vérifier si importer_codes est NULL ou des numériques
   if (!is.null(importer_codes) & !is.numeric(importer_codes)){
     stop("importer_codes doit être NULL, un numeric ou un vecteur de numériques")
-  }
-
-  # Vérifier si add_iso3 est un booléen
-  if (!is.logical(add_iso3)){
-    stop("add_iso3 doit être un booléen")
   }
 
   # Vérifier si calc_uv est un booléen
@@ -180,8 +174,7 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
 
 # Mise en forme de la base ------------------------------------------------
 
-  # Si add_iso3 = TRUE : ajouter les codes iso3 aux pays i et j pour plus de lisibilité
-  if (add_iso3 == TRUE){
+  # Ajouter les codes iso3 dans les variables exporter et importer
     df_baci <-
       df_baci |>
       # Ajouter les iso3 correspondant aux exportateurs
@@ -189,28 +182,13 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
         analyse.competitivite::country_codes_V202401,
         by = c("i" = "country_code")
       ) |>
-      dplyr::select(-i) |>
-      dplyr::rename(i = country_iso3) |>
+      dplyr::rename(exporter = country_iso3) |>
       # Ajouter les iso3 correspondant aux importateurs
       dplyr::left_join(
         analyse.competitivite::country_codes_V202401,
         by = c("j" = "country_code")
       ) |>
-      dplyr::select(-j) |>
-      dplyr::rename(j = country_iso3) |>
-      # Sommer les lignes si doublons dans codes iso3 pour exportateur et importateur sur le m^me produit et même année
-      # Cas si un code iso pour plusieurs codes pays
-      dplyr::summarize(
-        .by = c(t, i, j, k),
-        v = sum(v, na.rm = TRUE),
-        q = sum(q, na.rm = TRUE)
-      ) |>
-      # Remplace les valeurs 0 par NA (si 1 seule valeur NA lors de la somme des lignes ca devient un 0)
-      dplyr::mutate(
-        v = if_else(v == 0, NA, v),
-        q = if_else(q == 0, NA, q)
-      )
-  }
+      dplyr::rename(importer = country_iso3)
 
 
 # Calcul valeurs unitaires ------------------------------------------------
