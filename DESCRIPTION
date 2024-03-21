@@ -14,13 +14,17 @@ BugReports: https://github.com/Xayoux/analyse.competitivite/issues
 Imports: 
     arrow,
     concordance,
+    curl,
     dplyr,
     glue,
+    here,
     matrixStats,
     openxlsx,
     purrr,
     readr,
-    stringr
+    rvest,
+    stringr,
+    utils
 Depends: 
     R (>= 2.10)
 LazyData: true

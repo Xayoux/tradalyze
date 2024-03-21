@@ -213,6 +213,6 @@ create_baci_db <- function(folder_baci, year_start = NULL, year_end = NULL,
 # Return df_baci si return = TRUE -----------------------------------------
   if (return_output == TRUE){
     return(df_baci |>
-             arrow::collect())
+             dplyr::collect())
   }
 }
