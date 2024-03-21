@@ -3,3 +3,4 @@
 export(create_baci_db)
 export(dl_baci)
 export(extract_product)
+export(gamme_ijkt_fontagne_1997)
