@@ -3,6 +3,7 @@
 export(create_baci_db)
 export(dl_baci)
 export(extract_product)
+export(gamme_ijkt_berthou_2011)
 export(gamme_ijkt_fontagne_1997)
 export(gamme_ijkt_gaulier_2006)
 export(weighted_geomean)
