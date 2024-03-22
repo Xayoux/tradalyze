@@ -10,5 +10,5 @@
 #'
 #' @examples # Pas d'exemple.
 weighted_geomean <- function(x, w, ...){
-  return(prod(x^w, ...)^(1/sum(w)))
+  return(prod(x^w, ...)^(1/sum(w, ...)))
 }
