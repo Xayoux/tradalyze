@@ -9,7 +9,8 @@ Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the 
 \usage{
 gamme_ijkt_fontagne_1997(
   path_baci_parquet,
-  alpha = 0.15,
+  alpha_H = 0.15,
+  alpha_L = alpha_H,
   years = NULL,
   codes = NULL,
   exporters = NULL,
@@ -20,6 +21,10 @@ gamme_ijkt_fontagne_1997(
 }
 \arguments{
 \item{path_baci_parquet}{Chemin vers le dossier où la base BACI est stockée en format parquet.}
+
+\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 0.15 (uv > 1.15 * medf_ref).}
+
+\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 0.15 (uv < 1/0.85 * medf_ref).}
 
 \item{years}{Les années à considérer (un vecteur de numériques). Par défaut, toutes les années sont prises en compte.}
 
@@ -32,8 +37,6 @@ gamme_ijkt_fontagne_1997(
 \item{return_output}{Un booléen qui permet de retourner le résultat de la fonction. Par défaut, la fonction ne retourne rien.}
 
 \item{path_output}{Chemin vers le dossier où le résultat de la fonction doit être stocké en format parquet par année. Par défaut, le résultat n'est pas stocké.}
-
-\item{seuil}{Le seuil qui permet de déterminer les gammes (généralement 0.15 ou 0.25). Par défaut, le seuil est de 0.15.}
 }
 \value{
 Un dataframe / dossier parquet contenant les données de la base BACI avec une colonne supplémentaire indiquant la gamme des produits sur chaque marché (produit-pays).

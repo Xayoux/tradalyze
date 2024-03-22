@@ -1,7 +1,8 @@
 #' Fonction qui permet de déterminer la gamme des produits sur chaque marché (produit-pays) en utilisant la méthode développée par Fontagné et al (1997)
 #'
 #' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée en format parquet.
-#' @param seuil Le seuil qui permet de déterminer les gammes (généralement 0.15 ou 0.25). Par défaut, le seuil est de 0.15.
+#' @param alpha_H Seuil pour déterminer les gammes hautes. Par défaut, 0.15 (uv > 1.15 * medf_ref).
+#' @param alpha_L Seuil pour déterminer les gammes basses. Par défaut, 0.15 (uv < 1/0.85 * medf_ref).
 #' @param years Les années à considérer (un vecteur de numériques). Par défaut, toutes les années sont prises en compte.
 #' @param codes Les codes des produits à considérer (un vecteur de chaînes de caractères). Par défaut, tous les produits sont pris en compte.
 #' @param exporters Les pays exportateurs à considérer (un vecteur de chaînes de caractères ou de numériques). Par défaut, tous les pays sont pris en compte.
@@ -14,7 +15,8 @@
 #'
 #' @examples # Pas d'exemples?
 #' @source Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the single market (No. 97-07). Paris: CEPII.
-gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha = 0.15,
+gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 0.15,
+                                     alpha_L = alpha_H,
                                      years = NULL, codes = NULL,
                                      exporters = NULL, importers = NULL,
                                      return_output = FALSE, path_output = NULL){
@@ -69,14 +71,17 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha = 0.15,
       dplyr::filter(importer %in% importers)
   }
 
-  # Définir le seuil permettant de déterminer les gammes
-  seuil <- 1 + alpha
-  seuil <-
-    seuil |>
+  # Définir le seuil permettant de déterminer les gammes hautes
+  seuil_H <- 1 + alpha_H
+  seuil_H <-
+    seuil_H |>
     arrow::arrow_array() # Passage en format arrow pour être sur qu'arrow comprenne
 
-  print(seuil)
-
+  # Définir le seuil permettant de déterminer les gammes basses
+  seuil_L <- 1 + alpha_L
+  seuil_L <-
+    seuil_L |>
+    arrow::arrow_array() # Passage en format arrow pour être sur qu'arrow comprenne
 
   # Définition des gammes ---------------------------------------------------
   df_baci <-
@@ -87,7 +92,8 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha = 0.15,
     # Calculer les valeurs unitaires
     dplyr::mutate(
       uv = v / q,
-      seuil = seuil
+      seuil_H = seuil_H,
+      seuil_L = seuil_L
     ) |>
     # Collecter (passage en R format) pour permettre le calcul de la médianne pondérée
     dplyr::collect() |>
@@ -102,9 +108,9 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha = 0.15,
     dplyr::mutate(
       gamme_fontagne_1997 =
         dplyr::case_when(
-          uv > (seuil) * med_ref_t_k ~ "H",
-          uv < (1 / (seuil)) * med_ref_t_k ~ "L",
-          uv > (1 / (seuil)) * med_ref_t_k &  uv < (1 + seuil) * med_ref_t_k ~ "M"
+          uv > (seuil_H) * med_ref_t_k ~ "H",
+          uv < (1 / (seuil_L)) * med_ref_t_k ~ "L",
+          uv > (1 / (seuil_L)) * med_ref_t_k &  uv < (1 + seuil_H) * med_ref_t_k ~ "M"
         )
     )
 
