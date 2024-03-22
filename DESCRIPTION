@@ -19,10 +19,12 @@ Imports:
     glue,
     here,
     matrixStats,
+    modi,
     openxlsx,
     purrr,
     readr,
     rvest,
+    stats,
     stringr,
     utils
 Depends: 
