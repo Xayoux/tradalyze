@@ -16,7 +16,8 @@ gamme_ijkt_fontagne_1997(
   exporters = NULL,
   importers = NULL,
   return_output = FALSE,
-  path_output = NULL
+  path_output = NULL,
+  remove = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ gamme_ijkt_fontagne_1997(
 \item{return_output}{Un booléen qui permet de retourner le résultat de la fonction. Par défaut, la fonction ne retourne rien.}
 
 \item{path_output}{Chemin vers le dossier où le résultat de la fonction doit être stocké en format parquet par année. Par défaut, le résultat n'est pas stocké.}
+
+\item{remove}{Un booléen qui permet de supprimer tous les fichiers commençant par t= dans le path_output s'il est non nul. Par défaut, FALSE. Evite les confusions si plusieurs utilisations dans le même dossier.}
 }
 \value{
 Un dataframe / dossier parquet contenant les données de la base BACI avec une colonne supplémentaire indiquant la gamme des produits sur chaque marché (produit-pays).
