@@ -15,6 +15,7 @@ Imports:
     arrow,
     concordance,
     curl,
+    data.table,
     dplyr,
     glue,
     here,
