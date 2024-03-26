@@ -2,9 +2,9 @@
 % Please edit documentation in R/gamme_ijkt_fontagne_1997.R
 \name{gamme_ijkt_fontagne_1997}
 \alias{gamme_ijkt_fontagne_1997}
-\title{Fonction qui permet de déterminer la gamme des produits sur chaque marché (produit-pays) en utilisant la méthode développée par Fontagné et al (1997)}
+\title{Calcul de gamme de valeurs unitaires selon la méthode de Fontagné, Freudenberg et Péridy (1997)}
 \source{
-Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the single market (No. 97-07). Paris: CEPII.
+\href{http://cepii.fr/PDF_PUB/wp/1997/wp1997-07.pdf}{Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the single market (No. 97-07). Paris: CEPII.}
 }
 \usage{
 gamme_ijkt_fontagne_1997(
@@ -13,8 +13,6 @@ gamme_ijkt_fontagne_1997(
   alpha_L = alpha_H,
   years = NULL,
   codes = NULL,
-  exporters = NULL,
-  importers = NULL,
   return_output = FALSE,
   path_output = NULL,
   remove = FALSE
@@ -23,17 +21,13 @@ gamme_ijkt_fontagne_1997(
 \arguments{
 \item{path_baci_parquet}{Chemin vers le dossier où la base BACI est stockée en format parquet.}
 
-\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 0.15 (uv > 1.15 * medf_ref).}
+\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 0.15 (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.}
 
-\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 0.15 (uv < 1/0.85 * medf_ref).}
+\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 0.15 (uv < 1/0.85 * medf_ref). Peut être un vecteur de numériques. Doit avoir le même nombre de valeurs que alpha_H.}
 
 \item{years}{Les années à considérer (un vecteur de numériques). Par défaut, toutes les années sont prises en compte.}
 
 \item{codes}{Les codes des produits à considérer (un vecteur de chaînes de caractères). Par défaut, tous les produits sont pris en compte.}
-
-\item{exporters}{Les pays exportateurs à considérer (un vecteur de chaînes de caractères ou de numériques). Par défaut, tous les pays sont pris en compte.}
-
-\item{importers}{Les pays importateurs à considérer (un vecteur de chaînes de caractères ou de numériques). Par défaut, tous les pays sont pris en compte.}
 
 \item{return_output}{Un booléen qui permet de retourner le résultat de la fonction. Par défaut, la fonction ne retourne rien.}
 
@@ -43,10 +37,51 @@ gamme_ijkt_fontagne_1997(
 }
 \value{
 Un dataframe / dossier parquet contenant les données de la base BACI avec une colonne supplémentaire indiquant la gamme des produits sur chaque marché (produit-pays).
+\describe{
+\item{i}{code iso numérique de l'importateur}
+\item{j}{code iso numérique de l'exportateur}
+\item{k}{code HS6 du produit (en chaîne de caractère)}
+\item{t}{année}
+\item{v}{valeur totale du flux}
+\item{q}{quantité du flux}
+\item{exporter}{code iso3 de l'exportateur}
+\item{importer}{code iso3 de l'importateur}
+\item{uv}{valeur unitaire du flux}
+\item{med_ref_ijkt}{médiane pondérée par les valeurs unitaires des flux pour chaque groupe {t, k}}
+\item{gamme_fontagne_1997_...}{gamme de la valeur unitaire du flux (H, M, L)}
+\item{seuil_H_...}{seuil pour déterminer les gammes hautes}
+\item{seuil_L_...}{seuil pour déterminer les gammes basses}
+}
 }
 \description{
-Fonction qui permet de déterminer la gamme des produits sur chaque marché (produit-pays) en utilisant la méthode développée par Fontagné et al (1997)
+Détermine la gamme à laquelle chaque flux appartient grâce à sa valeur unitaire. Les trois gammes possibles sont
+Low (L), Medium (M) et High (H). La méthode est basée sur la comparaison des valeurs
+unitaires avec la médiane pondérée par la valeur commerciale des valeurs unitaires pour chaque marché (produit-pays).
+}
+\details{
+Les gammes sont déterminées de la façon suivante : la valeur unitaire de chaque flux élémentaire
+est comparée à la médiane pondérée par la valeur commerciale des valeurs unitaires pour chaque marché (produit-pays).
+Si la valeur unitaire est supérieure à (1 + \code{alpha_H}) fois la médiane pondérée, le flux est considéré comme High (H).
+Si la valeur unitaire est inférieure à (1 / \code{alpha_L}) fois la médiane pondérée, le flux est considéré comme Low (L).
+Sinon, le flux est considéré comme Medium (M).
+
+Selon cette méthologie, les seuils basiques sont \code{alpha_H} = 0.15 et \code{alpha_L} = 0.15 (Un écart de 15\% à la médianne pondérée).
+
+Cette fonction permet de performer le calcul de gammes pour différents seuils de manière simultanée.
+Chaque nom de variable dont la valeur varie selon le seuil est renommée en incorporant la valeur du seuil
+pour permettre de distinguer les différentes gammes.
+
+Cette dynamique des noms permer d'utiliser les données parquet créées pour performer
+d'autres calculs de gammes (à l'exception des gammes de fontagné et al 2007).
+
+Cette fonction utilise les fonctionnalité du package \href{https://arrow.apache.org/docs/r/}{arrow}
+pour performer des calculs sans avoir à charger BACI en mémoire. Cependant le calcul de la médianne
+pondérée nécessite le passage de la base (uniquement la partie nécessaire) en mémoire.
+Si la base est trop importante, les calculs peuvent prendre un certain temps, voir entrainer
+un problème de mémoire de l'ordinateur. Si cela arrive, il est conseillé de
+réduire le nombre d'années sur lesquelles la fonction doit calculer les gammes
+et d'exécuter plusieurs fois la fonction jusqu'à avoir toutes les années voulues.
 }
 \examples{
-# Pas d'exemples?
+# Pas d'exemples.
 }
