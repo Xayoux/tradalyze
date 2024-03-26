@@ -21,36 +21,50 @@ gamme_ijkt_fontagne_1997(
 \arguments{
 \item{path_baci_parquet}{Chemin vers le dossier où la base BACI est stockée en format parquet.}
 
-\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 0.15 (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.}
+\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 0.15
+(uv > 1.15 * medf_ref). Peut être un vecteur de numériques.}
 
-\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 0.15 (uv < 1/0.85 * medf_ref). Peut être un vecteur de numériques. Doit avoir le même nombre de valeurs que alpha_H.}
+\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 0.15
+(uv < 1/0.85 * medf_ref). Peut être un vecteur de numériques.
+Doit avoir le même nombre de valeurs que alpha_H.}
 
-\item{years}{Les années à considérer (un vecteur de numériques). Par défaut, toutes les années sont prises en compte.}
+\item{years}{Les années à considérer (un vecteur de numériques). Par défaut,
+toutes les années sont prises en compte.}
 
-\item{codes}{Les codes des produits à considérer (un vecteur de chaînes de caractères). Par défaut, tous les produits sont pris en compte.}
+\item{codes}{Les codes des produits à considérer (un vecteur de chaînes de
+caractères). Par défaut, tous les produits sont pris en compte.}
 
-\item{return_output}{Un booléen qui permet de retourner le résultat de la fonction. Par défaut, la fonction ne retourne rien.}
+\item{return_output}{Un booléen qui permet de retourner le résultat de la
+fonction. Par défaut, la fonction ne retourne rien.}
 
-\item{path_output}{Chemin vers le dossier où le résultat de la fonction doit être stocké en format parquet par année. Par défaut, le résultat n'est pas stocké.}
+\item{path_output}{Chemin vers le dossier où le résultat de la fonction doit
+être stocké en format parquet par année. Par défaut, le résultat n'est pas stocké.}
 
-\item{remove}{Un booléen qui permet de supprimer tous les fichiers commençant par t= dans le path_output s'il est non nul. Par défaut, FALSE. Evite les confusions si plusieurs utilisations dans le même dossier.}
+\item{remove}{Un booléen qui permet de supprimer tous les fichiers commençant
+par t= dans le path_output s'il est non nul. Par défaut, FALSE.
+Evite les confusions si plusieurs utilisations dans le même dossier.}
 }
 \value{
-Un dataframe / dossier parquet contenant les données de la base BACI avec une colonne supplémentaire indiquant la gamme des produits sur chaque marché (produit-pays).
+Un dataframe / dossier parquet contenant les données de la base BACI
+avec une colonne supplémentaire indiquant la gamme des produits sur chaque
+marché (produit-pays).
 \describe{
-\item{i}{code iso numérique de l'importateur}
-\item{j}{code iso numérique de l'exportateur}
-\item{k}{code HS6 du produit (en chaîne de caractère)}
-\item{t}{année}
-\item{v}{valeur totale du flux}
-\item{q}{quantité du flux}
-\item{exporter}{code iso3 de l'exportateur}
-\item{importer}{code iso3 de l'importateur}
-\item{uv}{valeur unitaire du flux}
-\item{med_ref_ijkt}{médiane pondérée par les valeurs unitaires des flux pour chaque groupe {t, k}}
-\item{gamme_fontagne_1997_...}{gamme de la valeur unitaire du flux (H, M, L)}
-\item{seuil_H_...}{seuil pour déterminer les gammes hautes}
-\item{seuil_L_...}{seuil pour déterminer les gammes basses}
+\item{i}{Code iso numérique de l'importateur}
+\item{j}{Code iso numérique de l'exportateur}
+\item{k}{Code HS6 du produit (en chaîne de caractère)}
+\item{t}{Année}
+\item{v}{Valeur totale du flux en milliers de dollars courants}
+\item{q}{Quantité du flux en tonnes métriques}
+\item{exporter}{Code iso3 de l'exportateur}
+\item{importer}{Code iso3 de l'importateur}
+\item{uv}{Valeur unitaire du flux en milliers de dollars courants/tonne
+métrique}
+\item{med_ref_t_k}{médiane pondérée par le commerce des valeurs unitaires
+des flux pour chaque groupe (t, k)}
+\item{gamme_fontagne_1997_...}{Gamme de la valeur unitaire du flux
+(H, M, L)}
+\item{seuil_H_...}{Seuil pour déterminer les gammes hautes}
+\item{seuil_L_...}{Seuil pour déterminer les gammes basses}
 }
 }
 \description{
@@ -65,19 +79,19 @@ Si la valeur unitaire est supérieure à (1 + \code{alpha_H}) fois la médiane p
 Si la valeur unitaire est inférieure à (1 / \code{alpha_L}) fois la médiane pondérée, le flux est considéré comme Low (L).
 Sinon, le flux est considéré comme Medium (M).
 
-Selon cette méthologie, les seuils basiques sont \code{alpha_H} = 0.15 et \code{alpha_L} = 0.15 (Un écart de 15\% à la médianne pondérée).
+Selon cette méthodologie, les seuils basiques sont \code{alpha_H} = 0.15 et \code{alpha_L} = 0.15 (Un écart de 15\% à la médianne pondérée).
 
 Cette fonction permet de performer le calcul de gammes pour différents seuils de manière simultanée.
 Chaque nom de variable dont la valeur varie selon le seuil est renommée en incorporant la valeur du seuil
 pour permettre de distinguer les différentes gammes.
 
-Cette dynamique des noms permer d'utiliser les données parquet créées pour performer
+Cette dynamique des noms permet d'utiliser les données parquet créées pour effectuer
 d'autres calculs de gammes (à l'exception des gammes de fontagné et al 2007).
 
 Cette fonction utilise les fonctionnalité du package \href{https://arrow.apache.org/docs/r/}{arrow}
-pour performer des calculs sans avoir à charger BACI en mémoire. Cependant le calcul de la médianne
+pour performer des calculs sans avoir à charger BACI en mémoire. Cependant le calcul de la médiane
 pondérée nécessite le passage de la base (uniquement la partie nécessaire) en mémoire.
-Si la base est trop importante, les calculs peuvent prendre un certain temps, voir entrainer
+Si la base est trop importante, les calculs peuvent prendre un certain temps, voir entraîner
 un problème de mémoire de l'ordinateur. Si cela arrive, il est conseillé de
 réduire le nombre d'années sur lesquelles la fonction doit calculer les gammes
 et d'exécuter plusieurs fois la fonction jusqu'à avoir toutes les années voulues.
