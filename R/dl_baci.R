@@ -1,19 +1,37 @@
+#' @title
 #' Télécharger BACI et la transformer en parquet
 #'
 #' @description
-#' Fonction qui permet de télécharger BACI dans la nomenclature voulue (uniquement dernière version disponible).
+#' Fonction qui permet de télécharger BACI dans la nomenclature voulue
+#' (uniquement dernière version disponible).
 #' Les données sont ensuite transformées en fichiers parquet (1 par année).
 #'
-#' @param revision Une chaîne de caractères qui indique la nomenclature voulue (HS92 par défaut). Valeurs possibles : HS92, HS96, HS02, HS07, HS12, HS17, HS22.
-#' @param dl_folder Un chemin d'accès vers le dossier où les données seront téléchargées.
-#' @param rm_csv Un booléen qui indique si les fichiers csv de BACI doivent être supprimés après la transformation en parquet (TRUE par défaut).
+#' @param revision Une chaîne de caractères qui indique la nomenclature voulue
+#' (HS92 par défaut). Valeurs possibles : HS92, HS96, HS02, HS07, HS12, HS17,
+#' HS22.
+#' @param dl_folder Un chemin d'accès vers le dossier où les données seront
+#' téléchargées.
+#' @param rm_csv Un booléen qui indique si les fichiers csv de BACI doivent
+#' être supprimés après la transformation en parquet (TRUE par défaut).
 #'
-#' @return Un dossier parquet par année.
+#' @return Un dossier parquet par année. Les variables de BACI sont les
+#' suivantes :
+#' \describe{
+#'  \item{i}{Code iso numérique de l'importateur}
+#'  \item{j}{Code iso numérique de l'exportateur}
+#'  \item{k}{Code HS6 du produit (en chaîne de caractère)}
+#'  \item{t}{Année}
+#'  \item{v}{Valeur totale du flux en milliers de dollars courants}
+#'  \item{q}{Quantité du flux en tonne métrique}
+#'  \item{exporter}{Code iso3 de l'exportateur}
+#'  \item{importer}{Code iso3 de l'importateur}
+#'  }
 #' @export
 #'
 #' @examples # Pas d'exemple.
 #'
-#' @source Base [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37) du [CEPII](http://www.cepii.fr/CEPII/en/welcome.asp).
+#' @source Base [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
+#' du [CEPII](http://www.cepii.fr/CEPII/en/welcome.asp).
 dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE,
                     dl_zip = FALSE){
 
