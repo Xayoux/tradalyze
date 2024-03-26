@@ -37,17 +37,17 @@ dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE){
   dl_link <- stringr::str_glue("http://www.cepii.fr/DATA_DOWNLOAD/baci/data/BACI_{revision}_V{version}.zip")
 
   # # Tester si le fichier zip de BACI existe déjà
-  # if (!file.exists(here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")))) {
-  #   # Si le fichier zip n'existe pas, télécharger BACI
-  #   curl::multi_download(
-  #     dl_link,
-  #     here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip"))
-  #   )
-  # }
-  #
-  # # Décompresser le fichier zip au même endroit
-  # here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")) |>
-  #   utils::unzip(exdir = dl_folder)
+  if (!file.exists(here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")))) {
+    # Si le fichier zip n'existe pas, télécharger BACI
+    curl::multi_download(
+      dl_link,
+      here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip"))
+    )
+  }
+
+  # Décompresser le fichier zip au même endroit
+  here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")) |>
+    utils::unzip(exdir = dl_folder)
 
   # Récupérer tous les chemins des fichiers BACI csv
   baci_path_vector <-
