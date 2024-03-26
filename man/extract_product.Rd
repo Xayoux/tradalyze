@@ -40,6 +40,7 @@ Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaités ainsi que leur 
 \item{HS...}{codes HS6 de la nomenclature ...}
 \item{description_HS...}{description des codes HS6 de la nomenclature ...}
 }
+}
 \description{
 Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.
 }

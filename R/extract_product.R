@@ -17,6 +17,7 @@
 #' \describe{
 #'   \item{HS...}{codes HS6 de la nomenclature ...}
 #'   \item{description_HS...}{description des codes HS6 de la nomenclature ...}
+#'  }
 #' @export
 #'
 #' @examples # Pas d'exemple disponible.
