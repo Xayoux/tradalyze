@@ -1,59 +1,93 @@
+#' @title
 #' Calcul de gamme selon la méthode de Fontagné, Gaulier & Zignago (2007)
 #'
-#' Calcul des gammes selon la méthode de Fontagné, Gaulier & Zignago (2007). Chaque flux est divisé en une ou deux lignes selon sa/ses gammes.
-#' Avec cette méthode il n'est pas conseillé de performer des calculs de gammes sur un dossier parquet possédant d'autres calculs de gammes, le nombre de
+#' @description
+#' Calcul des gammes selon la méthode de Fontagné, Gaulier & Zignago (2007).
+#' Chaque flux est divisé en une ou deux lignes selon sa/ses gammes.
+#' Avec cette méthode il n'est pas conseillé d'effectuer des calculs de gammes
+#' sur un dossier parquet possédant d'autres calculs de gammes, le nombre de
 #' lignes n'étant pas le même.
 #'
-#' Les gammes sont définies de la façon suivante : un ratio r est calculé pour chaque flux s de la façon suivante :
-#' \eqn{r = UV_s/UV_m} avec \eqn{UV_s} la valeur unitaire du flux s et \eqn{UV_{m}}
-#' la médiane pondérée  par les valeurs commerciales des valeurs unitaires des flux du groupe {t, k}.
+#' @details
+#' Les gammes sont définies de la façon suivante : un ratio r est calculé pour
+#' chaque flux s de la façon suivante :
+#' \eqn{r = UV_s/UV_m} avec \eqn{UV_s} la valeur unitaire du flux s et
+#' \eqn{UV_{m}} la médiane pondérée  par les valeurs commerciales des valeurs
+#' unitaires des flux du groupe {t, k}.
 #'
-#' - Si \eqn{r < 1}, alors la part du flux s dans la gamme Low est \eqn{1 - r^{\alpha}} et la part du flux s dans la gamme Medium est \eqn{r^{\alpha}}.
-#' - Si \eqn{r > 1}, alors la part du flux s dans la gamme High est \eqn{1 - 1/r^{\alpha}} et la part du flux s dans la gamme Medium est \eqn{1/r^{\alpha}}.
+#' - Si \eqn{r < 1}, alors la part du flux s dans la gamme Low est
+#' \eqn{1 - r^{\alpha}} et la part du flux s dans la gamme Medium est
+#' \eqn{r^{\alpha}}.
+#' - Si \eqn{r > 1}, alors la part du flux s dans la gamme High est
+#' \eqn{1 - 1/r^{\alpha}} et la part du flux s dans la gamme Medium est
+#' \eqn{1/r^{\alpha}}.
 #' - Si \eqn{r = 1}, alors la part du flux s dans la gamme Medium est 1.
 #'
-#' \eqn{\alpha} est un paramètre exogène qui va faire varier la répartition entre les gammes. Plus il est petit, plus la part
-#' du commerce dans la gamme moyenne sera grande.
+#' \eqn{\alpha} est un paramètre exogène qui va faire varier la répartition
+#' entre les gammes. Plus il est petit, plus la part du commerce dans la gamme
+#' moyenne sera grande.
 #'
-#' Les flux élémentaires ne sont pas forcément classés dans une uniquement gamme. Un flux peut donc correspondre à une ou deux lignes.
-#' Dans ce cas il faut bien utiliser la variable v_{alpha} qui représente la valeur du flux dans la gamme correspondante et non la variable v qui
-#' représente la valeur totale du flux.
+#' Les flux élémentaires ne sont pas forcément classés dans une uniquement
+#' gamme. Un flux peut donc correspondre à une ou deux lignes. Dans ce cas il
+#' faut bien utiliser la variable v_{alpha} qui représente la valeur du flux
+#' dans la gamme correspondante et non la variable v qui représente la valeur
+#' totale du flux.
 #'
-#' Cette fonction utilise les fonctionnalité du package [arrow](https://arrow.apache.org/docs/r/) pour ne pas charger les données en mémoire.
-#' Cependant, la fonction doit mettre en mémoire la base pour calculer les médianes pondérées avant de la repasser en format arrow.
-#' Si la base sur laquelle les gammes sont calculées est trop imposante pour l'ordinateur, le calcul peut prendre du temps /
-#' être interrompu pour cause de manque de mémoire. Dans ce cas, il est conseillé de réduire le nombre d'années et de
-#' ré-exécuter plusieurs fois la fois pour arriver au bon nombre d'années.
+#' Cette fonction utilise les fonctionnalité du package
+#' [arrow](https://arrow.apache.org/docs/r/) pour ne pas charger les données
+#' en mémoire. Cependant, la fonction doit mettre en mémoire la base pour
+#' calculer les médianes pondérées avant de la repasser en format arrow.
+#' Si la base sur laquelle les gammes sont calculées est trop imposante pour
+#' l'ordinateur, le calcul peut prendre du temps /
+#' être interrompu pour cause de manque de mémoire. Dans ce cas, il est
+#' conseillé de réduire le nombre d'années et de ré-exécuter plusieurs
+#' fois la fonction pour arriver au bon nombre d'années.
 #'
 #'
-#' @param path_baci_parquet Chemin d'accès au fichier parquet contenant les données BACI
-#' @param alpha Valeur de alpha pour le calcul des gammes (paramètre qui va faire varier la répartition entre les gammes)
-#' @param years Années à garder dans la base. Par défaut, toutes les années sont gardées.
-#' @param codes Codes à garder dans la base. Par défaut, tous les codes sont gardés. Code doit être une chaîne de caractères.
-#' @param return_output Un booléen qui permet de retourner le résultat de la fonction. Par défaut, FALSE.
-#' @param path_output Chemin vers le dossier où le résultat de la fonction doit être stocké en format parquet par année. Par défaut, NULL.
-#' @param remove Un booléen qui permet de supprimer tous les fichiers commençant par t= dans le path_output s'il est non nul. Par défaut, FALSE.
+#' @param path_baci_parquet Chemin d'accès au fichier parquet contenant les
+#' données BACI
+#' @param alpha Valeur de alpha pour le calcul des gammes (paramètre qui va
+#' faire varier la répartition entre les gammes)
+#' @param years Années à garder dans la base. Par défaut, toutes les années
+#' sont gardées.
+#' @param codes Codes à garder dans la base. Par défaut, tous les codes sont
+#' gardés. Code doit être une chaîne de caractères.
+#' @param return_output Un booléen qui permet de retourner le résultat de la
+#' fonction. Par défaut, FALSE.
+#' @param path_output Chemin vers le dossier où le résultat de la fonction doit
+#' être stocké en format parquet par année. Par défaut, NULL.
+#' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
+#' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
+#' Evite les confusions si plusieurs utilisations dans le même dossier.
 #'
 #' @source [L.Fontagné, G.Gaulier & S.Zignago (2007),”Specialisation across Varieties within Products and North-South Competition”,CEPII Working Paper, N°2007-06, May](http://www.cepii.fr/PDF_PUB/wp/2007/wp2007-06.pdf)
-#' @return Un dataframe / dossier parquet contenant les données de la base BACI avec les gammes calculées
+#' @return Un dataframe / dossier parquet contenant les données de la base
+#' BACI avec les gammes calculées
 #' \describe{
-#'   \item{i}{code iso numérique de l'importateur}
-#'   \item{j}{code iso numérique de l'exportateur}
-#'   \item{k}{code HS6 du produit (en chaîne de caractère)}
-#'   \item{t}{année}
-#'   \item{v}{valeur totale du flux}
-#'   \item{q}{quantité du flux}
-#'   \item{exporter}{code iso3 de l'exportateur}
-#'   \item{importer}{code iso3 de l'importateur}
-#'   \item{uv}{valeur unitaire du flux}
-#'   \item{alpha_\eqn{\alpha}}{valeur du \eqn{\alpha} utilisée pour le calcul des gammes}
-#'   \item{med_ref_ijkt}{médiane pondérée par les valeurs unitaires des flux pour chaque groupe {t, k}}
-#'   \item{r}{ratio \eqn{r = UV_s/UV_m}}
-#'   \item{share_L_\eqn{\alpha}}{part du flux s dans la gamme Low. Si négatif, le flux n'est pas dans la gamme}
-#'   \item{share_M_\eqn{\alpha}}{part du flux s dans la gamme Medium. Si négatif, le flux n'est pas dans la gamme}
-#'   \item{share_H_\eqn{\alpha}}{part du flux s dans la gamme High. Si négatif, le flux n'est pas dans la gamme}
-#'   \item{v_\eqn{\alpha}}{valeur du flux s dans la gamme correspondante}
-#'   \item{gamme_fontagne_2007_\eqn{\alpha}}{gamme du flux s}
+#'   \item{i}{Code iso numérique de l'importateur}
+#'   \item{j}{Code iso numérique de l'exportateur}
+#'   \item{k}{Code HS6 du produit (en chaîne de caractère)}
+#'   \item{t}{Année}
+#'   \item{v}{Valeur totale du flux en milliers de dollars courants}
+#'   \item{q}{Quantité du flux en tonnes métriques}
+#'   \item{exporter}{Code iso3 de l'exportateur}
+#'   \item{importer}{Code iso3 de l'importateur}
+#'   \item{uv}{Valeur unitaire du flux en milliers de dollars courants par
+#'   tonne métrique}
+#'   \item{alpha_...}{Valeur du \eqn{\alpha} utilisé pour le calcul
+#'   des gammes}
+#'   \item{med_ref_ijkt}{Médiane pondérée par les valeurs unitaires des flux
+#'   pour chaque groupe (t, k)}
+#'   \item{r}{Ratio \eqn{r = UV_s/UV_m}}
+#'   \item{share_L_...}{Part du flux s dans la gamme Low. Si négatif,
+#'   le flux n'est pas dans la gamme}
+#'   \item{share_M_...}{Part du flux s dans la gamme Medium. Si négatif,
+#'   le flux n'est pas dans la gamme}
+#'   \item{share_H_...}{Part du flux s dans la gamme High. Si négatif,
+#'   le flux n'est pas dans la gamme}
+#'   \item{v_...}{Valeur du flux s dans la gamme correspondante en milliers
+#'   de dollars courants}
+#'   \item{gamme_fontagne_2007_...}{Gamme de valeur unitaire du flux s}
 #' }
 #' @export
 #'
