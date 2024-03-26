@@ -2,7 +2,7 @@
 % Please edit documentation in R/extract_product.R
 \name{extract_product}
 \alias{extract_product}
-\title{Fonction qui permet de creer un fichier xlsx ou csv contenant tous les codes hs6 souhaites ainsi que leur description.}
+\title{Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.}
 \usage{
 extract_product(
   codes_vector,
@@ -15,25 +15,33 @@ extract_product(
 )
 }
 \arguments{
-\item{codes_vector}{Un vecteur contenant les codes ou numeros de chapitres que l'on souhaite extraire.}
+\item{codes_vector}{Un vecteur contenant les codes ou numéros de chapitres que l'on souhaite extraire.}
 
-\item{path_output}{Chemin d'acces au fichier de sortie. Doit etre un fichier .xlsx ou .csv.}
+\item{path_output}{Chemin d'accès au fichier de sortie. Doit être un fichier .xlsx ou .csv.}
 
-\item{revision_origin}{Un caractere indiquant la revision des codes HS d'origine. Par defaut, revision_origin = "HS22". Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
+\item{revision_origin}{Un caractère indiquant la révision des codes HS d'origine. Par défaut, revision_origin = "HS22".
+Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
 
-\item{revision_destination}{Un caractere indiquant la revision des codes HS de destination. Par defaut, revision_destination = NULL. Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
+\item{revision_destination}{Un caractère indiquant la révision des codes HS de destination.
+Par defaut, revision_destination = NULL. Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
+Si NULL alors, il n'y a pas de conversion des codes dans une autre révision.}
 
-\item{export}{Un booleen indiquant si l'on souhaite exporter le fichier. Par defaut, export = TRUE.}
+\item{export}{Un booléen indiquant si l'on souhaite exporter le fichier. Par défaut, export = TRUE.}
 
-\item{return_df}{Un booleen indiquant si l'on souhaite retourner le dataframe. Par defaut, return_df = TRUE.}
+\item{return_df}{Un booléen indiquant si l'on souhaite retourner le dataframe. Par défaut, return_df = TRUE.}
 
-\item{correspondance}{Un booleen qui indique si l'on souhaite convertir les codes HS6 données en des codes HS6 d'une autre révision. Par defaut, correspondance = FALSE}
+\item{correspondance}{Un booléen qui indique si l'on souhaite convertir les codes HS6 données
+en des codes HS6 d'une autre révision. Par defaut, correspondance = FALSE. Si TRUE alors, revision_destination ne
+doit pas être NULL (et inversement).}
 }
 \value{
-Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaites ainsi que leur description.
+Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaités ainsi que leur description.
+\describe{
+\item{HS...}{codes HS6 de la nomenclature ...}
+\item{description_HS...}{description des codes HS6 de la nomenclature ...}
 }
 \description{
-Fonction qui permet de creer un fichier xlsx ou csv contenant tous les codes hs6 souhaites ainsi que leur description.
+Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.
 }
 \examples{
 # Pas d'exemple disponible.
