@@ -1,24 +1,141 @@
-#' Fonction pour définir les gammes de prix selon la méthode de Gaulier et al (2006).
+#' @title
+#' Calcul des gammes de valeurs unitaires selon la méthode de Gaulier et al
+#' (2006).
 #'
-#' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée en format parquet.
-#' @param pond Un entier qui permet de définir la méthode de calcul des gammes de prix. Par défaut, pond = 1. Si pond = 1, les gammes sont calculées en utilisant les quantiles pondérés. Si pond = 2, les gammes sont calculées en utilisant les quantiles non pondérés. Si pond = 3, les gammes sont calculées en utilisant les quantiles pondérés et non pondérés.
-#' @param years Les années à considérer (un vecteur de numériques). Par défaut, toutes les années sont prises en compte.
-#' @param codes Les codes des produits à considérer (un vecteur de chaînes de caractères). Par défaut, tous les produits sont pris en compte.
-#' @param exporters Les pays exportateurs à considérer (un vecteur de chaînes de caractères ou de numériques). Par défaut, tous les pays sont pris en compte.
-#' @param importers Les pays importateurs à considérer (un vecteur de chaînes de caractères ou de numériques). Par défaut, tous les pays sont pris en compte.
-#' @param return_output Un booléen qui permet de retourner le résultat de la fonction. Par défaut, la fonction ne retourne rien.
-#' @param path_output Chemin vers le dossier où le résultat de la fonction doit être stocké en format parquet par année. Par défaut, le résultat n'est pas stocké.
-#' @source G. Gaulier, F. Lemoine & D. Ünal-Kesenci (2006), “China's Emergence and the Reorganisation of Trade Flows in Asia”, CEPII Working Paper, n° 2006-05, March.
+#' @description
+#' Cette fonction permet de calculer les gammes de valeurs unitaires des produits
+#' en utilisant la méthode de Gaulier et al. (2006). Trois gammes sont définies :
+#' Low (L), Medium (M) et High (H). La gamme est déterminée en fonction du
+#' percentile de la valeur unitaire du flux commercial.
 #'
-#' @return Un dataframe / dossier parquet contenant les données de la base BACI avec une colonne supplémentaire indiquant la gamme des produits sur chaque marché (produit-pays).
+#' @details
+#' Les gammes sont déterminées de la façon suivante : Si la valeur unitaire du
+#' flux commercial se trouve sous le 33e percentile des valeurs unitaires
+#' (pondéré par le commerce ou non) pour les groupes (t, k), le flux est classé
+#' dans la gamme Low (L). Si la valeur unitaire du flux commercial se trouve au
+#' dessus du 67e percentile des valeurs unitaires (pondéré par le commerce ou non)
+#' pour les groupes (t, k), le flux est classé dans la gamme High (H). Sinon, le
+#' flux est classé dans la gamme Medium (M).
+#'
+#' Cette fonction utilise les fonctionnalité du package
+#' [arrow](https://arrow.apache.org/docs/r/) pour performer des calculs sans
+#' avoir à charger BACI en mémoire. Cependant le calcul de la médiane
+#' pondérée nécessite le passage de la base (uniquement la partie nécessaire)
+#' en mémoire. Si la base est trop importante, les calculs peuvent prendre un
+#' certain temps, voir entraîner un problème de mémoire de l'ordinateur.
+#' Si cela arrive, il est conseillé de réduire le nombre d'années sur lesquelles
+#' la fonction doit calculer les gammes et d'exécuter plusieurs fois la fonction
+#' jusqu'à avoir toutes les années voulues.
+#'
+#' Il est possible d'utiliser cette fonction sur un dossier parquet dans lequel
+#' des calculs de gamme ont déjà été effectués avec d'autres méthodes. Cependant,
+#' il est fortement déconseillé de le faire sur un dossier où les gammes de
+#' prix ont été calculés à partir de la méthode de Fontagné et al. (2007), les
+#' lignes de flux n'étant plus uniques.
+#'
+#' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée
+#' en format parquet.
+#' @param pond Un entier qui permet de définir la méthode de calcul des gammes
+#' de prix. Par défaut, pond = 1. Si pond = 1, les gammes sont calculées en
+#' utilisant les quantiles pondérés. Si pond = 2, les gammes sont calculées en
+#' utilisant les quantiles non pondérés. Si pond = 3, les gammes sont calculées
+#' en utilisant les quantiles pondérés et non pondérés (une variable pour
+#' chaque).
+#' @param years Les années à considérer (un vecteur de numériques). Par défaut,
+#' toutes les années sont prises en compte.
+#' @param codes Les codes des produits à considérer (un vecteur de chaînes de
+#' caractères). Par défaut, tous les produits sont pris en compte.
+#' @param return_output Un booléen qui permet de retourner le résultat de la
+#' fonction. Par défaut, la fonction ne retourne rien.
+#' @param path_output Chemin vers le dossier où le résultat de la fonction doit
+#' être stocké en format parquet par année. Par défaut, le résultat n'est pas
+#' stocké.
+#' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
+#' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
+#' Evite les confusions si plusieurs utilisations dans le même dossier.
+#'
+#'
+#' @source [G. Gaulier, F. Lemoine & D. Ünal-Kesenci (2006), “China's Emergence and the Reorganisation of Trade Flows in Asia”, CEPII Working Paper, n° 2006-05, March.](http://www.cepii.fr/PDF_PUB/wp/2006/wp2006-05.pdf)
+#'
+#' @return Un dataframe / dossier parquet contenant les données de la base BACI
+#' et les gammes calculées. Les variables du dataframe sont les suivantes :
+#' \describe{
+#'  \item{i}{Code iso numérique de l'importateur}
+#'  \item{j}{Code iso numérique de l'exportateur}
+#'  \item{k}{Code HS6 du produit (en chaîne de caractère)}
+#'  \item{t}{Année}
+#'  \item{v}{Valeur totale du flux en milliers de dollars courants}
+#'  \item{q}{Quantité du flux en tonne métrique}
+#'  \item{exporter}{Code iso3 de l'exportateur}
+#'  \item{importer}{Code iso3 de l'importateur}
+#'  \item{uv}{Valeur unitaire du flux en milliers dollars courants par
+#'  tonne métrique}
+#'  \item{percentile_33}{33e percentile non pondéré des valeurs unitaires}
+#'  \item{percentile_67}{67e percentile non pondéré des valeurs unitaires}
+#'  \item{percentile_33_pond}{33e percentile pondéré par le commerce des
+#'  valeurs unitaires}
+#'  \item{percentile_67_pond}{67e percentile pondéré par le commerce des
+#'  valeurs unitaires}
+#'  \item{gamme_gaulier_2006_pond}{Gamme de valeur unitaire du flux commercial,
+#'  selon les percentiles pondérés. Peut être 'L', 'M' ou 'H'}
+#'  \item{gamme_gaulier_2006}{Gamme de valeur unitaire du flux commercial,
+#'  selon les percentiles non pondérés. Peut être 'L', 'M' ou 'H'}
+#'  }
 #' @export
 #'
 #' @examples # Pas d'exemples.
 gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
                                     years = NULL, codes = NULL,
-                                    exporters = NULL, importers = NULL,
-                                    return_output = FALSE, path_output = NULL){
+                                    return_output = FALSE, path_output = NULL,
+                                    remove = FALSE){
 
+
+  # Messages d'erreur -------------------------------------------------------
+
+  # Message d'erreur si path_baci_parquet n'est pas une chaîne de caractère
+  if(!is.character(path_baci_parquet)){
+    stop("path_baci_parquet doit être un chemin d'accès sous forme de chaîne de caractères.")
+  }
+
+  # Message d'erreur si pond n'est pas un entier compris entre 1 et 3
+  if(!is.numeric(pond) | pond < 1 | pond > 3){
+    stop("pond doit être un entier compris entre 1 et 3.")
+  }
+
+  # Message d'erreur si years n'est pas NULL et n'est pas un vecteur de numériques
+  if(!is.null(years) & !is.numeric(years)){
+    stop("years doit être NULL ou un vecteur de numériques.")
+  }
+
+  # Message d'erreur si codes n'est pas NULL et n'est pas un vecteur de chaînes de caractères
+  if(!is.null(codes) & !is.character(codes)){
+    stop("codes doit être NULL ou un vecteur de chaînes de caractères.")
+  }
+
+  # Message d'erreur si return_output n'est pas un booléen
+  if(!is.logical(return_output)){
+    stop("return_output doit être un booléen.")
+  }
+
+  # Message d'erreur si path_output n'est pas NULL et n'est pas une chaîne de caractère
+  if(!is.null(path_output) & !is.character(path_output)){
+    stop("path_output doit être NULL ou un chemin d'accès sous forme de chaîne de caractères.")
+  }
+
+  # Message d'erreur si remove n'est pas un booléen
+  if(!is.logical(remove)){
+    stop("remove doit être un booléen.")
+  }
+
+  # Si remove == TRUE alors supprimer tous les fichiers commençant par t= dans le path_output s'il est non nul
+  if(remove == TRUE & !is.null(path_output)){
+    # supprimer les dossier commençant par t= : les dossier parquet par année
+    list.files(path_output, pattern = "t=", full.names = TRUE) |>
+      unlink(recursive = TRUE)
+  }
+
+  # Calcul des gammes -------------------------------------------------------
+  # Charger la base BACI -> pas en mémoire grâce au package 'arrow'
   df_baci <-
     path_baci_parquet |>
     arrow::open_dataset()
@@ -37,55 +154,31 @@ gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
       dplyr::filter(k %in% codes)
   }
 
-  # Garder les exportateurs voulus si exporter != NULL
-  # Filtrer par rapport aux codes iso numériques
-  if(!is.null(exporters) & is.numeric(exporters)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(i %in% exporters)
-  }
-
-  # Garder les exportateurs voulus si exporter != NULL
-  # Filtrer par rapport aux codes iso3
-  if(!is.null(exporters) & is.character(exporters)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(exporter %in% exporters)
-  }
-
-  # Garder les importateurs voulus si importer != NULL
-  # Filtrer par rapport aux codes iso numériques
-  if(!is.null(importers) & is.numeric(importers)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(j %in% importers)
-  }
-
-  # Garder les importateurs voulus si importer != NULL
-  # Filtrer par rapport aux codes iso3
-  if(!is.null(importers) & is.character(importers)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(importer %in% importers)
-  }
-
+  # Calcul des gammes
   df_baci <-
     df_baci |>
+    # Pour l'esthétique du df
     dplyr::arrange(t) |>
+    # Calcul de la valeur unitaire
     dplyr::mutate(
       uv = v / q
     ) |>
+    # Passage en mémoire pour calculer les quantiles (pondérés)
     dplyr::collect()
 
+  # Si pond = 1 : calcul des quantiles pondérés
   if (pond == 1) {
     df_baci <-
       df_baci |>
+      # Pour chaque couple (t, k), calculer le 33e et 67 quantile pondéré
       dplyr::mutate(
         .by = c(t, k),
         perc_33_pond = modi::weighted.quantile(uv, v, prob = 0.33),
         perc_67_pond = modi::weighted.quantile(uv, v, prob = 0.67)
       ) |>
+      # Passage au format arrow
       arrow::arrow_table() |>
+      # Calcul de la gamme de Gaulier 2006 avec les quantiles pondérés
       dplyr::mutate(
         gamme_gaulier_2006_pond =
           dplyr::case_when(
@@ -95,15 +188,19 @@ gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
           )
       )
   }
+  # Si pond = 2 : calcul des quantiles non pondérés
   else if (pond == 2){
     df_baci <-
       df_baci |>
+      # Pour chaque couple (t, k), calculer le 33e et 67 quantile non pondéré
       dplyr::mutate(
         .by = c(t, k),
         perc_33 = stats::quantile(uv, prob = 0.33, na.rm = TRUE),
         perc_67 = stats::quantile(uv, prob = 0.67, na.rm = TRUE)
       ) |>
+      # Passage au format arrow
       arrow::arrow_table() |>
+      # Calcul de la gamme de Gaulier 2006 avec les quantiles non pondérés
       dplyr::mutate(
         gamme_gaulier_2006 =
           dplyr::case_when(
@@ -113,9 +210,11 @@ gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
           )
       )
   }
+  # Si pond = 3 : calcul des quantiles pondérés et non pondérés
   else if (pond == 3){
     df_baci <-
       df_baci |>
+      # Pour chaque couple (t, k), calculer le 33e et 67 quantile pondéré et non pondéré
       dplyr::mutate(
         .by = c(t, k),
         perc_33_pond = modi::weighted.quantile(uv, v, prob = 0.33),
@@ -123,7 +222,9 @@ gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
         perc_33 = stats::quantile(uv, prob = 0.33, na.rm = TRUE),
         perc_67 = stats::quantile(uv, prob = 0.67, na.rm = TRUE)
       ) |>
+      # Passage au format arrow
       arrow::arrow_table() |>
+      # Calcul de la gamme de Gaulier 2006 avec les quantiles pondérés et non pondérés
       dplyr::mutate(
         gamme_gaulier_2006_pond =
           dplyr::case_when(
