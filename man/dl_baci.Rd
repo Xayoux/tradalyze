@@ -2,9 +2,12 @@
 % Please edit documentation in R/dl_baci.R
 \name{dl_baci}
 \alias{dl_baci}
-\title{Fonction qui permet de télécharger BACI dans la nomenclature voulue (uniquement dernière version disponible). Les données sont ensuite transformées en fichier parquet (1 par année).}
+\title{Télécharger BACI et la transformer en parquet}
+\source{
+Base \href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI} du \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII}.
+}
 \usage{
-dl_baci(revision = "HS92", dl_folder, rm_csv = TRUE)
+dl_baci(revision = "HS92", dl_folder, rm_csv = TRUE, dl_zip = FALSE)
 }
 \arguments{
 \item{revision}{Une chaîne de caractères qui indique la nomenclature voulue (HS92 par défaut). Valeurs possibles : HS92, HS96, HS02, HS07, HS12, HS17, HS22.}
@@ -17,8 +20,10 @@ dl_baci(revision = "HS92", dl_folder, rm_csv = TRUE)
 Un dossier parquet par année.
 }
 \description{
-Fonction qui permet de télécharger BACI dans la nomenclature voulue (uniquement dernière version disponible). Les données sont ensuite transformées en fichier parquet (1 par année).
+Fonction qui permet de télécharger BACI dans la nomenclature voulue (uniquement dernière version disponible).
+Les données sont ensuite transformées en fichiers parquet (1 par année).
 }
 \examples{
 # Pas d'exemple.
+
 }
