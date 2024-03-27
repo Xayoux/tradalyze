@@ -1,36 +1,48 @@
 #' @title
-#' Calcul de gamme de valeurs unitaires selon la méthode de Fontagné, Freudenberg et Péridy (1997)
+#' Calcul de gamme de valeurs unitaires selon la méthode de Fontagné, Freudenberg
+#' et Péridy (1997)
 #'
 #' @description
-#' Détermine la gamme à laquelle chaque flux appartient grâce à sa valeur unitaire. Les trois gammes possibles sont
-#' Low (L), Medium (M) et High (H). La méthode est basée sur la comparaison des valeurs
-#' unitaires avec la médiane pondérée par la valeur commerciale des valeurs unitaires pour chaque marché (produit-pays).
+#' Détermine la gamme à laquelle chaque flux appartient grâce à sa valeur
+#' unitaire. Les trois gammes possibles sont Low (L), Medium (M) et High (H).
+#' La méthode est basée sur la comparaison des valeurs unitaires avec la médiane
+#' pondérée par la valeur commerciale des valeurs unitaires pour chaque marché
+#' (produit-pays).
 #'
 #' @details
-#' Les gammes sont déterminées de la façon suivante : la valeur unitaire de chaque flux élémentaire
-#' est comparée à la médiane pondérée par la valeur commerciale des valeurs unitaires pour chaque marché (produit-pays).
-#' Si la valeur unitaire est supérieure à (1 + `alpha_H`) fois la médiane pondérée, le flux est considéré comme High (H).
-#' Si la valeur unitaire est inférieure à (1 / `alpha_L`) fois la médiane pondérée, le flux est considéré comme Low (L).
-#' Sinon, le flux est considéré comme Medium (M).
+#' Les gammes sont déterminées de la façon suivante : la valeur unitaire de
+#' chaque flux élémentaire est comparée à la médiane pondérée par la valeur
+#' commerciale des valeurs unitaires pour chaque marché (produit-pays).
+#' Si la valeur unitaire est supérieure à (1 + `alpha_H`) fois la médiane
+#' pondérée, le flux est considéré comme High (H).
+#' Si la valeur unitaire est inférieure à (1 / `alpha_L`) fois la médiane
+#' pondérée, le flux est considéré comme Low (L). Sinon, le flux est
+#' considéré comme Medium (M).
 #'
-#' Selon cette méthodologie, les seuils basiques sont `alpha_H` = 0.15 et `alpha_L` = 0.15 (Un écart de 15% à la médianne pondérée).
+#' Selon cette méthodologie, les seuils basiques sont `alpha_H` = 0.15
+#' et `alpha_L` = 0.15 (Un écart de 15% à la médianne pondérée).
 #'
-#' Cette fonction permet de performer le calcul de gammes pour différents seuils de manière simultanée.
-#' Chaque nom de variable dont la valeur varie selon le seuil est renommée en incorporant la valeur du seuil
-#' pour permettre de distinguer les différentes gammes.
+#' Cette fonction permet de performer le calcul de gammes pour différents
+#' seuils de manière simultanée.Chaque nom de variable dont la valeur varie
+#' selon le seuil est renommée en incorporant la valeur du seuil pour permettre
+#' de distinguer les différentes gammes.
 #'
-#' Cette dynamique des noms permet d'utiliser les données parquet créées pour effectuer
-#' d'autres calculs de gammes (à l'exception des gammes de fontagné et al 2007).
+#' Cette dynamique des noms permet d'utiliser les données parquet créées pour
+#' effectuer d'autres calculs de gammes (à l'exception des gammes de
+#' fontagné et al 2007).
 #'
-#' Cette fonction utilise les fonctionnalité du package [arrow](https://arrow.apache.org/docs/r/)
-#' pour performer des calculs sans avoir à charger BACI en mémoire. Cependant le calcul de la médiane
-#' pondérée nécessite le passage de la base (uniquement la partie nécessaire) en mémoire.
-#' Si la base est trop importante, les calculs peuvent prendre un certain temps, voir entraîner
-#' un problème de mémoire de l'ordinateur. Si cela arrive, il est conseillé de
-#' réduire le nombre d'années sur lesquelles la fonction doit calculer les gammes
-#' et d'exécuter plusieurs fois la fonction jusqu'à avoir toutes les années voulues.
+#' Cette fonction utilise les fonctionnalité du package
+#' [arrow](https://arrow.apache.org/docs/r/) pour performer des calculs sans
+#' avoir à charger BACI en mémoire. Cependant le calcul de la médiane
+#' pondérée nécessite le passage de la base (uniquement la partie nécessaire)
+#' en mémoire. Si la base est trop importante, les calculs peuvent prendre un
+#' certain temps, voir entraîner un problème de mémoire de l'ordinateur. Si
+#' cela arrive, il est conseillé de réduire le nombre d'années sur lesquelles
+#' la fonction doit calculer les gammes et d'exécuter plusieurs fois la fonction
+#' jusqu'à avoir toutes les années voulues.
 #'
-#' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée en format parquet.
+#' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée
+#' en format parquet.
 #' @param alpha_H Seuil pour déterminer les gammes hautes. Par défaut, 0.15
 #' (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.
 #' @param alpha_L Seuil pour déterminer les gammes basses. Par défaut, 0.15
@@ -43,7 +55,8 @@
 #' @param return_output Un booléen qui permet de retourner le résultat de la
 #' fonction. Par défaut, la fonction ne retourne rien.
 #' @param path_output Chemin vers le dossier où le résultat de la fonction doit
-#' être stocké en format parquet par année. Par défaut, le résultat n'est pas stocké.
+#' être stocké en format parquet par année. Par défaut, le résultat n'est
+#' pas stocké.
 #' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
 #' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
 #' Evite les confusions si plusieurs utilisations dans le même dossier.
