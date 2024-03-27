@@ -102,8 +102,10 @@ market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
   }
 
   # Erreur si path_output n'est pas un fichier .csv ou .xlsx ou parquet
-  if(!is.null(path_output) & !tools::file_ext(path_output) %in% c("csv", "xlsx", "parquet")){
-    stop("path_output doit être un fichier '.csv', '.xlsx' ou '.parquet'.")
+  if(!is.null(path_output)){
+    if(!tools::file_ext(path_output) %in% c("csv", "xlsx", "parquet")){
+      stop("path_output doit être un fichier '.csv', '.xlsx' ou '.parquet'.")
+    }
   }
 
   # Erreur si return n'est pas un booléen
