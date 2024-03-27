@@ -141,3 +141,13 @@ devtools::install_github("insongkim/concordance")
     du flux et la moyenne géométrique pondérée par le commerce des
     valeurs unitaires du produit importé par un importateur donné. Pour
     plus d'informations : `?gamme_ijkt_berthou_2011`.
+
+-   `market_share` : Cette fonction permet de calculer les parts de
+    marché par produits (ou à un niveau plus fin comme
+    produit-importateur). Il est également possible de l'utiliser pour
+    calculer les parts de marché à partir de zones géographiques
+    agrégées : les paramètres de la fonction permettent de sélectionner
+    les variables sur lesquelles calculer les parts de marché. Cependant
+    les parts de marché sont obligatoirement calculées sur au moins la
+    dimension temporelle, produit et une dimension régionale. Pour plus
+    d'informations : `?market_share`.
