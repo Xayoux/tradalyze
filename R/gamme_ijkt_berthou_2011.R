@@ -167,7 +167,7 @@ gamme_ijkt_berthou_2011 <- function(path_baci_parquet, years = NULL,
           uv <= geom_mean_weighted ~ "L"
         )
     ) |>
-    select(!v_share)
+    dplyr::select(!v_share)
 
   # Enregistrer la nouvelle base en format parquet par année si path_output != NULL
   if(!is.null(path_output)){
