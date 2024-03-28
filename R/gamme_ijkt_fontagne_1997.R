@@ -91,8 +91,8 @@
 #'   des flux pour chaque groupe (t, k)}
 #'   \item{gamme_fontagne_1997_...}{Gamme de la valeur unitaire du flux
 #'   (H, M, L)}
-#'   \item{seuil_H_...}{Seuil pour déterminer les gammes hautes}
-#'   \item{seuil_L_...}{Seuil pour déterminer les gammes basses}
+#'   \item{seuil_H_}{Seuil pour déterminer les gammes hautes}
+#'   \item{seuil_L_}{Seuil pour déterminer les gammes basses}
 #' }
 #' @export
 #'
