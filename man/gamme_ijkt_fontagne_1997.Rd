@@ -24,10 +24,10 @@ gamme_ijkt_fontagne_1997(
 \item{path_baci_parquet}{Chemin vers le dossier où la base BACI est stockée
 en format parquet.}
 
-\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 0.15
+\item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 1.15
 (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.}
 
-\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 0.15
+\item{alpha_L}{Seuil pour déterminer les gammes basses. Par défaut, 1.15
 (uv < 1/0.85 * medf_ref). Peut être un vecteur de numériques.
 Doit avoir le même nombre de valeurs que alpha_H.}
 
@@ -95,8 +95,8 @@ Si la valeur unitaire est inférieure à (1 / \code{alpha_L}) fois la médiane
 pondérée, le flux est considéré comme Low (L). Sinon, le flux est
 considéré comme Medium (M).
 
-Selon cette méthodologie, les seuils basiques sont \code{alpha_H} = 0.15
-et \code{alpha_L} = 0.15 (Un écart de 15\% à la médianne pondérée).
+Selon cette méthodologie, les seuils basiques sont \code{alpha_H} = 1.15
+et \code{alpha_L} = 1.15 (Un écart de 15\% à la médianne pondérée).
 
 Cette fonction permet de performer le calcul de gammes pour différents
 seuils de manière simultanée. Selon le paramètre \code{pivot}, le format de sortie

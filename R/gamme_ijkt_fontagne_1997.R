@@ -19,8 +19,8 @@
 #' pondérée, le flux est considéré comme Low (L). Sinon, le flux est
 #' considéré comme Medium (M).
 #'
-#' Selon cette méthodologie, les seuils basiques sont `alpha_H` = 0.15
-#' et `alpha_L` = 0.15 (Un écart de 15% à la médianne pondérée).
+#' Selon cette méthodologie, les seuils basiques sont `alpha_H` = 1.15
+#' et `alpha_L` = 1.15 (Un écart de 15% à la médianne pondérée).
 #'
 #' Cette fonction permet de performer le calcul de gammes pour différents
 #' seuils de manière simultanée. Selon le paramètre `pivot`, le format de sortie
@@ -49,9 +49,9 @@
 #'
 #' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée
 #' en format parquet.
-#' @param alpha_H Seuil pour déterminer les gammes hautes. Par défaut, 0.15
+#' @param alpha_H Seuil pour déterminer les gammes hautes. Par défaut, 1.15
 #' (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.
-#' @param alpha_L Seuil pour déterminer les gammes basses. Par défaut, 0.15
+#' @param alpha_L Seuil pour déterminer les gammes basses. Par défaut, 1.15
 #' (uv < 1/0.85 * medf_ref). Peut être un vecteur de numériques.
 #' Doit avoir le même nombre de valeurs que alpha_H.
 #' @param years Les années à considérer (un vecteur de numériques). Par défaut,
