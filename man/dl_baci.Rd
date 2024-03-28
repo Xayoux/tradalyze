@@ -20,6 +20,11 @@ téléchargées.}
 
 \item{rm_csv}{Un booléen qui indique si les fichiers csv de BACI doivent
 être supprimés après la transformation en parquet (TRUE par défaut).}
+
+\item{dl_zip}{Un booléen qui indique si le fichier zip de BACI doit être
+téléchargé (FALSE par défaut). Si TRUE, alors le zip sera forcément
+téléchargé, si FALSE il ne sera téléchargé que s'il n'existe pas dans le
+répertoire de téléchargement.}
 }
 \value{
 Un dossier parquet par année. Les variables de BACI sont les
