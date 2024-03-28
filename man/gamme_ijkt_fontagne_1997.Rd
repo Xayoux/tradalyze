@@ -10,10 +10,11 @@ et Péridy (1997)}
 \usage{
 gamme_ijkt_fontagne_1997(
   path_baci_parquet,
-  alpha_H = 0.15,
+  alpha_H = 1.15,
   alpha_L = alpha_H,
   years = NULL,
   codes = NULL,
+  pivot = "longer",
   return_output = FALSE,
   path_output = NULL,
   remove = FALSE
@@ -36,6 +37,14 @@ toutes les années sont prises en compte.}
 \item{codes}{Les codes des produits à considérer (un vecteur de chaînes de
 caractères). Par défaut, tous les produits sont pris en compte.}
 
+\item{pivot}{Un caractère qui indique si le format de sortie doit être
+'longer' ou 'wider'. Par défaut, 'longer'. Un format longer indique que le
+dataframe de sortie contient un variable pour le seuil H, une pour le seuil
+L et une pour la gamme. Les observations sont égales au nombre d'observation
+sélectionnées multipliées par le nombre de seuils. Un format wider indique
+que le dataframe de sortie contient une variable par seuil et une observation
+unique par flux.}
+
 \item{return_output}{Un booléen qui permet de retourner le résultat de la
 fonction. Par défaut, la fonction ne retourne rien.}
 
@@ -49,8 +58,7 @@ Evite les confusions si plusieurs utilisations dans le même dossier.}
 }
 \value{
 Un dataframe / dossier parquet contenant les données de la base BACI
-avec une colonne supplémentaire indiquant la gamme des produits sur chaque
-marché (produit-pays).
+avec les gammes calculées.
 \describe{
 \item{i}{Code iso numérique de l'importateur}
 \item{j}{Code iso numérique de l'exportateur}
@@ -91,9 +99,15 @@ Selon cette méthodologie, les seuils basiques sont \code{alpha_H} = 0.15
 et \code{alpha_L} = 0.15 (Un écart de 15\% à la médianne pondérée).
 
 Cette fonction permet de performer le calcul de gammes pour différents
-seuils de manière simultanée.Chaque nom de variable dont la valeur varie
-selon le seuil est renommée en incorporant la valeur du seuil pour permettre
-de distinguer les différentes gammes.
+seuils de manière simultanée. Selon le paramètre \code{pivot}, le format de sortie
+sera différent. En cas de format 'longer', le dataframe de sortie contiendra
+une variable pour le seuil H, une pour le seuil L et une pour la gamme. Les
+observations seront égales au nombre d'observation sélectionnées multipliées
+par le nombre de seuils. Il faut donc faire attention à ne pas calculer
+directement sur toutes les observations mais à bien trier selon les seuils
+voulus. En cas de format 'wider', le dataframe de sortie contiendra une
+variable gamme par seuil (avec les seuils indiqués dans le nom des variables)
+et une observation unique par flux.
 
 Cette dynamique des noms permet d'utiliser les données parquet créées pour
 effectuer d'autres calculs de gammes (à l'exception des gammes de

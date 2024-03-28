@@ -23,9 +23,15 @@
 #' et `alpha_L` = 0.15 (Un écart de 15% à la médianne pondérée).
 #'
 #' Cette fonction permet de performer le calcul de gammes pour différents
-#' seuils de manière simultanée.Chaque nom de variable dont la valeur varie
-#' selon le seuil est renommée en incorporant la valeur du seuil pour permettre
-#' de distinguer les différentes gammes.
+#' seuils de manière simultanée. Selon le paramètre `pivot`, le format de sortie
+#' sera différent. En cas de format 'longer', le dataframe de sortie contiendra
+#' une variable pour le seuil H, une pour le seuil L et une pour la gamme. Les
+#' observations seront égales au nombre d'observation sélectionnées multipliées
+#' par le nombre de seuils. Il faut donc faire attention à ne pas calculer
+#' directement sur toutes les observations mais à bien trier selon les seuils
+#' voulus. En cas de format 'wider', le dataframe de sortie contiendra une
+#' variable gamme par seuil (avec les seuils indiqués dans le nom des variables)
+#' et une observation unique par flux.
 #'
 #' Cette dynamique des noms permet d'utiliser les données parquet créées pour
 #' effectuer d'autres calculs de gammes (à l'exception des gammes de
@@ -52,6 +58,13 @@
 #' toutes les années sont prises en compte.
 #' @param codes Les codes des produits à considérer (un vecteur de chaînes de
 #' caractères). Par défaut, tous les produits sont pris en compte.
+#' @param pivot Un caractère qui indique si le format de sortie doit être
+#' 'longer' ou 'wider'. Par défaut, 'longer'. Un format longer indique que le
+#' dataframe de sortie contient un variable pour le seuil H, une pour le seuil
+#' L et une pour la gamme. Les observations sont égales au nombre d'observation
+#' sélectionnées multipliées par le nombre de seuils. Un format wider indique
+#' que le dataframe de sortie contient une variable par seuil et une observation
+#' unique par flux.
 #' @param return_output Un booléen qui permet de retourner le résultat de la
 #' fonction. Par défaut, la fonction ne retourne rien.
 #' @param path_output Chemin vers le dossier où le résultat de la fonction doit
@@ -62,8 +75,7 @@
 #' Evite les confusions si plusieurs utilisations dans le même dossier.
 #'
 #' @return Un dataframe / dossier parquet contenant les données de la base BACI
-#' avec une colonne supplémentaire indiquant la gamme des produits sur chaque
-#' marché (produit-pays).
+#' avec les gammes calculées.
 #' \describe{
 #'   \item{i}{Code iso numérique de l'importateur}
 #'   \item{j}{Code iso numérique de l'exportateur}
@@ -86,9 +98,10 @@
 #'
 #' @examples # Pas d'exemples.
 #' @source [Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the single market (No. 97-07). Paris: CEPII.](http://cepii.fr/PDF_PUB/wp/1997/wp1997-07.pdf)
-gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 0.15,
+gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
                                      alpha_L = alpha_H,
                                      years = NULL, codes = NULL,
+                                     pivot = "longer",
                                      return_output = FALSE, path_output = NULL,
                                      remove = FALSE){
 
@@ -167,65 +180,90 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 0.15,
 
   # Définition des gammes ---------------------------------------------------
 
-  # Calcul des gammes pour chaque seuil
-  for (i in 1:(length(alpha_H))){
-    # Définir le seuil permettant de déterminer les gammes hautes
-    seuil_H <-
-      (1 + alpha_H[i]) |>
-      arrow::arrow_array() # Passage en format arrow pour être sur qu'arrow comprenne
-
-    # Définir le seuil permettant de déterminer les gammes basses
-    seuil_L <-
-      (1 + alpha_L[i]) |>
-      arrow::arrow_array() # Passage en format arrow pour être sur qu'arrow comprenne
-
-    # Calcul des gammes pour un seuil
+  # Sous-fonction pour calculer les gammes sur un seuil
+  calc_gamme_func <- function(df_baci, alpha_H, alpha_L){
     df_baci <-
       df_baci |>
-      # Pour l'esthétique du dataframe
-      dplyr::arrange(t) |>
-      dplyr::relocate(t) |>
-      # Calculer les valeurs unitaires
+      # Calcul des valeurs unitaires + ajout des seuils
       dplyr::mutate(
         uv = v / q,
-        seuil_H = seuil_H, # Intégrer le seuil H dans le dataframe
-        seuil_L = seuil_L # Intégrer le seuil L dans le dataframe
+        alpha_H = alpha_H,
+        alpha_L = alpha_L
       ) |>
-      # Collecter (passage en R format) pour permettre le calcul de la médiane pondérée
+      # Passage en mémoire pour le calcul de la médiane pondérée
       dplyr::collect() |>
-      # Calcul de la médiane pondérée des uv par la valeur pour chaque marché k,t
+      # Calcule de la médiane pondérée pour chaque couple (t,k)
       dplyr::mutate(
         .by = c(t, k),
         med_ref_t_k = matrixStats::weightedMedian(uv, w = v, na.rm = TRUE)
       ) |>
-      # Passage au format arrow
+      # Retour en format arrow
       arrow::arrow_table() |>
-      # Définition des gammes
+      # Calcul des gammes en fonction du seuil choisit
       dplyr::mutate(
         gamme_fontagne_1997 =
           dplyr::case_when(
-            uv > (seuil_H) * med_ref_t_k ~ "H",
-            uv < (1 / (seuil_L)) * med_ref_t_k ~ "L",
-            uv > (1 / (seuil_L)) * med_ref_t_k &  uv < (1 + seuil_H) * med_ref_t_k ~ "M"
+            uv > alpha_H * med_ref_t_k ~ "H",
+            uv < (1 / (alpha_L)) * med_ref_t_k ~ "L",
+            uv > (1 / (alpha_L)) * med_ref_t_k &  uv < alpha_H * med_ref_t_k ~ "M"
           )
-      ) |>
-      # Renommer les variables de seuil et de gamme en rajoutant la valeur du
-      # seuil pour permettre de calculer plusieurs seuils en même temps
-      dplyr::rename(
-        !!paste0("seuil_H_", unique(seuil_H)) := seuil_H,
-        !!paste0("seuil_L_", unique(seuil_L)) := seuil_L,
-        !!dplyr::if_else(
-          alpha_H[i] == alpha_L[i],
-          paste0("gamme_fontagne_1997_", unique(seuil_H)),
-          paste0("gamme_fontagne_1997_", unique(seuil_L), "_", unique(seuil_H))
-        ) := gamme_fontagne_1997
       )
+
+    # La fonction retourne le dataframe
+    return(df_baci)
   }
+
+  # Calculer les gammes pour chaque seuil (un df par seuil) : stockés dans une liste
+  liste_df_baci <-
+    # Pour chaque élément des vecteurs alpha, calculer les gammes
+    purrr::map2(
+      alpha_H,
+      alpha_L,
+      \(alpha_H, alpha_L) calc_gamme_func(df_baci, alpha_H, alpha_L)
+    ) # Voir ça comme une boucle for
+
+  # Concaténer les df de la liste (en format arrow donc pas list_rbind)
+  while(length(liste_df_baci) > 1){
+    # Tant qu'il y a plus d'un df dans la liste, joindre le 1er et le 2eme
+    liste_df_baci[[1]] <-
+      liste_df_baci[[1]] |>
+      dplyr::full_join(liste_df_baci[[2]])
+
+    # Supprimer le deuxième dataframe de la liste
+    liste_df_baci[[2]] <- NULL
+  }
+
+  # Extraire le df final de la liste
+  df_baci <-
+    liste_df_baci[[1]]
+
+  # Garder le format 'longer' et grouper par t, alpha_H, alpha_L pour l'exportation en parquet
+  if (pivot == "longer"){
+    df_baci <-
+      df_baci |>
+      dplyr::group_by(t, alpha_H, alpha_L)
+  }
+
+  # Pivoter en 'wider' pour avoir une colonne par gamme et grouper par t
+  if (pivot == "wider"){
+    df_baci <-
+      df_baci |>
+      # Passage en mémoire car pivot_wider ne fonctionne pas avec arrow
+      dplyr::collect() |>
+      tidyr::pivot_wider(
+        names_from = c(alpha_L, alpha_H),
+        values_from = c(gamme_fontagne_1997),
+        names_prefix = "gamme_fontagne_1997_"
+      ) |>
+      arrow::arrow_table() |>
+      dplyr::group_by(t)
+  }
+
+
 
   # Enregistrer la nouvelle base en format parquet par année si path_output != NULL
   if(!is.null(path_output)){
     df_baci |>
-      dplyr::group_by(t) |>
       arrow::write_dataset(path_output, format = "parquet")
   }
 
@@ -238,4 +276,3 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 0.15,
     return(df_baci)
   }
 }
-
