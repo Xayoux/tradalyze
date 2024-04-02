@@ -157,6 +157,8 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
   }
 
 
+
+
   # Filtrage des données ----------------------------------------------------
   # Charger les données -> pas en mémoire grâce au package 'arrow'
   df_baci <-
