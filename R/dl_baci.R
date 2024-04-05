@@ -43,12 +43,22 @@ dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE,
   # Créer le dossier s'il n'existe pas + message d'avertissement
   if (!dir.exists(dl_folder)) {
     dir.create(dl_folder, recursive = TRUE)
-    message("Le dossier ", dl_folder, " a été créé.")
+    message("Le dossier ", dl_folder, " a \uE9t\uE9 cr\uE9\uE9.")
   }
 
   # Erreur si revision n'est pas une des valeurs possibles
   if (!revision %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17", "HS22")) {
-    stop("La valeur de revision doit être une des suivantes : HS92, HS96, HS02, HS07, HS12, HS17, HS22.")
+    stop("La valeur de 'revision' doit \uEAtre une des suivantes : HS92, HS96, HS02, HS07, HS12, HS17, HS22.")
+  }
+
+  # Erreur si dl_zip n'est pas un booléen
+  if (!is.logical(dl_zip)) {
+    stop("dl_zip doit \uEAtre un bool\uE9en.")
+  }
+
+  # Erreur si rm_csv n'est pas un booléen
+  if (!is.logical(rm_csv)) {
+    stop("rm_csv doit \uEAtre un bool\uE9en.")
   }
 
   # Information sur BACI ----------------------------------------------------

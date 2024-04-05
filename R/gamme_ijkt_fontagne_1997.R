@@ -110,42 +110,42 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
 
   # Message d'erreur si path_baci_parquet n'est pas une chaine de caractère
   if(!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit être un chemin d'accès sous forme de chîne de caractères.")
+    stop("path_baci_parquet doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
   }
 
   # Message d'erreur si alpha_H ou alpha_L ne sont pas des numériques
   if(!is.numeric(alpha_H) | !is.numeric(alpha_L)){
-    stop("alpha_H et alpha_L doivent être des numériques.")
+    stop("alpha_H et alpha_L doivent \uEAtre des num\uE9riques.")
   }
 
   # Message d'erreur si alpha_L n'a pas le même nombre de valeurs que alpha_H
   if(length(alpha_L) != length(alpha_H)){
-    stop("alpha_L doit avoir le même nombre de valeurs que alpha_H.")
+    stop("alpha_L doit avoir le m\uEAme nombre de valeurs que alpha_H.")
   }
 
   # Message d'erreur si years n'est pas NULL et n'est pas un vecteur de numériques
   if(!is.null(years) & !is.numeric(years)){
-    stop("years doit être NULL ou un vecteur de numériques.")
+    stop("years doit \uEAtre NULL ou un vecteur de num\uE9riques.")
   }
 
   # Message d'erreur si codes n'est pas NULL et n'est pas un vecteur de chaînes de caractères
   if(!is.null(codes) & !is.character(codes)){
-    stop("codes doit être NULL ou un vecteur de chaînes de caractères.")
+    stop("codes doit \uEAtre NULL ou un vecteur de cha\uEEnes de caract\uE8res.")
   }
 
   # Message d'erreur si return_output n'est pas un booléen
   if(!is.logical(return_output)){
-    stop("return_output doit être un booléen.")
+    stop("return_output doit \uEAtre un bool\uE9en.")
   }
 
   # Message d'erreur si path_output n'est pas NULL et n'est pas une chaine de caractère
   if(!is.null(path_output) & !is.character(path_output)){
-    stop("path_output doit être NULL ou un chemin d'accès sous forme de chîne de caractères.")
+    stop("path_output doit \uEAtre NULL ou un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
   }
 
   # Message d'erreur si remove n'est pas un booléen
   if(!is.logical(remove)){
-    stop("remove doit être un booléen.")
+    stop("remove doit \uEAtre un bool\uE9en.")
   }
 
 

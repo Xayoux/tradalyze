@@ -72,6 +72,8 @@
 #' @examples # Pas d'exemples.
 #' @source [Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.](https://pse.hal.science/hal-00959394/)
 #' @source [Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
+
+# Fonction ----------------------------------------------------------------
 clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
                      method = "classic", seuil_H, seuil_L, whole = TRUE,
                      visualisation = FALSE, path_output = NULL,
@@ -80,82 +82,82 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   # Messages d'erreurs si mauvais paramètres --------------------------------
   # Message d'erreur si path_baci_parquet n'est pas une chaîne de caractère
   if (!is.character(path_baci_parquet)) {
-    stop("path_baci_parquet doit être une chaîne de caractère")
+    stop("path_baci_parquet doit \uEAtre une cha\uEEne de caract\uE8re")
   }
 
   # Message d'erreur si years n'est pas NULL ou un vecteur de numériques
   if (!is.null(years) & !is.numeric(years)) {
-    stop("years doit être NULL ou un vecteur de numériques")
+    stop("years doit \uEAtre NULL ou un vecteur de num\uE9riques")
   }
 
   # Message d'erreur si codes n'est pas NULL ou un vecteur de chaînes de caractères
   if (!is.null(codes) & !is.character(codes)) {
-    stop("codes doit être NULL ou un vecteur de chaînes de caractères")
+    stop("codes doit \uEAtre NULL ou un vecteur de cha\uEEnes de caract\uE8res")
   }
 
   # Message d'erreur si method n'est pas un des trois choix possibles
   if (!method %in% c("classic", "fh13", "h06")) {
-    stop("method doit être 'classic', 'fh13' ou 'h06'")
+    stop("'method' doit \uEAtre 'classic', 'fh13' ou 'h06'")
   }
 
   # Message d'erreur si seuil_H n'est pas un numérique
   if (!is.numeric(seuil_H)) {
-    stop("seuil_H doit être un numérique")
+    stop("seuil_H doit \uEAtre un num\uE9rique")
   }
 
   # Message d'erreur si seuil_L n'est pas un numérique
   if (!is.numeric(seuil_L)) {
-    stop("seuil_L doit être un numérique")
+    stop("seuil_L doit \uEAtre un num\uE9rique")
   }
 
   # Message d'erreur si seuil_H est inférieur à seuil_L
   if (seuil_H <= seuil_L) {
-    stop("seuil_H doit être supérieur à seuil_L")
+    stop("seuil_H doit \uEAtre sup\uE9rieur \uE0 seuil_L")
   }
 
   # Message d'erreur si seuil_H est négatif
   if (seuil_H < 0) {
-    stop("seuil_H doit être positif")
+    stop("seuil_H doit \uEAtre positif")
   }
 
   # Message d'erreur si seuil_L est négatif
   if (seuil_L < 0) {
-    stop("seuil_L doit être positif")
+    stop("seuil_L doit \uEAtre positif")
   }
 
   # Message d'erreur si Seuil_H n'est pas compris entre 0 et 1 si method != "h06"
   if (method != "h06" & (seuil_H < 0 | seuil_H > 1)) {
-    stop("seuil_H doit être compris entre 0 et 1 pour l'utilisation des méthodes 'classic' et 'fh13'")
+    stop("seuil_H doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
   }
 
   # Message d'erreur si Seuil_L n'est pas compris entre 0 et 1 si method != "h06"
   if (method != "h06" & (seuil_L < 0 | seuil_L > 1)) {
-    stop("seuil_L doit être compris entre 0 et 1 pour l'utilisation des méthodes 'classic' et 'fh13'")
+    stop("seuil_L doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
   }
 
   # Message d'erreur si whole n'est pas un booléen
   if (!is.logical(whole)) {
-    stop("whole doit être un booléen")
+    stop("whole doit \uEAtre un bool\uE9en")
   }
 
   # Message d'erreur si whole est TRUE et method est != "fh13"
   if (whole == TRUE & method != "fh13") {
-    message("whole n'est utilisé que pour la méthode 'fh13'")
+    message("whole n'est utilis\uE9 que pour la m\uE9thode 'fh13'")
   }
 
   # Message d'erreur si visualisation n'est pas un booléen
   if (!is.logical(visualisation)) {
-    stop("visualisation doit être un booléen")
+    stop("visualisation doit \uEAtre un bool\uE9en")
   }
 
   # Message d'erreur si path_output n'est pas une chaîne de caractère
   if (!is.null(path_output) & !is.character(path_output)) {
-    stop("path_output doit être NULL ou une chaîne de caractère")
+    stop("path_output doit \uEAtre NULL ou une cha\uEEne de caract\uE8re")
   }
 
   # Message d'erreur si return_output n'est pas un booléen
   if (!is.logical(return_output)) {
-    stop("return_output doit être un booléen")
+    stop("return_output doit \uEAtre un bool\uE9en")
   }
 
 

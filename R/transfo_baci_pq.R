@@ -14,12 +14,12 @@ transfo_baci_pq <- function(csv_folder, path_output = csv_folder, version){
   # Définition des messages d'erreur ----------------------------------------
   # Message d'erreur si path_baci_parquet n'est pas une chaine de caractère
   if(!is.character(csv_folder)){
-    stop("csv_folder doit être un chemin d'accès sous forme de chaîne de caractères.")
+    stop("csv_folder doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
   }
 
   # Message d'erreur si path_output n'est pas une chaine de caractère
   if(!is.character(path_output)){
-    stop("path_output doit être un chemin d'accès sous forme de chaîne de caractères.")
+    stop("path_output doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
   }
 
   baci_path_vector <-

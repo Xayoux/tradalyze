@@ -73,44 +73,44 @@ market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
   # Messages d'erreur -------------------------------------------------------
   # Erreur si path_baci_parquet n'est une chaîne de caractères
   if(!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit être une chaîne de caractères.")
+    stop("path_baci_parquet doit \uEAtre une cha\uEEne de caract\uE8res.")
   }
 
   # Erreur si seuil est inférieur à 0
   if(seuil < 0 | seuil > 100){
-    stop("seuil doit être supérieur ou égal à 0 et inférieur ou égal à 100.")
+    stop("seuil doit \uEAtre sup\uE9rieur ou \uE9gal \uE0 0 et inf\uE9rieur ou \uE9gal \uE0 100.")
   }
 
   # Erreur si seuil n'est pas un numérique
   if(!is.numeric(seuil)){
-    stop("seuil doit être un numérique.")
+    stop("seuil doit \uEAtre un num\uE9rique.")
   }
 
   # Erreur si years n'est pas NULL ou une liste de numériques
   if(!is.null(years) & !is.numeric(years)){
-    stop("years doit être NULL ou une liste de numériques.")
+    stop("years doit \uEAtre NULL ou une liste de num\uE9riques.")
   }
 
   # Erreur si codes n'est pas NULL ou une liste de chaînes de caractères
   if(!is.null(codes) & !is.character(codes)){
-    stop("codes doit être NULL ou une liste de chaînes de caractères.")
+    stop("codes doit \uEAtre NULL ou une liste de cha\uEEnes de caract\uE8res.")
   }
 
   # Erreur si path_output n'est pas NULL ou une chaîne de caractères
   if(!is.null(path_output) & !is.character(path_output)){
-    stop("path_output doit être NULL ou une chaîne de caractères.")
+    stop("path_output doit \uEAtre NULL ou une cha\uEEne de caract\uE8res.")
   }
 
   # Erreur si path_output n'est pas un fichier .csv ou .xlsx ou parquet
   if(!is.null(path_output)){
     if(!tools::file_ext(path_output) %in% c("csv", "xlsx", "parquet")){
-      stop("path_output doit être un fichier '.csv', '.xlsx' ou '.parquet'.")
+      stop("path_output doit \uEAtre un fichier '.csv', '.xlsx' ou '.parquet'.")
     }
   }
 
   # Erreur si return n'est pas un booléen
   if(!is.logical(return)){
-    stop("return doit être un booléen.")
+    stop("return doit \uEAtre un bool\uE9en.")
   }
 
 
