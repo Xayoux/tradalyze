@@ -151,3 +151,14 @@ devtools::install_github("insongkim/concordance")
     les parts de marché sont obligatoirement calculées sur au moins la
     dimension temporelle, produit et une dimension régionale. Pour plus
     d'informations : `?market_share`.
+
+-   `clean_uv_outliers` : Cette fonction permet de déterminer (et
+    enlever) les outliers dans les valeurs unitaires de BACI. Trois
+    méthodes de détermination des outliers sont disponibles : une
+    méthode "classic" qui enlève un certain pourcentage parmi les
+    valeurs unitaires les plus basses et élevées pour chaque
+    produit-année. Une méthode "fh13" qui provient de [Fontagné & Hatte
+    (2013)](https://pse.hal.science/hal-00959394/) et une méthode "h06"
+    qui provient de [Hallak
+    (2006)](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516).
+    Pour plus d'informations sur ces méthodes : `?clean_uv_outliers`
