@@ -2,6 +2,7 @@
 
 export(clean_uv_outliers)
 export(dl_baci)
+export(eval_outliers)
 export(extract_product)
 export(gamme_ijkt_berthou_2011)
 export(gamme_ijkt_fontagne_1997)

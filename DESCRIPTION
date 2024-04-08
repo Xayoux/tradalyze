@@ -16,6 +16,7 @@ Imports:
     concordance,
     curl,
     dplyr,
+    ggplot2,
     glue,
     here,
     matrixStats,
