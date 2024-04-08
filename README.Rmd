@@ -162,3 +162,10 @@ devtools::install_github("insongkim/concordance")
     qui provient de [Hallak
     (2006)](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516).
     Pour plus d'informations sur ces méthodes : `?clean_uv_outliers`
+
+-   `eval_outliers` : Cette fonction permet de fournir un dataframe
+    ainsi qu'un graphique pour visualiser et analyser l'effet de
+    différents seuils et méthodes dans le sélection des outliers sur la
+    perte de valeur et de quantités dans les données de BACI. Cette
+    fonction utilise la fonction `clean_uv_outliers`. Pour plus
+    d'informations : `?eval_outliers`.
