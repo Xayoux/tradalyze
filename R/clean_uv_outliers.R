@@ -55,9 +55,6 @@
 #' être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.
 #' @param seuil_L Seuil inférieur pour la détermination des outliers. Doit
 #' être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.
-#' @param whole Booléen pour déterminer si la distribution des différences
-#' pour la méthode 'fh13' est celle de toutes les valeurs unitaires (TRUE) ou
-#' celle des valeurs unitaires par produit (FALSE).
 #' @param visualisation Booléen pour déterminer si les données exportées
 #' doivent contenir les outliers ainsi que les variables pour les déterminer
 #' ou non.
@@ -75,9 +72,9 @@
 
 # Fonction ----------------------------------------------------------------
 clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
-                     method = "classic", seuil_H, seuil_L, whole = TRUE,
-                     visualisation = FALSE, path_output = NULL,
-                     return_output = FALSE) {
+                              method = "classic", seuil_H, seuil_L,
+                              visualisation = FALSE, path_output = NULL,
+                              return_output = FALSE) {
 
   # Messages d'erreurs si mauvais paramètres --------------------------------
   # Message d'erreur si path_baci_parquet n'est pas une chaîne de caractère
@@ -111,7 +108,7 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si seuil_H est inférieur à seuil_L
-  if (seuil_H <= seuil_L) {
+  if (seuil_H < seuil_L) {
     stop("seuil_H doit \uEAtre sup\uE9rieur \uE0 seuil_L")
   }
 
@@ -133,16 +130,6 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   # Message d'erreur si Seuil_L n'est pas compris entre 0 et 1 si method != "h06"
   if (method != "h06" & (seuil_L < 0 | seuil_L > 1)) {
     stop("seuil_L doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
-  }
-
-  # Message d'erreur si whole n'est pas un booléen
-  if (!is.logical(whole)) {
-    stop("whole doit \uEAtre un bool\uE9en")
-  }
-
-  # Message d'erreur si whole est TRUE et method est != "fh13"
-  if (whole == TRUE & method != "fh13") {
-    message("whole n'est utilis\uE9 que pour la m\uE9thode 'fh13'")
   }
 
   # Message d'erreur si visualisation n'est pas un booléen
@@ -171,14 +158,14 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   if (!is.null(years)) {
     df_baci <-
       df_baci |>
-      dplyr::filter(year %in% years)
+      dplyr::filter(t %in% years)
   }
 
   # Ne garder que les codes sélectionnés (s'il y a une sélection)
   if (!is.null(codes)) {
     df_baci <-
       df_baci |>
-      dplyr::filter(code %in% codes)
+      dplyr::filter(k %in% codes)
   }
 
   # Caluler les valeurs unitaires pour chaque flux
@@ -203,8 +190,8 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
         .by = c(t, k),
         extreme =
           dplyr::case_when(
-            uv >= quantile(uv, seuil_H, na.rm = 0) ~ 1,
-            uv <= quantile(uv, seuil_L, na.rm = 0) ~ -1
+            uv >= quantile(uv, seuil_H, na.rm = TRUE) ~ 1,
+            uv <= quantile(uv, seuil_L, na.rm = TRUE) ~ -1
           )
       )
   }
@@ -223,34 +210,14 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
       dplyr::mutate(
         .by = k,
         mean_diff = uv - mean(uv, na.rm = TRUE)
-      )
-
-    # Définir les outliers en fonction de la distribution de toutes les diff
-     if (whole == TRUE){
-      df_baci <-
-        df_baci |>
+      ) |>
         dplyr::mutate(
           extreme =
             dplyr::case_when(
-              mean_diff >= quantile(mean_diff, seuil_H, na.rm = 0) ~ 1,
-              mean_diff <= quantile(mean_diff, seuil_L, na.rm = 0) ~ -1
+              mean_diff >= quantile(mean_diff, seuil_H, na.rm = T) ~ 1,
+              mean_diff <= quantile(mean_diff, seuil_L, na.rm = T) ~ -1
             )
         )
-     }
-
-    # Définir les outliers en fonction de la distribution des diff par produit
-    else {
-      df_baci <-
-        df_baci |>
-        dplyr::mutate(
-          .by = k,
-          extreme =
-            dplyr::case_when(
-              mean_diff >= quantile(mean_diff, seuil_H, na.rm = 0) ~ 1,
-              mean_diff <= quantile(mean_diff, seuil_L, na.rm = 0) ~ -1
-            )
-        )
-     }
 
     # Enlever les variables calculées si visualisation est FALSE
     if (visualisation == FALSE){
@@ -298,7 +265,7 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   if (!is.null(path_output)){
     df_baci |>
       dplyr::group_by(t) |>
-      arrow::write_parquet(path_output)
+      arrow::write_dataset(path_output)
   }
 
   # Retourner les données en format data.frame

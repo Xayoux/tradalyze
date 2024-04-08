@@ -16,7 +16,6 @@ clean_uv_outliers(
   method = "classic",
   seuil_H,
   seuil_L,
-  whole = TRUE,
   visualisation = FALSE,
   path_output = NULL,
   return_output = FALSE
@@ -39,10 +38,6 @@ gardés.}
 
 \item{seuil_L}{Seuil inférieur pour la détermination des outliers. Doit
 être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.}
-
-\item{whole}{Booléen pour déterminer si la distribution des différences
-pour la méthode 'fh13' est celle de toutes les valeurs unitaires (TRUE) ou
-celle des valeurs unitaires par produit (FALSE).}
 
 \item{visualisation}{Booléen pour déterminer si les données exportées
 doivent contenir les outliers ainsi que les variables pour les déterminer
