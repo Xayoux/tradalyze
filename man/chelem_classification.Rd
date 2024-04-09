@@ -16,7 +16,8 @@ Un dataframe avec 196 lignes et 3 colonnes :
 }
 }
 \source{
-\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{Classification CHELEM du CEPII}
+\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{Classification Chelem du CEPII}. Voir :
+\href{http://www.cepii.fr/cepii/fr/publications/wp/abstract.asp?nodoc=1081}{de Saint Vaulry, A. (2008), “Base de données CHELEM - Commerce international du CEPII”,  Document de travail du CEPII, N°2008-09}
 }
 \usage{
 chelem_classification

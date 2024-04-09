@@ -21,6 +21,7 @@
 #' @export
 #'
 #' @examples # Pas d'exemple disponible.
+#' @source [Steven Liao, In Song Kim, Sayumi Miyano, Hao Zhang (2020). concordance: Product Concordance. R package version 2.0.0. https://CRAN.R-project.org/package=concordance](https://github.com/insongkim/concordance)
 extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
                             revision_destination = NULL,
                             export = TRUE, return_df = TRUE, correspondance = FALSE){

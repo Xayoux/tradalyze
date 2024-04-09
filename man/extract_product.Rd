@@ -3,6 +3,9 @@
 \name{extract_product}
 \alias{extract_product}
 \title{Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.}
+\source{
+\href{https://github.com/insongkim/concordance}{Steven Liao, In Song Kim, Sayumi Miyano, Hao Zhang (2020). concordance: Product Concordance. R package version 2.0.0. https://CRAN.R-project.org/package=concordance}
+}
 \usage{
 extract_product(
   codes_vector,
