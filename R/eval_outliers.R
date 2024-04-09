@@ -86,7 +86,7 @@ eval_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   # Message d'erreur si seuil_H_vector et seuil_L_vector n'ont pas la même
   # longueur
   if(length(seuil_H_vector) != length(seuil_L_vector)){
-    stop("seuil_H_vector et seuil_L_vector doivent avoir la même longueur.")
+    stop("seuil_H_vector et seuil_L_vector doivent avoir la m\uEAme longueur.")
   }
 
   # Message d'erreur si graph n'est pas un booléen
