@@ -5,4 +5,5 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "v_t_k_i_j", "market_share_t_k_i_j", "country_code",
                          "country_iso3", "chapter", "total_v_without_outliers",
                          "total_q_without_outliers", "total_v", "total_q",
-                         "ratio_v", "ratio_q", "quantile_H", "ratio_value"))
+                         "ratio_v", "ratio_q", "quantile_H", "ratio_value",
+                         "iso_region", "name_region"))
