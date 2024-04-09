@@ -46,7 +46,7 @@
 #' @export
 #'
 #' @examples # Pas d'exemple.
-eval_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
+eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
                           method = "classic", seuil_H_vector, seuil_L_vector,
                           graph = TRUE, path_df_output = NULL,
                           path_graph_output = NULL){
