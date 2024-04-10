@@ -18,7 +18,8 @@ clean_uv_outliers(
   seuil_L,
   visualisation = FALSE,
   path_output = NULL,
-  return_output = FALSE
+  return_output = FALSE,
+  return_pq = FALSE
 )
 }
 \arguments{
@@ -47,7 +48,10 @@ ou non.}
 parquet. Si NULL, les données ne sont pas exportées.}
 
 \item{return_output}{Booléen pour déterminer si les données doivent être
-retournées en format data.frame.}
+retournées.}
+
+\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
+en format arrow si TRUE. Par défaut : FALSE.}
 }
 \value{
 Un dataframe arrow contenant les données nettoyées des outliers.

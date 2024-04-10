@@ -12,7 +12,8 @@ market_share(
   years = NULL,
   codes = NULL,
   path_output = NULL,
-  return = FALSE
+  return_output = FALSE,
+  return_pq = FALSE
 )
 }
 \arguments{
@@ -44,8 +45,11 @@ gardés.}
 sauvegardées. Par défaut, les données ne sont pas sauvegardées. Les formats
 possibles sont .csv, .xlsx et .parquet.}
 
-\item{return}{Booléen qui permet de retourner les données. Par défaut, les
+\item{return_output}{Booléen qui permet de retourner les données. Par défaut, les
 données ne sont pas retournées.}
+
+\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
+en format arrow si TRUE. Par défaut : FALSE.}
 }
 \value{
 Un dataframe avec les parts de marché calculées.

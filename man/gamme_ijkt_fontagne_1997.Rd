@@ -15,6 +15,7 @@ gamme_ijkt_fontagne_1997(
   years = NULL,
   codes = NULL,
   pivot = "longer",
+  return_pq = FALSE,
   return_output = FALSE,
   path_output = NULL,
   remove = FALSE
@@ -44,6 +45,9 @@ L et une pour la gamme. Les observations sont égales au nombre d'observation
 sélectionnées multipliées par le nombre de seuils. Un format wider indique
 que le dataframe de sortie contient une variable par seuil et une observation
 unique par flux.}
+
+\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
+en format arrow si TRUE. Par défaut : FALSE.}
 
 \item{return_output}{Un booléen qui permet de retourner le résultat de la
 fonction. Par défaut, la fonction ne retourne rien.}

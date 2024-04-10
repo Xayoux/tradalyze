@@ -27,7 +27,7 @@ années sont considérées.}
 codes HS6 sont considérés.}
 
 \item{method}{Méthode de détermination des outliers. Peut être 'classic',
-'fh13' ou 'h06'. Par défaut, 'classic'.}
+'fh13', 'h06' ou 'sd'. Par défaut, 'classic'.}
 
 \item{seuil_H_vector}{Un vecteur contenant les seuils "hauts" à considérer
 pour l'élimination des outliers. Les valeurs doivent être comprises entre

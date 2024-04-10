@@ -14,7 +14,8 @@ gamme_ijkt_berthou_2011(
   codes = NULL,
   return_output = FALSE,
   path_output = NULL,
-  remove = FALSE
+  remove = FALSE,
+  return_pq = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ stocké.}
 \item{remove}{Un booléen qui permet de supprimer tous les fichiers commençant
 par t= dans le path_output s'il est non nul. Par défaut, FALSE.
 Evite les confusions si plusieurs utilisations dans le même dossier.}
+
+\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
+en format arrow si TRUE. Par défaut : FALSE.}
 }
 \value{
 Un dataframe / dossier parquet contenant les données de la base BACI

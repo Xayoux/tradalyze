@@ -14,6 +14,7 @@ gamme_ijkt_gaulier_2006(
   years = NULL,
   codes = NULL,
   return_output = FALSE,
+  return_pq = FALSE,
   path_output = NULL,
   remove = FALSE
 )
@@ -37,6 +38,9 @@ caractères). Par défaut, tous les produits sont pris en compte.}
 
 \item{return_output}{Un booléen qui permet de retourner le résultat de la
 fonction. Par défaut, la fonction ne retourne rien.}
+
+\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
+en format arrow si TRUE. Par défaut : FALSE.}
 
 \item{path_output}{Chemin vers le dossier où le résultat de la fonction doit
 être stocké en format parquet par année. Par défaut, le résultat n'est pas
