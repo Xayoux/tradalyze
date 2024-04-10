@@ -202,9 +202,9 @@ graph_outlier_dist <- function(path_baci_parquet, years, codes,
   graph_dist <-
     graph_dist +
     ggplot2::labs(
-      title = "R\uE9partition des diff\uE9rences de valeurs unitaires par rapport à la moyenne",
+      title = "R\uE9partition des diff\uE9rences de valeurs unitaires par rapport \uE0 la moyenne",
       subtitle = stringr::str_glue("m\uE9thode : {method} ; seuil haut : {seuil_H} ; seuil bas : {seuil_L}"),
-      x = stringr::str_glue("Diff\uE9rence entre la valeur unitaire et la moyenne (référentiel : {ref})")
+      x = stringr::str_glue("Diff\uE9rence entre la valeur unitaire et la moyenne (r\uE9f\uE9rentiel : {ref})")
     ) +
     ggplot2::scale_color_brewer(palette = "Paired") +
     ggplot2::theme_bw()
