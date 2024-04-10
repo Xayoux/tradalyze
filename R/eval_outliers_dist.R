@@ -114,7 +114,7 @@ eval_outliers_dist <- function(path_baci_parquet, years = NULL, codes = NULL,
            seuil_L_vector,
            list_graph),
       \(seuil_H, seuil_L, graph) ggplot2::ggsave(
-        filename = str_glue("{path_output}/outliers_distribution_seuil_H_{seuil_H}_seuil_L_{seuil_L}.png"),
+        filename = stringr::str_glue("{path_output}/outliers_distribution_seuil_H_{seuil_H}_seuil_L_{seuil_L}.png"),
         plot = graph,
         width = 15,
         height = 8

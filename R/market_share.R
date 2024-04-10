@@ -111,9 +111,19 @@ market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
     }
   }
 
-  # Erreur si return n'est pas un booléen
-  if(!is.logical(return)){
-    stop("return doit \uEAtre un bool\uE9en.")
+  # Erreur si return_output n'est pas un booléen
+  if(!is.logical(return_output)){
+    stop("return_output doit \uEAtre un bool\uE9en.")
+  }
+
+  # Message d'erreur si return_pq n'est pas un booléen
+  if (!is.logical(return_pq)) {
+    stop("return_pq doit \uEAtre un bool\uE9en")
+  }
+
+  # Message d'avertissement si return_output = FALSE et return_pq = TRUE
+  if (return_output == FALSE & return_pq == TRUE){
+    message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
   }
 
 

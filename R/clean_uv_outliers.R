@@ -276,10 +276,10 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
         .by = c(t,chapter),
         extreme =
           dplyr::case_when(
-            mean_diff > seuil_H * sd(mean_diff, na.rm = TRUE) ~ 1,
-            mean_diff < - seuil_L * sd(mean_diff, na.rm = TRUE) ~ -1
+            mean_diff > seuil_H * stats::sd(mean_diff, na.rm = TRUE) ~ 1,
+            mean_diff < - seuil_L * stats::sd(mean_diff, na.rm = TRUE) ~ -1
           ),
-        ecart_type = sd(mean_diff, na.rm = TRUE)
+        ecart_type = stats::sd(mean_diff, na.rm = TRUE)
       )
 
     if (visualisation == FALSE){

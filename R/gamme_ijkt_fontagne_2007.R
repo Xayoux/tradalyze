@@ -149,6 +149,16 @@ gamme_ijkt_fontagne_2007 <- function(path_baci_parquet, alpha = 3,
       unlink(recursive = TRUE)
   }
 
+  # Message d'erreur si return_pq n'est pas un booléen
+  if (!is.logical(return_pq)) {
+    stop("return_pq doit \uEAtre un bool\uE9en")
+  }
+
+  # Message d'avertissement si return_output = FALSE et return_pq = TRUE
+  if (return_output == FALSE & return_pq == TRUE){
+    message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
+  }
+
 
   # Filtrage des données ----------------------------------------------------
   # Charger les données BACI en format parquet -> pas en mémoire

@@ -129,6 +129,16 @@ gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
     stop("remove doit \uEAtre un bool\uE9en.")
   }
 
+  # Message d'erreur si return_pq n'est pas un booléen
+  if (!is.logical(return_pq)) {
+    stop("return_pq doit \uEAtre un bool\uE9en")
+  }
+
+  # Message d'avertissement si return_output = FALSE et return_pq = TRUE
+  if (return_output == FALSE & return_pq == TRUE){
+    message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
+  }
+
   # Si remove == TRUE alors supprimer tous les fichiers commençant par t= dans le path_output s'il est non nul
   if(remove == TRUE & !is.null(path_output)){
     # supprimer les dossier commençant par t= : les dossier parquet par année
