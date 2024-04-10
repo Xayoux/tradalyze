@@ -13,7 +13,7 @@ add_chelem_classification(
   years = NULL,
   codes = NULL,
   path_output = NULL,
-  return = FALSE,
+  return_output = FALSE,
   return_pq = FALSE
 )
 }
@@ -30,7 +30,7 @@ conservées.}
 fusionnées en format parquet. Par défaut, les données ne sont pas s
 auvegardées.}
 
-\item{return}{Retourner les données fusionnées. Par défaut, les données ne
+\item{return_output}{Retourner les données fusionnées. Par défaut, les données ne
 sont pas retournées.}
 
 \item{return_pq}{Retourner les données fusionnées au format parquet. Par

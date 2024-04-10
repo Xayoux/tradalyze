@@ -43,7 +43,7 @@
 #' @param path_output Chemin d'accès vers le dossier où sauvegarder les données
 #' fusionnées en format parquet. Par défaut, les données ne sont pas s
 #' auvegardées.
-#' @param return Retourner les données fusionnées. Par défaut, les données ne
+#' @param return_output Retourner les données fusionnées. Par défaut, les données ne
 #' sont pas retournées.
 #' @param return_pq Retourner les données fusionnées au format parquet. Par
 #' défaut, les données sont retournées au format tibble.
@@ -56,7 +56,7 @@
 #' [de Saint Vaulry, A. (2008), “Base de données CHELEM - Commerce international du CEPII”,  Document de travail du CEPII, N°2008-09](http://www.cepii.fr/cepii/fr/publications/wp/abstract.asp?nodoc=1081)
 #'
 add_chelem_classification <- function(path_baci_parquet, years = NULL, codes = NULL,
-                                      path_output = NULL, return = FALSE,
+                                      path_output = NULL, return_output = FALSE,
                                       return_pq = FALSE){
 
   # Messages d'erreur -------------------------------------------------------
@@ -152,11 +152,12 @@ add_chelem_classification <- function(path_baci_parquet, years = NULL, codes = N
   }
 
   # Retourner les données fusionnées
-  if (return){
-    if (return_pq){
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
       # Retourner en format parquet
       return(df_baci)
-    } else {
+    }
+    else {
       # Retourner en dataframe
       return(df_baci |>  dplyr::collect())
     }
