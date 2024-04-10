@@ -1,3 +1,4 @@
+# Fonction ----------------------------------------------------------------
 #' @title
 #' Déterminer et filtrer les outliers des valeurs unitaires dans BACI
 #'
@@ -15,7 +16,7 @@
 #'
 #' Pour éviter que ces valeurs ne biaisent les analyses, il peut être recommandé
 #' de supprimer les outliers de la distribution des valeurs unitaires. Cette
-#' fonction permet de déterminer les outliers selon trois méthodes différentes:
+#' fonction permet de déterminer les outliers selon quatre méthodes différentes:
 #'
 #' - La méthode 'classic' détermine les outliers en fonction des quantiles de
 #' la distribution des valuers unitaires par année-produit. Si la valeur
@@ -40,6 +41,11 @@
 #' moyenne multipliée par `seuil_H` ou inférieure à la moyenne divisée par
 #' `seuil_L`, alors elle est considérée comme un outlier.
 #'
+#' - la méthode 'sd' détermine les outliers comme étant les flux dont la
+#' différence entre la valeur unitaire et la moyenne produit-année est
+#' supérieure à un certain nombre de fois l'écart-type de cette différence, ou
+#' inférieure un nombre de fois à l'opposé de l'écart-type de cette différence.
+#'
 #' La fonction permet de garder ou non les outliers dans les données.
 #'
 #'
@@ -50,7 +56,7 @@
 #' @param codes Codes à garder dans les données. Si NULL, tous les codes sont
 #' gardés.
 #' @param method Méthode de détermination des outliers. Peut être 'classic',
-#' 'fh13' ou 'h06'.
+#' 'fh13', 'h06', ou 'sd'.
 #' @param seuil_H Seuil supérieur pour la détermination des outliers. Doit
 #' être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.
 #' @param seuil_L Seuil inférieur pour la détermination des outliers. Doit
@@ -61,7 +67,10 @@
 #' @param path_output Chemin vers le dossier où exporter les données en format
 #' parquet. Si NULL, les données ne sont pas exportées.
 #' @param return_output Booléen pour déterminer si les données doivent être
-#' retournées en format data.frame.
+#' retournées.
+#' @param return_pq Booléen pour indiquer si les données doivent être retournées
+#' en format arrow si TRUE. Par défaut : FALSE.
+#'
 #'
 #' @return Un dataframe arrow contenant les données nettoyées des outliers.
 #' @export
@@ -69,12 +78,10 @@
 #' @examples # Pas d'exemples.
 #' @source [Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.](https://pse.hal.science/hal-00959394/)
 #' @source [Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
-
-# Fonction ----------------------------------------------------------------
 clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
                               method = "classic", seuil_H, seuil_L,
                               visualisation = FALSE, path_output = NULL,
-                              return_output = FALSE) {
+                              return_output = FALSE, return_pq = FALSE) {
 
   # Messages d'erreurs si mauvais paramètres --------------------------------
   # Message d'erreur si path_baci_parquet n'est pas une chaîne de caractère
@@ -93,8 +100,8 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si method n'est pas un des trois choix possibles
-  if (!method %in% c("classic", "fh13", "h06")) {
-    stop("'method' doit \uEAtre 'classic', 'fh13' ou 'h06'")
+  if (!method %in% c("classic", "fh13", "h06", "sd")) {
+    stop("'method' doit \uEAtre 'classic', 'fh13', 'h06', ou 'sd'")
   }
 
   # Message d'erreur si seuil_H n'est pas un numérique
@@ -107,8 +114,8 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
     stop("seuil_L doit \uEAtre un num\uE9rique")
   }
 
-  # Message d'erreur si seuil_H est inférieur à seuil_L
-  if (seuil_H < seuil_L) {
+  # Message d'erreur si seuil_H est inférieur à seuil_L pour tout sauf 'sd'
+  if (method != "sd" & seuil_H < seuil_L) {
     stop("seuil_H doit \uEAtre sup\uE9rieur \uE0 seuil_L")
   }
 
@@ -123,12 +130,12 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si Seuil_H n'est pas compris entre 0 et 1 si method != "h06"
-  if (method != "h06" & (seuil_H < 0 | seuil_H > 1)) {
+  if (!method %in% c("h06", "sd") & (seuil_H < 0 | seuil_H > 1)) {
     stop("seuil_H doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
   }
 
   # Message d'erreur si Seuil_L n'est pas compris entre 0 et 1 si method != "h06"
-  if (method != "h06" & (seuil_L < 0 | seuil_L > 1)) {
+  if (!method %in% c("h06", "sd") & (seuil_L < 0 | seuil_L > 1)) {
     stop("seuil_L doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
   }
 
@@ -145,6 +152,16 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   # Message d'erreur si return_output n'est pas un booléen
   if (!is.logical(return_output)) {
     stop("return_output doit \uEAtre un bool\uE9en")
+  }
+
+  # Message d'erreur si return_pq n'est pas un booléen
+  if (!is.logical(return_pq)) {
+    stop("return_pq doit \uEAtre un bool\uE9en")
+  }
+
+  # Message d'avertissement si return_output = FALSE et return_pq = TRUE
+  if (return_output == FALSE & return_pq == TRUE){
+    message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
   }
 
 
@@ -246,6 +263,32 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
       )
   }
 
+  if (method == "sd"){
+    df_baci <-
+      df_baci |>
+      dplyr::collect() |>
+      dplyr::mutate(
+        .by = c(k, t),
+        mean_diff = uv - mean(uv, na.rm = TRUE),
+        chapter = substr(k, 1, 2)
+      ) |>
+      dplyr::mutate(
+        .by = c(t,chapter),
+        extreme =
+          dplyr::case_when(
+            mean_diff > seuil_H * sd(mean_diff, na.rm = TRUE) ~ 1,
+            mean_diff < - seuil_L * sd(mean_diff, na.rm = TRUE) ~ -1
+          ),
+        ecart_type = sd(mean_diff, na.rm = TRUE)
+      )
+
+    if (visualisation == FALSE){
+      df_baci <-
+        df_baci |>
+        dplyr::select(!c(mean_diff))
+    }
+  }
+
   # Exportation des données -------------------------------------------------
   # Retourner les données en format arrow
   df_baci <-
@@ -265,14 +308,21 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
   if (!is.null(path_output)){
     df_baci |>
       dplyr::group_by(t) |>
-      arrow::write_dataset(path_output)
+      arrow::write_dataset(path_output) |>
+      dplyr::ungroup()
   }
 
   # Retourner les données en format data.frame
   if (return_output == TRUE){
+    if (return_pq == TRUE){
+      return(df_baci)
+    }
+    else{
     df_baci <-
       df_baci |>
       dplyr::collect()
+
     return(df_baci)
+    }
   }
 }

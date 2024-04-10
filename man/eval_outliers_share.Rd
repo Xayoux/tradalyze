@@ -34,7 +34,8 @@ pour l'élimination des outliers. Les valeurs doivent être comprises entre
 0 et 1 pour les méthodes "classic" et "fh13".}
 
 \item{seuil_L_vector}{Un vecteur contenant les seuils "bas" à considérer pour
-l'élimination des outliers. Les valeurs doivent être comprises entre 0 et 1.}
+l'élimination des outliers. Les valeurs doivent être comprises entre 0 et 1
+pour les méthodes "classic" et "fh13".}
 
 \item{graph}{Un booléen indiquant si un graphique doit être généré ou non.}
 

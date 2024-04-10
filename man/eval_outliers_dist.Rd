@@ -2,7 +2,8 @@
 % Please edit documentation in R/eval_outliers_dist.R
 \name{eval_outliers_dist}
 \alias{eval_outliers_dist}
-\title{Title}
+\title{Evaluer la distribution de la différence entre les valeurs unitaires et leur
+moyenne.}
 \usage{
 eval_outliers_dist(
   path_baci_parquet,
@@ -14,13 +15,85 @@ eval_outliers_dist(
   graph_type = "density",
   ref = "k",
   wrap = TRUE,
+  print = TRUE,
   output_type = "xlsx",
   path_output = NULL
 )
 }
 \arguments{
-\item{path_output}{}
+\item{path_baci_parquet}{Chemin vers le dossier BACI en format parquet.}
+
+\item{years}{Années à garder dans les données. Si NULL, toutes les années
+sont gardées.}
+
+\item{codes}{Codes à garder dans les données. Si NULL, tous les codes sont
+gardés.}
+
+\item{method}{Méthode de détermination des outliers. Peut être 'classic',
+'fh13' ou 'h06'.}
+
+\item{seuil_H_vector}{Un vecteur contenant les seuils "hauts" à considérer
+pour l'élimination des outliers. Les valeurs doivent être comprises entre
+0 et 1 pour les méthodes "classic" et "fh13".}
+
+\item{seuil_L_vector}{Un vecteur contenant les seuils "bas" à considérer pour
+l'élimination des outliers. Les valeurs doivent être comprises entre 0 et 1
+pour les méthodes "classic" et "fh13".}
+
+\item{graph_type}{Type de graphique voulu. Peut être "density" ou "boxplot"}
+
+\item{ref}{Le reférentiel pour calculer la différence à la moyenne. Peut
+être "k" pour calculer la différence par rapport à la moyenne du produit
+toutes années confondues. Peut être "kt" pour calculer la différence par
+rapport à la moyenne du produit pour chaque année.}
+
+\item{wrap}{Booléen indiquant si le graphique doit représenter la distribution
+globale (FALSE) ou la distribution par chapitre HS6 (FALSE).}
+
+\item{print}{Un booléen indiquant si les graphiques doivent être affichés.
+Dans le cas où le document de sortie est un fichier xlsx, alors les graphiques
+sont forcément affichés.}
+
+\item{output_type}{Le type de format de sortie voulu. Soit "xlsx", soit "png"}
+
+\item{path_output}{Chemin du fichier excel ou seront enregistrées les données
+si \code{output_type} = TRUE. Chemin vers le dossier où les fichiers png seront
+enregistrés si \code{path_output} = "png".}
+}
+\value{
+Un fichier excel ou des fichiers png.
 }
 \description{
-Title
+Permet de représenter graphiquement la distribution de la différence des
+valeurs unitaires avec leur moyenne (par produit ou par année-produit). Ces
+graphiques permettent de déterminer la présence d'outliers dans les données.
+}
+\details{
+Les valeurs unitaires calculéesà partir de BACI peuvent souffrir de la
+présence d'outliers à cause d'un mauvais renseignement des quantités dans
+les données source de COMTRADE. Pour aider à déterminer les outliers dans
+ces valeurs unitaires, cette fonction permet de représenter graphiquement
+la distribution de la différence des valeurs unitaires avec leur moyenne
+(par produit ou par année-produit), ce qui permet d'aggréger toutes les
+mesures pour tous les produits et années dans un même graphique.
+
+Trois méthodes de détermination des outliers sont disponibles 'classic',
+'fh13' et 'h06' et sont décrites en détail dans l'aide de la fonction
+\link{clean_uv_outliers}.
+
+Cette fonction peut prendre comme argument des vecteurs de numériques afin
+de permettre l'exploration sur plusieurs seuils à partir d'un seul appel de
+la fonction. Il est possible grâce au paramètre \code{wrap} de représenter les
+distributions pour tous les produits ou les distributions par chapitre
+de produits.
+
+Deux types de graphiques sont disponibles grâce au paramètre \code{graph_type} :
+une courbe de densité ou bien une boîte à moustache.
+
+La fonction peut retourner un document excel dans lequel chaque feuille
+correspond à un seuil spécifique. Ou bien elle peut renvoyer un fichier .png
+par seuil.
+}
+\examples{
+# Pas d'exemples.
 }

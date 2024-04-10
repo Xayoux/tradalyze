@@ -73,6 +73,8 @@
 #' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
 #' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
 #' Evite les confusions si plusieurs utilisations dans le même dossier.
+#' @param return_pq Booléen pour indiquer si les données doivent être retournées
+#' en format arrow si TRUE. Par défaut : FALSE.
 #'
 #' @return Un dataframe / dossier parquet contenant les données de la base BACI
 #' avec les gammes calculées.
@@ -101,7 +103,7 @@
 gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
                                      alpha_L = alpha_H,
                                      years = NULL, codes = NULL,
-                                     pivot = "longer",
+                                     pivot = "longer", return_pq = FALSE,
                                      return_output = FALSE, path_output = NULL,
                                      remove = FALSE){
 
@@ -270,11 +272,16 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
   }
 
   # Retourner le résultat si return_output == TRUE
-  if(return_output == TRUE){
-    df_baci <-
-      df_baci |>
-      dplyr::collect()
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
+      return(df_baci)
+    }
+    else{
+      df_baci <-
+        df_baci |>
+        dplyr::collect()
 
-    return(df_baci)
+      return(df_baci)
+    }
   }
 }

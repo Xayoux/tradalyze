@@ -6,7 +6,7 @@
 #' @source rogiersbart with his RTOOLZ package : https://rdrr.io/github/rogiersbart/rtoolz/man/weighted.geomean.html
 #'
 #' @return La moyenne géométrique pondérée.
-#' @export
+#'
 #'
 #' @examples # Pas d'exemple.
 weighted_geomean <- function(x, w, ...){

@@ -53,6 +53,8 @@
 #' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
 #' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
 #' Evite les confusions si plusieurs utilisations dans le même dossier.
+#' @param return_pq Booléen pour indiquer si les données doivent être retournées
+#' en format arrow si TRUE. Par défaut : FALSE.
 #'
 #'
 #' @source [G. Gaulier, F. Lemoine & D. Ünal-Kesenci (2006), “China's Emergence and the Reorganisation of Trade Flows in Asia”, CEPII Working Paper, n° 2006-05, March.](http://www.cepii.fr/PDF_PUB/wp/2006/wp2006-05.pdf)
@@ -86,8 +88,8 @@
 #' @examples # Pas d'exemples.
 gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
                                     years = NULL, codes = NULL,
-                                    return_output = FALSE, path_output = NULL,
-                                    remove = FALSE){
+                                    return_output = FALSE, return_pq = FALSE,
+                                    path_output = NULL, remove = FALSE){
 
 
   # Messages d'erreur -------------------------------------------------------
@@ -245,15 +247,21 @@ gamme_ijkt_gaulier_2006 <- function(path_baci_parquet, pond = 1,
   if(!is.null(path_output)){
     df_baci |>
       dplyr::group_by(t) |>
-      arrow::write_dataset(path_output, format = "parquet")
+      arrow::write_dataset(path_output, format = "parquet") |>
+      dplyr::ungroup()
   }
 
   # Retourner le résultat si return_output == TRUE
-  if(return_output == TRUE){
-    df_baci <-
-      df_baci |>
-      dplyr::collect()
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
+      return(df_baci)
+    }
+    else{
+      df_baci <-
+        df_baci |>
+        dplyr::collect()
 
-    return(df_baci)
+      return(df_baci)
+    }
   }
 }

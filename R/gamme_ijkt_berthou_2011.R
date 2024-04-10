@@ -49,6 +49,8 @@
 #' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
 #' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
 #' Evite les confusions si plusieurs utilisations dans le même dossier.
+#' @param return_pq Booléen pour indiquer si les données doivent être retournées
+#' en format arrow si TRUE. Par défaut : FALSE.
 #'
 #' @return Un dataframe / dossier parquet contenant les données de la base BACI
 #' avec le calcul des gammes. Les variables du dataframe sont les suivantes :
@@ -74,7 +76,8 @@
 #' @source [A . Berthou, C . Emlinger (2011), « Les mauvaises performances françaises à l’exportation: La compé titivité prix est - elle coupable ? », La Lettre du CEPII , n°313, Septembre.](http://www.cepii.fr/PDF_PUB/lettre/2011/let313.pdf)
 gamme_ijkt_berthou_2011 <- function(path_baci_parquet, years = NULL,
                                     codes = NULL, return_output = FALSE,
-                                    path_output = NULL, remove = FALSE){
+                                    path_output = NULL, remove = FALSE,
+                                    return_pq = FALSE){
 
   # Messages d'erreur -------------------------------------------------------
 
@@ -177,11 +180,14 @@ gamme_ijkt_berthou_2011 <- function(path_baci_parquet, years = NULL,
   }
 
   # Retourner le résultat si return_output == TRUE
-  if(return_output == TRUE){
-    df_baci <-
-      df_baci |>
-      dplyr::collect()
-
-    return(df_baci)
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
+      return(df_baci)
+    } else{
+      df_baci <-
+        df_baci |>
+        dplyr::collect()
+      return(df_baci)
+    }
   }
 }

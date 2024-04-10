@@ -31,7 +31,7 @@ sont gardées.}
 gardés.}
 
 \item{method}{Méthode de détermination des outliers. Peut être 'classic',
-'fh13' ou 'h06'.}
+'fh13', 'h06', ou 'sd'.}
 
 \item{seuil_H}{Seuil supérieur pour la détermination des outliers. Doit
 être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.}
@@ -66,7 +66,7 @@ fiabilité n'est pas toujours garantie.
 
 Pour éviter que ces valeurs ne biaisent les analyses, il peut être recommandé
 de supprimer les outliers de la distribution des valeurs unitaires. Cette
-fonction permet de déterminer les outliers selon trois méthodes différentes:
+fonction permet de déterminer les outliers selon quatre méthodes différentes:
 \itemize{
 \item La méthode 'classic' détermine les outliers en fonction des quantiles de
 la distribution des valuers unitaires par année-produit. Si la valeur
@@ -88,6 +88,10 @@ détermine les outliers en fonction de la moyenne des valeurs unitaires par
 produit, exportateur et année. Si la valeur unitaire est supérieure à la
 moyenne multipliée par \code{seuil_H} ou inférieure à la moyenne divisée par
 \code{seuil_L}, alors elle est considérée comme un outlier.
+\item la méthode 'sd' détermine les outliers comme étant les flux dont la
+différence entre la valeur unitaire et la moyenne produit-année est
+supérieure à un certain nombre de fois l'écart-type de cette différence, ou
+inférieure un nombre de fois à l'opposé de l'écart-type de cette différence.
 }
 
 La fonction permet de garder ou non les outliers dans les données.

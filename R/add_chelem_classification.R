@@ -147,7 +147,8 @@ add_chelem_classification <- function(path_baci_parquet, years = NULL, codes = N
   if (!is.null(path_output)){
     df_baci |>
       dplyr::group_by(t) |>
-      arrow::write_dataset(path_output)
+      arrow::write_dataset(path_output) |>
+      dplyr::ungroup()
   }
 
   # Retourner les données fusionnées

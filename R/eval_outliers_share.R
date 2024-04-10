@@ -29,12 +29,13 @@
 #' @param codes Les codes HS6 à considérer pour l'analyse. Si NULL, tous les
 #' codes HS6 sont considérés.
 #' @param method Méthode de détermination des outliers. Peut être 'classic',
-#' 'fh13' ou 'h06'. Par défaut, 'classic'.
+#' 'fh13', 'h06' ou 'sd'. Par défaut, 'classic'.
 #' @param seuil_H_vector Un vecteur contenant les seuils "hauts" à considérer
 #' pour l'élimination des outliers. Les valeurs doivent être comprises entre
 #' 0 et 1 pour les méthodes "classic" et "fh13".
 #' @param seuil_L_vector Un vecteur contenant les seuils "bas" à considérer pour
-#' l'élimination des outliers. Les valeurs doivent être comprises entre 0 et 1.
+#' l'élimination des outliers. Les valeurs doivent être comprises entre 0 et 1
+#' pour les méthodes "classic" et "fh13".
 #' @param graph Un booléen indiquant si un graphique doit être généré ou non.
 #' @param path_df_output Un chemin vers un fichier csv où sauvegarder les
 #' résultats de l'analyse. Si NULL, les résultats ne sont pas sauvegardés.
@@ -69,8 +70,8 @@ eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si method n'est pas "classic", "fh13" ou "h06"
-  if(!(method %in% c("classic", "fh13", "h06"))){
-    stop("method doit \uEAtre 'classic', 'fh13' ou 'h06'.")
+  if(!(method %in% c("classic", "fh13", "h06", "sd"))){
+    stop("method doit \uEAtre 'classic', 'fh13', 'h06' ou 'sd'.")
   }
 
   # Message d'erreur si seuil_H_vector n'est pas un vecteur numérique
@@ -271,8 +272,8 @@ comparison_outliers_func <- function(df_comm_value, seuil_H, seuil_L, method,
     dplyr::mutate(
       ratio_v = total_v_without_outliers / total_v * 100,
       ratio_q = total_q_without_outliers / total_q * 100,
-      quantile_H = seuil_H * 100,
-      quantile_L = seuil_L * 100,
+      quantile_H = seuil_H,
+      quantile_L = seuil_L,
       method = {{method}}
     )
 

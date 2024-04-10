@@ -59,6 +59,8 @@
 #' @param remove Un booléen qui permet de supprimer tous les fichiers commençant
 #' par t= dans le path_output s'il est non nul. Par défaut, FALSE.
 #' Evite les confusions si plusieurs utilisations dans le même dossier.
+#' @param return_pq Booléen pour indiquer si les données doivent être retournées
+#' en format arrow si TRUE. Par défaut : FALSE.
 #'
 #' @source [L.Fontagné, G.Gaulier & S.Zignago (2007),”Specialisation across Varieties within Products and North-South Competition”,CEPII Working Paper, N°2007-06, May](http://www.cepii.fr/PDF_PUB/wp/2007/wp2007-06.pdf)
 #' @return Un dataframe / dossier parquet contenant les données de la base
@@ -95,7 +97,7 @@
 gamme_ijkt_fontagne_2007 <- function(path_baci_parquet, alpha = 3,
                                      years = NULL, codes = NULL,
                                      return_output = FALSE, path_output = NULL,
-                                     remove = FALSE){
+                                     remove = FALSE, return_pq = FALSE){
 
   # Définition des messages d'erreur ----------------------------------------
 
@@ -267,11 +269,16 @@ gamme_ijkt_fontagne_2007 <- function(path_baci_parquet, alpha = 3,
   }
 
   # Retourner le résultat si return_output == TRUE
-  if(return_output == TRUE){
-    df_baci <-
-      df_baci |>
-      dplyr::collect()
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
+      return(df_baci)
+    }
+    else{
+      df_baci <-
+        df_baci |>
+        dplyr::collect()
 
-    return(df_baci)
+      return(df_baci)
+    }
   }
 }

@@ -59,8 +59,10 @@
 #' @param path_output Chemin d'accès vers le fichier où les données seront
 #' sauvegardées. Par défaut, les données ne sont pas sauvegardées. Les formats
 #' possibles sont .csv, .xlsx et .parquet.
-#' @param return Booléen qui permet de retourner les données. Par défaut, les
+#' @param return_output Booléen qui permet de retourner les données. Par défaut, les
 #' données ne sont pas retournées.
+#' @param return_pq Booléen pour indiquer si les données doivent être retournées
+#' en format arrow si TRUE. Par défaut : FALSE.
 #'
 #' @return Un dataframe avec les parts de marché calculées.
 #' @export
@@ -68,7 +70,8 @@
 #' @examples # Pas d'exemple.
 market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
                          seuil = 0, years = NULL, codes = NULL,
-                         path_output = NULL, return = FALSE){
+                         path_output = NULL, return_output = FALSE,
+                         return_pq = FALSE){
 
   # Messages d'erreur -------------------------------------------------------
   # Erreur si path_baci_parquet n'est une chaîne de caractères
@@ -191,10 +194,16 @@ market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
   }
 
   # Retourner les données si return = TRUE
-  if(return){
-    df_baci <-
-      df_baci |>
-      dplyr::collect()
-    return(df_baci)
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
+      return(df_baci)
+    }
+    else{
+      df_baci <-
+        df_baci |>
+        dplyr::collect()
+
+      return(df_baci)
+    }
   }
 }
