@@ -50,7 +50,10 @@
 #'
 #'
 #'
-#' @param path_baci_parquet Chemin vers le dossier BACI en format parquet.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param years Années à garder dans les données. Si NULL, toutes les années
 #' sont gardées.
 #' @param codes Codes à garder dans les données. Si NULL, tous les codes sont
@@ -78,17 +81,12 @@
 #' @examples # Pas d'exemples.
 #' @source [Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.](https://pse.hal.science/hal-00959394/)
 #' @source [Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
-clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
+clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
                               method = "classic", seuil_H, seuil_L,
                               visualisation = FALSE, path_output = NULL,
                               return_output = FALSE, return_pq = FALSE) {
 
   # Messages d'erreurs si mauvais paramètres --------------------------------
-  # Message d'erreur si path_baci_parquet n'est pas une chaîne de caractère
-  if (!is.character(path_baci_parquet)) {
-    stop("path_baci_parquet doit \uEAtre une cha\uEEne de caract\uE8re")
-  }
-
   # Message d'erreur si years n'est pas NULL ou un vecteur de numériques
   if (!is.null(years) & !is.numeric(years)) {
     stop("years doit \uEAtre NULL ou un vecteur de num\uE9riques")
@@ -166,10 +164,23 @@ clean_uv_outliers <- function(path_baci_parquet, years = NULL, codes = NULL,
 
 
   # Préparation des données -------------------------------------------------
-  # Importer BACI en parquet
-  df_baci <-
-    path_baci_parquet |>
-    arrow::open_dataset()
+  # Ouvrir les données de BACI
+  if (is.character(baci) == TRUE){
+    # Ouvrir les données depuis un dossier parquet
+    df_baci <-
+      baci |>
+      arrow::open_dataset()
+  }
+  else if (is.data.frame(baci) == TRUE){
+    # Ouvrir les données depuis un dataframe : passage en format arrow
+    df_baci <-
+      baci |>
+      dplyr::collect()
+  }
+  else{
+    # Ouvrir les données depuis format arrow : rien à faire
+    df_baci <- baci
+  }
 
   # Ne garder que les années sélectionnées (s'il y a une sélection)
   if (!is.null(years)) {

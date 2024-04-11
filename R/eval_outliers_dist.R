@@ -34,7 +34,10 @@
 #' correspond à un seuil spécifique. Ou bien elle peut renvoyer un fichier .png
 #' par seuil.
 #'
-#' @param path_baci_parquet Chemin vers le dossier BACI en format parquet.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param years Années à garder dans les données. Si NULL, toutes les années
 #' sont gardées.
 #' @param codes Codes à garder dans les données. Si NULL, tous les codes sont
@@ -66,7 +69,7 @@
 #' @export
 #'
 #' @examples # Pas d'exemples.
-eval_outliers_dist <- function(path_baci_parquet, years = NULL, codes = NULL,
+eval_outliers_dist <- function(baci, years = NULL, codes = NULL,
                                method = "classic", seuil_H_vector, seuil_L_vector,
                                graph_type = "density", ref = "k",
                                wrap = TRUE, print = TRUE,
@@ -78,7 +81,7 @@ eval_outliers_dist <- function(path_baci_parquet, years = NULL, codes = NULL,
       seuil_H_vector,
       seuil_L_vector,
       \(seuil_H, seuil_L) graph_outlier_dist(
-        path_baci_parquet = path_baci_parquet,
+        baci = baci,
         years = years,
         codes = codes,
         method = method,
@@ -136,14 +139,14 @@ eval_outliers_dist <- function(path_baci_parquet, years = NULL, codes = NULL,
 # Fonction secondaire -----------------------------------------------------
 # Fonction pour enlever les outliers et créer le graphique correspondant au seuil
 #'@noRd
-graph_outlier_dist <- function(path_baci_parquet, years, codes,
+graph_outlier_dist <- function(baci, years, codes,
                                method, seuil_H, seuil_L, ref, graph_type,
                                wrap){
 
   # Enlever les outliers selon la méthode et seuil voulu
   df_outliers <-
     clean_uv_outliers(
-      path_baci_parquet = path_baci_parquet,
+      baci = baci,
       years = years,
       codes = codes,
       method = method,
@@ -151,7 +154,8 @@ graph_outlier_dist <- function(path_baci_parquet, years, codes,
       seuil_L = seuil_L,
       visualisation = FALSE,
       path_output = NULL,
-      return_output = TRUE
+      return_output = TRUE,
+      return_pq = FALSE
     ) |>
     # Calculer les valeurs unitaires et crer les chapitres HS6
     dplyr::mutate(

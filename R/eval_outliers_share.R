@@ -22,8 +22,10 @@
 #' données totales du commerce mais également les données par chapitre de
 #' codes HS6 (les deux premiers chiffres du code HS6).
 #'
-#' @param path_baci_parquet Un chemin vers un dossier parquet contenant les
-#' données BACI.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param years Les années à considérer pour l'analyse. Si NULL, toutes les
 #' années sont considérées.
 #' @param codes Les codes HS6 à considérer pour l'analyse. Si NULL, tous les
@@ -47,18 +49,12 @@
 #' @export
 #'
 #' @examples # Pas d'exemple.
-eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
+eval_outliers_share <- function(baci, years = NULL, codes = NULL,
                           method = "classic", seuil_H_vector, seuil_L_vector,
                           graph = TRUE, path_df_output = NULL,
                           path_graph_output = NULL){
 
   # Messages d'erreur -------------------------------------------------------
-
-  # Message d'erreur si path_baci_parquet n'est pas une chaine de caractères
-  if(!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit \uEAtre une cha\uEEne de caract\uE8res.")
-  }
-
   # Message d'erreur si years n'est pas NULL ou numérique
   if(!is.null(years) & !is.numeric(years)){
     stop("years doit \uEAtre NULL ou un vecteur num\uE9rique.")
@@ -100,6 +96,11 @@ eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
     stop("path_df_output doit \uEAtre une cha\uEEne de caract\uE8res.")
   }
 
+  # Message d'erreur si path_df_output ne se termine pas en .csv
+  if(!is.null(path_df_output) & !stringr::str_detect(path_df_output, ".csv$")){
+    stop("path_df_output doit se terminer en .csv.")
+  }
+
   # Message d'erreur si path_graph_output n'est pas une chaine de caractères
   if(!is.null(path_graph_output) & !is.character(path_graph_output)){
     stop("path_graph_output doit \uEAtre une cha\uEEne de caract\uE8res.")
@@ -107,10 +108,23 @@ eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
 
 
   # Création de la fonction principale --------------------------------------
-  # Charger les données BACI en format parquet
-  df_baci <-
-    path_baci_parquet |>
-    arrow::open_dataset()
+  # Ouvrir les données de BACI
+  if (is.character(baci) == TRUE){
+    # Ouvrir les données depuis un dossier parquet
+    df_baci <-
+      baci |>
+      arrow::open_dataset()
+  }
+  else if (is.data.frame(baci) == TRUE){
+    # Ouvrir les données depuis un dataframe : passage en format arrow
+    df_baci <-
+      baci |>
+      dplyr::collect()
+  }
+  else{
+    # Ouvrir les données depuis format arrow : rien à faire
+    df_baci <- baci
+  }
 
   # Filtrer les données BACI si years n'est pas NULL
   if(!is.null(years)){
@@ -163,7 +177,7 @@ eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
       seuil_L_vector,
       \(seuil_H, seuil_L) comparison_outliers_func(
         df_commercial_value, seuil_H, seuil_L, method = method,
-        path_baci_parquet = path_baci_parquet, years = years, codes = codes
+        baci = baci, years = years, codes = codes
       )
     ) |>
     # Regrouper les résultats en un seul data.frame
@@ -218,20 +232,21 @@ eval_outliers_share <- function(path_baci_parquet, years = NULL, codes = NULL,
 # Pour un seul seuil
 #'@noRd
 comparison_outliers_func <- function(df_comm_value, seuil_H, seuil_L, method,
-                                     path_baci_parquet, years, codes){
+                                     baci, years, codes){
 
   # Calculer les valeurs et quantités totales sans outliers par chapitres HS6
   df_commercial_value_without_outliers_chapter <-
     # Déterminer les outliers et les éliminer
     clean_uv_outliers(
-      path_baci_parquet = path_baci_parquet,
+      baci = baci,
       method = method,
       years = years,
       codes = codes,
       seuil_H = seuil_H,
       seuil_L = seuil_L,
       visualisation = FALSE,
-      return_output = TRUE
+      return_output = TRUE,
+      return_pq = FALSE
     ) |>
     arrow::arrow_table() |>
     # Calculer les valeurs et quantités totales par chapitre HS6

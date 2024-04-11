@@ -9,7 +9,7 @@
 }
 \usage{
 gamme_ijkt_berthou_2011(
-  path_baci_parquet,
+  baci,
   years = NULL,
   codes = NULL,
   return_output = FALSE,
@@ -19,8 +19,10 @@ gamme_ijkt_berthou_2011(
 )
 }
 \arguments{
-\item{path_baci_parquet}{Chemin d'accès vers le dossier où la base BACI est
-stockée en format parquet.}
+\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
+les données de BACI au format parquet. Peut également être un dataframe ou
+bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+les opérations entre elles. ce paramètre est obligatoire.}
 
 \item{years}{Les années à considérer (un vecteur de numériques). Par défaut,
 toutes les années sont prises en compte.}

@@ -35,8 +35,10 @@
 #' région "rdm" pour "reste du monde".
 #'
 #'
-#' @param path_baci_parquet Chemin d'accès vers le dossier contenant les données
-#' de BACI au format parquet.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param years Années à conserver. Par défaut, toutes les années sont
 #' conservées.
 #' @param codes Codes à conserver. Par défaut, tous les codes sont conservés.
@@ -55,16 +57,11 @@
 #' @source [Classification Chelem du CEPII](<http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17>). Voir :
 #' [de Saint Vaulry, A. (2008), “Base de données CHELEM - Commerce international du CEPII”,  Document de travail du CEPII, N°2008-09](http://www.cepii.fr/cepii/fr/publications/wp/abstract.asp?nodoc=1081)
 #'
-add_chelem_classification <- function(path_baci_parquet, years = NULL, codes = NULL,
+add_chelem_classification <- function(baci, years = NULL, codes = NULL,
                                       path_output = NULL, return_output = FALSE,
                                       return_pq = FALSE){
 
   # Messages d'erreur -------------------------------------------------------
-  # Message d'erreur si path_baci_parquet n'est pas une chaine de caractère
-  if (!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit \uEAtre une cha\uEEe de caract\uE8re.")
-  }
-
   # Message d'erreur si years n'est pas NULL ou numérique
   if (!is.null(years) & !is.numeric(years)){
     stop("years doit \uEAtre NULL ou un vecteur num\uE9rique.")
@@ -80,9 +77,9 @@ add_chelem_classification <- function(path_baci_parquet, years = NULL, codes = N
     stop("path_output doit \uEAtre NULL ou une cha\uEEne de caract\uE8re.")
   }
 
-  # Message d'erreur si return n'est pas un booléen
-  if (!is.logical(return)){
-    stop("return doit \uEAtre un bool\uE9en.")
+  # Message d'erreur si return_output n'est pas un booléen
+  if (!is.logical(return_output)){
+    stop("return_output doit \uEAtre un bool\uE9en.")
   }
 
   # Message d'erreur si return_pq n'est pas un booléen
@@ -92,10 +89,24 @@ add_chelem_classification <- function(path_baci_parquet, years = NULL, codes = N
 
 
   # Exécution de la fonction ------------------------------------------------
-  # Ouvrir les données de BACI au format parquet
-  df_baci <-
-    path_baci_parquet |>
-    arrow::open_dataset()
+  # Ouvrir les données de BACI
+  if (is.character(baci) == TRUE){
+    # Ouvrir les données depuis un dossier parquet
+    df_baci <-
+      baci |>
+      arrow::open_dataset()
+  }
+  else if (is.data.frame(baci) == TRUE){
+    # Ouvrir les données depuis un dataframe : passage en format arrow
+    df_baci <-
+      baci |>
+      dplyr::collect()
+  }
+  else{
+    # Ouvrir les données depuis format arrow : rien à faire
+    df_baci <- baci
+  }
+
 
   # Filtrer par les années souhaitées
   if (!is.null(years)){

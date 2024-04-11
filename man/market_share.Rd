@@ -5,7 +5,7 @@
 \title{Calculer des parts de marché}
 \usage{
 market_share(
-  path_baci_parquet,
+  baci,
   summarize_v = "exporter",
   by = NULL,
   seuil = 0,
@@ -17,7 +17,10 @@ market_share(
 )
 }
 \arguments{
-\item{path_baci_parquet}{Chemin d'accès vers le dossier parquet de BACI.}
+\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
+les données de BACI au format parquet. Peut également être un dataframe ou
+bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+les opérations entre elles. ce paramètre est obligatoire.}
 
 \item{summarize_v}{Nom de la variable ( en chaîne de caractère) sur laquelle
 l'agrégation des flux va s'effectuer. Par défaut, c'est la variable

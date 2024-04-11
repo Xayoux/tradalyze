@@ -5,7 +5,7 @@
 \title{Evaluer le commerce restant après élimination des outliers}
 \usage{
 eval_outliers_share(
-  path_baci_parquet,
+  baci,
   years = NULL,
   codes = NULL,
   method = "classic",
@@ -17,8 +17,10 @@ eval_outliers_share(
 )
 }
 \arguments{
-\item{path_baci_parquet}{Un chemin vers un dossier parquet contenant les
-données BACI.}
+\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
+les données de BACI au format parquet. Peut également être un dataframe ou
+bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+les opérations entre elles. ce paramètre est obligatoire.}
 
 \item{years}{Les années à considérer pour l'analyse. Si NULL, toutes les
 années sont considérées.}

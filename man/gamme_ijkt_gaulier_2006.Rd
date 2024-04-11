@@ -9,7 +9,7 @@
 }
 \usage{
 gamme_ijkt_gaulier_2006(
-  path_baci_parquet,
+  baci,
   pond = 1,
   years = NULL,
   codes = NULL,
@@ -20,8 +20,10 @@ gamme_ijkt_gaulier_2006(
 )
 }
 \arguments{
-\item{path_baci_parquet}{Chemin vers le dossier où la base BACI est stockée
-en format parquet.}
+\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
+les données de BACI au format parquet. Peut également être un dataframe ou
+bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+les opérations entre elles. ce paramètre est obligatoire.}
 
 \item{pond}{Un entier qui permet de définir la méthode de calcul des gammes
 de prix. Par défaut, pond = 1. Si pond = 1, les gammes sont calculées en

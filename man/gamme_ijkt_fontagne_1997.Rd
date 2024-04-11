@@ -9,7 +9,7 @@ et Péridy (1997)}
 }
 \usage{
 gamme_ijkt_fontagne_1997(
-  path_baci_parquet,
+  baci,
   alpha_H = 1.15,
   alpha_L = alpha_H,
   years = NULL,
@@ -22,8 +22,10 @@ gamme_ijkt_fontagne_1997(
 )
 }
 \arguments{
-\item{path_baci_parquet}{Chemin vers le dossier où la base BACI est stockée
-en format parquet.}
+\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
+les données de BACI au format parquet. Peut également être un dataframe ou
+bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+les opérations entre elles. ce paramètre est obligatoire.}
 
 \item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 1.15
 (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.}

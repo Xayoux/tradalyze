@@ -47,8 +47,10 @@
 #' la fonction doit calculer les gammes et d'exécuter plusieurs fois la fonction
 #' jusqu'à avoir toutes les années voulues.
 #'
-#' @param path_baci_parquet Chemin vers le dossier où la base BACI est stockée
-#' en format parquet.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param alpha_H Seuil pour déterminer les gammes hautes. Par défaut, 1.15
 #' (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.
 #' @param alpha_L Seuil pour déterminer les gammes basses. Par défaut, 1.15
@@ -100,7 +102,7 @@
 #'
 #' @examples # Pas d'exemples.
 #' @source [Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the single market (No. 97-07). Paris: CEPII.](http://cepii.fr/PDF_PUB/wp/1997/wp1997-07.pdf)
-gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
+gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
                                      alpha_L = alpha_H,
                                      years = NULL, codes = NULL,
                                      pivot = "longer", return_pq = FALSE,
@@ -109,12 +111,6 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
 
 
   # Définition des messages d'erreur ----------------------------------------
-
-  # Message d'erreur si path_baci_parquet n'est pas une chaine de caractère
-  if(!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
-  }
-
   # Message d'erreur si alpha_H ou alpha_L ne sont pas des numériques
   if(!is.numeric(alpha_H) | !is.numeric(alpha_L)){
     stop("alpha_H et alpha_L doivent \uEAtre des num\uE9riques.")
@@ -172,10 +168,23 @@ gamme_ijkt_fontagne_1997 <- function(path_baci_parquet, alpha_H = 1.15,
 
 
   # Filtrage des données ----------------------------------------------------
-  # Charger les données -> pas en mémoire grâce au package 'arrow'
-  df_baci <-
-    path_baci_parquet |>
-    arrow::open_dataset()
+  # Ouvrir les données de BACI
+  if (is.character(baci) == TRUE){
+    # Ouvrir les données depuis un dossier parquet
+    df_baci <-
+      baci |>
+      arrow::open_dataset()
+  }
+  else if (is.data.frame(baci) == TRUE){
+    # Ouvrir les données depuis un dataframe : passage en format arrow
+    df_baci <-
+      baci |>
+      dplyr::collect()
+  }
+  else{
+    # Ouvrir les données depuis format arrow : rien à faire
+    df_baci <- baci
+  }
 
   # Garder les années voulues si years != NULL
   if(!is.null(years)){

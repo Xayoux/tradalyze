@@ -6,7 +6,7 @@
 moyenne.}
 \usage{
 eval_outliers_dist(
-  path_baci_parquet,
+  baci,
   years = NULL,
   codes = NULL,
   method = "classic",
@@ -21,7 +21,10 @@ eval_outliers_dist(
 )
 }
 \arguments{
-\item{path_baci_parquet}{Chemin vers le dossier BACI en format parquet.}
+\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
+les données de BACI au format parquet. Peut également être un dataframe ou
+bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+les opérations entre elles. ce paramètre est obligatoire.}
 
 \item{years}{Années à garder dans les données. Si NULL, toutes les années
 sont gardées.}

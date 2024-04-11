@@ -38,7 +38,10 @@
 #' la fonction doit calculer les gammes et d'exécuter plusieurs fois la fonction
 #' jusqu'à avoir toutes les années voulues.
 #'
-#' @param path_baci_parquet Chemin d'accès vers le dossier parquet de BACI.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param summarize_v Nom de la variable ( en chaîne de caractère) sur laquelle
 #' l'agrégation des flux va s'effectuer. Par défaut, c'est la variable
 #' `exportateur` qui est prise en compte.
@@ -68,17 +71,12 @@
 #' @export
 #'
 #' @examples # Pas d'exemple.
-market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
+market_share <- function(baci, summarize_v = "exporter", by = NULL,
                          seuil = 0, years = NULL, codes = NULL,
                          path_output = NULL, return_output = FALSE,
                          return_pq = FALSE){
 
   # Messages d'erreur -------------------------------------------------------
-  # Erreur si path_baci_parquet n'est une chaîne de caractères
-  if(!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit \uEAtre une cha\uEEne de caract\uE8res.")
-  }
-
   # Erreur si seuil est inférieur à 0
   if(seuil < 0 | seuil > 100){
     stop("seuil doit \uEAtre sup\uE9rieur ou \uE9gal \uE0 0 et inf\uE9rieur ou \uE9gal \uE0 100.")
@@ -128,10 +126,23 @@ market_share <- function(path_baci_parquet, summarize_v = "exporter", by = NULL,
 
 
   # Calcul de parts de marché -----------------------------------------------
-  # Charger les données BACI -> pas en mémoire grâce à 'arrow'
-  df_baci <-
-    path_baci_parquet |>
-    arrow::open_dataset()
+  # Ouvrir les données de BACI
+  if (is.character(baci) == TRUE){
+    # Ouvrir les données depuis un dossier parquet
+    df_baci <-
+      baci |>
+      arrow::open_dataset()
+  }
+  else if (is.data.frame(baci) == TRUE){
+    # Ouvrir les données depuis un dataframe : passage en format arrow
+    df_baci <-
+      baci |>
+      dplyr::collect()
+  }
+  else{
+    # Ouvrir les données depuis format arrow : rien à faire
+    df_baci <- baci
+  }
 
   # Garder les années voulues si years != NULL
   if(!is.null(years)){

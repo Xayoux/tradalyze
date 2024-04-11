@@ -35,8 +35,10 @@
 #' lignes de flux n'étant plus uniques.
 #'
 #'
-#' @param path_baci_parquet Chemin d'accès vers le dossier où la base BACI est
-#' stockée en format parquet.
+#' @param baci Peut être un  chemin d'accès vers le dossier contenant
+#' les données de BACI au format parquet. Peut également être un dataframe ou
+#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
+#' les opérations entre elles. ce paramètre est obligatoire.
 #' @param years Les années à considérer (un vecteur de numériques). Par défaut,
 #' toutes les années sont prises en compte.
 #' @param codes Les codes des produits à considérer (un vecteur de chaînes
@@ -74,18 +76,12 @@
 #'
 #' @examples # Pas d'exemples.
 #' @source [A . Berthou, C . Emlinger (2011), « Les mauvaises performances françaises à l’exportation: La compé titivité prix est - elle coupable ? », La Lettre du CEPII , n°313, Septembre.](http://www.cepii.fr/PDF_PUB/lettre/2011/let313.pdf)
-gamme_ijkt_berthou_2011 <- function(path_baci_parquet, years = NULL,
+gamme_ijkt_berthou_2011 <- function(baci, years = NULL,
                                     codes = NULL, return_output = FALSE,
                                     path_output = NULL, remove = FALSE,
                                     return_pq = FALSE){
 
   # Messages d'erreur -------------------------------------------------------
-
-  # Message d'erreur si path_baci_parquet n'est pas une chaine de caractère
-  if(!is.character(path_baci_parquet)){
-    stop("path_baci_parquet doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
-  }
-
   # Message d'erreur si years n'est pas NULL et n'est pas un vecteur de numériques
   if(!is.null(years) & !is.numeric(years)){
     stop("years doit \uEAtre NULL ou un vecteur de num\uE9riques.")
@@ -130,11 +126,23 @@ gamme_ijkt_berthou_2011 <- function(path_baci_parquet, years = NULL,
   }
 
   # Calcul des gammes -------------------------------------------------------
-
-  # Charger la base BACI -> pas en mémoire grâce au package 'arrow'
-  df_baci <-
-    path_baci_parquet |>
-    arrow::open_dataset()
+  # Ouvrir les données de BACI
+  if (is.character(baci) == TRUE){
+    # Ouvrir les données depuis un dossier parquet
+    df_baci <-
+      baci |>
+      arrow::open_dataset()
+  }
+  else if (is.data.frame(baci) == TRUE){
+    # Ouvrir les données depuis un dataframe : passage en format arrow
+    df_baci <-
+      baci |>
+      dplyr::collect()
+  }
+  else{
+    # Ouvrir les données depuis format arrow : rien à faire
+    df_baci <- baci
+  }
 
   # Garder les années voulues si years != NULL
   if(!is.null(years)){
