@@ -174,3 +174,4 @@ add_chelem_classification <- function(baci, years = NULL, codes = NULL,
   }
 
 }
+

@@ -301,6 +301,7 @@ gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
     else{
       df_baci <-
         df_baci |>
+        dplyr::ungroup() |>
         dplyr::collect()
 
       return(df_baci)
