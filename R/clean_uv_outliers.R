@@ -175,7 +175,7 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
     # Ouvrir les données depuis un dataframe : passage en format arrow
     df_baci <-
       baci |>
-      dplyr::collect()
+      arrow::arrow_table()
   }
   else{
     # Ouvrir les données depuis format arrow : rien à faire
@@ -319,8 +319,7 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
   if (!is.null(path_output)){
     df_baci |>
       dplyr::group_by(t) |>
-      arrow::write_dataset(path_output) |>
-      dplyr::ungroup()
+      arrow::write_dataset(path_output)
   }
 
   # Retourner les données en format data.frame

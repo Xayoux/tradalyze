@@ -137,7 +137,7 @@ gamme_ijkt_berthou_2011 <- function(baci, years = NULL,
     # Ouvrir les données depuis un dataframe : passage en format arrow
     df_baci <-
       baci |>
-      dplyr::collect()
+      arrow::arrow_table()
   }
   else{
     # Ouvrir les données depuis format arrow : rien à faire

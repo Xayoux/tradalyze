@@ -179,7 +179,7 @@ gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
     # Ouvrir les données depuis un dataframe : passage en format arrow
     df_baci <-
       baci |>
-      dplyr::collect()
+      arrow::arrow_table()
   }
   else{
     # Ouvrir les données depuis format arrow : rien à faire
@@ -293,6 +293,9 @@ gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
   # Retourner le résultat si return_output == TRUE
   if (return_output == TRUE){
     if (return_pq == TRUE){
+      df_baci <-
+        df_baci |>
+        ungroup()
       return(df_baci)
     }
     else{

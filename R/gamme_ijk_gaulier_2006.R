@@ -154,7 +154,7 @@ gamme_ijkt_gaulier_2006 <- function(baci, pond = 1,
     # Ouvrir les données depuis un dataframe : passage en format arrow
     df_baci <-
       baci |>
-      dplyr::collect()
+      arrow::arrow_table()
   }
   else{
     # Ouvrir les données depuis format arrow : rien à faire
@@ -266,8 +266,7 @@ gamme_ijkt_gaulier_2006 <- function(baci, pond = 1,
   if(!is.null(path_output)){
     df_baci |>
       dplyr::group_by(t) |>
-      arrow::write_dataset(path_output, format = "parquet") |>
-      dplyr::ungroup()
+      arrow::write_dataset(path_output, format = "parquet")
   }
 
   # Retourner le résultat si return_output == TRUE

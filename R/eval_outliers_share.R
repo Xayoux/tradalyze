@@ -119,7 +119,7 @@ eval_outliers_share <- function(baci, years = NULL, codes = NULL,
     # Ouvrir les données depuis un dataframe : passage en format arrow
     df_baci <-
       baci |>
-      dplyr::collect()
+      arrow::arrow_table()
   }
   else{
     # Ouvrir les données depuis format arrow : rien à faire

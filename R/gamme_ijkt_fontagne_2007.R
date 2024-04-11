@@ -168,7 +168,7 @@ gamme_ijkt_fontagne_2007 <- function(baci, alpha = 3,
     # Ouvrir les données depuis un dataframe : passage en format arrow
     df_baci <-
       baci |>
-      dplyr::collect()
+      arrow::arrow_table()
   }
   else{
     # Ouvrir les données depuis format arrow : rien à faire
