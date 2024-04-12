@@ -97,8 +97,10 @@ eval_outliers_share <- function(baci, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si path_df_output ne se termine pas en .csv
-  if(!is.null(path_df_output) & !stringr::str_detect(path_df_output, ".csv$")){
-    stop("path_df_output doit se terminer en .csv.")
+  if (!is.null(path_df_output)){
+    if (!stringr::str_detect(path_df_output, ".csv$")){
+      stop("path_df_output doit se terminer en .csv.")
+    }
   }
 
   # Message d'erreur si path_graph_output n'est pas une chaine de caractères
