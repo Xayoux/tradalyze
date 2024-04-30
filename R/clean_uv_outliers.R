@@ -46,6 +46,15 @@
 #' supérieure à un certain nombre de fois l'écart-type de cette différence, ou
 #' inférieure un nombre de fois à l'opposé de l'écart-type de cette différence.
 #'
+#' - La méthode 'be11' qui provient de l'article de
+#' [Berthou & Emlinger (2011)](http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf)
+#' détermine les outliers en fonction de la médiane des
+#' valeurs unitaires par produit-année. Si la valeur unitaire est supérieure à
+#' la médiane multipliée par `seuil_H` ou inférieure à la médiane divisée par
+#' `seuil_L`, alors elle est considérée comme un outlier. De plus, si la valeur
+#' unitaire est supérieure à la valeur unitaire précédente ou suivante
+#' multipliée par 1000, alors elle est considérée comme un outlier.
+#'
 #' La fonction permet de garder ou non les outliers dans les données.
 #'
 #'
@@ -59,7 +68,7 @@
 #' @param codes Codes à garder dans les données. Si NULL, tous les codes sont
 #' gardés.
 #' @param method Méthode de détermination des outliers. Peut être 'classic',
-#' 'fh13', 'h06', ou 'sd'.
+#' 'fh13', 'h06', 'sd', ou 'be11'.
 #' @param seuil_H Seuil supérieur pour la détermination des outliers. Doit
 #' être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.
 #' @param seuil_L Seuil inférieur pour la détermination des outliers. Doit
@@ -81,6 +90,8 @@
 #' @examples # Pas d'exemples.
 #' @source [Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.](https://pse.hal.science/hal-00959394/)
 #' @source [Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
+#' @source [Antoine Berthou & Charlotte Emlinger , 2011. "The Trade Unit Values Database," CEPII Working Paper 2011- 10 , April 2011 , CEPII.](http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf)
+
 clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
                               method = "classic", seuil_H, seuil_L,
                               visualisation = FALSE, path_output = NULL,
@@ -98,8 +109,8 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si method n'est pas un des trois choix possibles
-  if (!method %in% c("classic", "fh13", "h06", "sd")) {
-    stop("'method' doit \uEAtre 'classic', 'fh13', 'h06', ou 'sd'")
+  if (!method %in% c("classic", "fh13", "h06", "sd", "be11")) {
+    stop("'method' doit \uEAtre 'classic', 'fh13', 'h06', 'sd' ou 'be11'")
   }
 
   # Message d'erreur si seuil_H n'est pas un numérique
@@ -274,34 +285,83 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
       )
   }
 
+  # Une valeur unitaire est un outlier si sa différence avec la moyenne des
+  # valeurs unitaires (par produit-année) est supérieure ou inférieure à
+  # 'seuil_H' ou 'seuil_L' fois l'écart-type de cette différence.
   if (method == "sd"){
     df_baci <-
       df_baci |>
+      # Passage format R car calcul de groupes pas pris par arrow
       dplyr::collect() |>
+      # Calcul de la différence entre la valeur unitaire et la moyenne par kt
       dplyr::mutate(
         .by = c(k, t),
-        mean_diff = uv - mean(uv, na.rm = TRUE),
-        chapter = substr(k, 1, 2)
+        mean_diff = uv - mean(uv, na.rm = TRUE)
       ) |>
+      # Définition des outliers en fonction de l'écart-type
       dplyr::mutate(
-        .by = c(t,chapter),
+        .by = c(t,k),
+        ecart_type = stats::sd(mean_diff, na.rm = TRUE),
         extreme =
           dplyr::case_when(
-            mean_diff > seuil_H * stats::sd(mean_diff, na.rm = TRUE) ~ 1,
-            mean_diff < - seuil_L * stats::sd(mean_diff, na.rm = TRUE) ~ -1
-          ),
-        ecart_type = stats::sd(mean_diff, na.rm = TRUE)
+            mean_diff > seuil_H * ecart_type ~ 1,
+            mean_diff < - seuil_L * ecart_type ~ -1
+          )
       )
 
+    # Enelver les variables intermédiaires de comparaison
     if (visualisation == FALSE){
       df_baci <-
         df_baci |>
-        dplyr::select(!c(mean_diff))
+        dplyr::select(!c(mean_diff, ecart_type))
     }
   }
 
+  # Une valeur unitaire est un outlier si elle est supérieure à la médiane
+  # ikt multipliée par 'seuil_H' ou inférieure à la médiane ikt divisée par
+  # 'seuil_L'. De plus, une valeur unitaire est un outlier si elle est
+  # supérieure à la valeur unitaire précédente ou suivante multipliée par 1000.
+  if (method == "be11"){
+    df_baci <-
+      df_baci |>
+      # Passer les données en format R -> calcul des médianes
+      dplyr::collect() |>
+      # Calculer la médiane des valeurs unitaires par ikt
+      dplyr::mutate(
+        .by = c(i, k, t),
+        median_ikt = median(uv, na.rm = TRUE)
+      ) |>
+      # Calculer les valeurs unitaires précédentes et suivantes
+      dplyr::mutate(
+        .by = c(i, j, k),
+        lag_ijk = dplyr::lag(uv, order_by = t),
+        lead_ijk = dplyr::lead(uv, order_by = t)
+      ) |>
+      # Passage au format arrow pour la mémoire et vitesse de calcul
+      arrow::arrow_table() |>
+      # Définition des outliers
+      dplyr::mutate(
+        extreme =
+          dplyr::case_when(
+            # Outliers cross-section
+            uv > median_ikt * seuil_H ~ 1,
+            uv < median_ikt / seuil_L ~ -1,
+            # Outliers temporels
+            uv > lag_ijkt * 1000 ~ 0,
+            uv > lead_ijkt * 1000 ~ 0
+          )
+      )
+
+    # Enelver les variables intermédiaires de comparaison
+      if (visualisation == FALSE){
+        df_baci <-
+          df_baci |>
+          dplyr::select(!c(median_ikt, lag_ijk, lead_ijk))
+      }
+  }
+
   # Exportation des données -------------------------------------------------
-  # Retourner les données en format arrow
+  # Passer les données en format arrow
   df_baci <-
     df_baci |>
     arrow::arrow_table()
@@ -322,15 +382,15 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
       arrow::write_dataset(path_output)
   }
 
-  # Retourner les données en format data.frame
+  # Retourner les données en format data.frame ou arrow
   if (return_output == TRUE){
     if (return_pq == TRUE){
       return(df_baci)
     }
     else{
-    df_baci <-
-      df_baci |>
-      dplyr::collect()
+      df_baci <-
+        df_baci |>
+        dplyr::collect()
 
     return(df_baci)
     }

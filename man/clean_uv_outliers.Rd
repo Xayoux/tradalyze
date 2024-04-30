@@ -7,6 +7,8 @@
 \href{https://pse.hal.science/hal-00959394/}{Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.}
 
 \href{https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516}{Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.}
+
+\href{http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf}{Antoine Berthou & Charlotte Emlinger , 2011. "The Trade Unit Values Database," CEPII Working Paper 2011- 10 , April 2011 , CEPII.}
 }
 \usage{
 clean_uv_outliers(
@@ -35,7 +37,7 @@ sont gardées.}
 gardés.}
 
 \item{method}{Méthode de détermination des outliers. Peut être 'classic',
-'fh13', 'h06', ou 'sd'.}
+'fh13', 'h06', 'sd', ou 'be11'.}
 
 \item{seuil_H}{Seuil supérieur pour la détermination des outliers. Doit
 être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.}
@@ -99,6 +101,14 @@ moyenne multipliée par \code{seuil_H} ou inférieure à la moyenne divisée par
 différence entre la valeur unitaire et la moyenne produit-année est
 supérieure à un certain nombre de fois l'écart-type de cette différence, ou
 inférieure un nombre de fois à l'opposé de l'écart-type de cette différence.
+\item La méthode 'be11' qui provient de l'article de
+\href{http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf}{Berthou & Emlinger (2011)}
+détermine les outliers en fonction de la médiane des
+valeurs unitaires par produit-année. Si la valeur unitaire est supérieure à
+la médiane multipliée par \code{seuil_H} ou inférieure à la médiane divisée par
+\code{seuil_L}, alors elle est considérée comme un outlier. De plus, si la valeur
+unitaire est supérieure à la valeur unitaire précédente ou suivante
+multipliée par 1000, alors elle est considérée comme un outlier.
 }
 
 La fonction permet de garder ou non les outliers dans les données.
