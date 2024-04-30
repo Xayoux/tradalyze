@@ -138,13 +138,13 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
     stop("seuil_L doit \uEAtre positif")
   }
 
-  # Message d'erreur si Seuil_H n'est pas compris entre 0 et 1 si method != "h06"
-  if (!method %in% c("h06", "sd") & (seuil_H < 0 | seuil_H > 1)) {
+  # Message d'erreur si Seuil_H n'est pas compris entre 0 et 1 si method != "h06", "sd", "be11"
+  if (!method %in% c("h06", "sd", "be11") & (seuil_H < 0 | seuil_H > 1)) {
     stop("seuil_H doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
   }
 
   # Message d'erreur si Seuil_L n'est pas compris entre 0 et 1 si method != "h06"
-  if (!method %in% c("h06", "sd") & (seuil_L < 0 | seuil_L > 1)) {
+  if (!method %in% c("h06", "sd", "be11") & (seuil_L < 0 | seuil_L > 1)) {
     stop("seuil_L doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
   }
 
