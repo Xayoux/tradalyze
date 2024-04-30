@@ -66,8 +66,8 @@ eval_outliers_share <- function(baci, years = NULL, codes = NULL,
   }
 
   # Message d'erreur si method n'est pas "classic", "fh13" ou "h06"
-  if(!(method %in% c("classic", "fh13", "h06", "sd"))){
-    stop("method doit \uEAtre 'classic', 'fh13', 'h06' ou 'sd'.")
+  if(!(method %in% c("classic", "fh13", "h06", "sd", "be11"))){
+    stop("method doit \uEAtre 'classic', 'fh13', 'h06', 'sd' ou 'be11'.")
   }
 
   # Message d'erreur si seuil_H_vector n'est pas un vecteur numérique

@@ -338,7 +338,7 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
         lead_ijk = dplyr::lead(uv, order_by = t)
       ) |>
       # Passage au format arrow pour la mémoire et vitesse de calcul
-      arrow::arrow_table() |>
+      # arrow::arrow_table() |>
       # Définition des outliers
       dplyr::mutate(
         extreme =
@@ -347,8 +347,8 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
             uv > median_ikt * seuil_H ~ 1,
             uv < median_ikt / seuil_L ~ -1,
             # Outliers temporels
-            uv > lag_ijkt * 1000 ~ 0,
-            uv > lead_ijkt * 1000 ~ 0
+            uv > lag_ijk * 1000 ~ 0,
+            uv > lead_ijk * 1000 ~ 0
           )
       )
 
