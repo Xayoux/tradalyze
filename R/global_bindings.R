@@ -6,4 +6,5 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "country_iso3", "chapter", "total_v_without_outliers",
                          "total_q_without_outliers", "total_v", "total_q",
                          "ratio_v", "ratio_q", "quantile_H", "ratio_value",
-                         "iso_region", "name_region", "density"))
+                         "iso_region", "name_region", "density", "ecart_type",
+                         "median_ikt", "lag_ijk", "lead_ijk"))

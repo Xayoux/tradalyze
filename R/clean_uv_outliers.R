@@ -329,7 +329,7 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
       # Calculer la médiane des valeurs unitaires par ikt
       dplyr::mutate(
         .by = c(i, k, t),
-        median_ikt = median(uv, na.rm = TRUE)
+        median_ikt = stats::median(uv, na.rm = TRUE)
       ) |>
       # Calculer les valeurs unitaires précédentes et suivantes
       dplyr::mutate(

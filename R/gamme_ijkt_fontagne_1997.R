@@ -310,7 +310,7 @@ gamme_ijkt_fontagne_1997 <- function(baci, ponderate = "v", alpha_H = 1.15,
     if (return_pq == TRUE){
       df_baci <-
         df_baci |>
-        ungroup()
+        dplyr::ungroup()
       return(df_baci)
     }
     else{
