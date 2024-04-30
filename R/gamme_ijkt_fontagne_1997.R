@@ -51,6 +51,11 @@
 #' les données de BACI au format parquet. Peut également être un dataframe ou
 #' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
 #' les opérations entre elles. ce paramètre est obligatoire.
+#' @param ponderate La variable à utiliser pour pondérer la médiane. Par défaut,
+#' "v" (valeur totale du flux). Il est conseillé d'utiliser "v" ou "q" mais
+#' l'utilisation d'autres variables reste techniquement possible. Attention, la
+#' variable induite par `ponderate` doit être numérique sinon toutes les valeurs
+#' des gammes seront des NA.
 #' @param alpha_H Seuil pour déterminer les gammes hautes. Par défaut, 1.15
 #' (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.
 #' @param alpha_L Seuil pour déterminer les gammes basses. Par défaut, 1.15
@@ -102,7 +107,7 @@
 #'
 #' @examples # Pas d'exemples.
 #' @source [Fontagné, L., Freudenberg, M., & Péridy, N. (1997). Trade patterns inside the single market (No. 97-07). Paris: CEPII.](http://cepii.fr/PDF_PUB/wp/1997/wp1997-07.pdf)
-gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
+gamme_ijkt_fontagne_1997 <- function(baci, ponderate = "v", alpha_H = 1.15,
                                      alpha_L = alpha_H,
                                      years = NULL, codes = NULL,
                                      pivot = "longer", return_pq = FALSE,
@@ -154,6 +159,16 @@ gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
   # Message d'avertissement si return_output = FALSE et return_pq = TRUE
   if (return_output == FALSE & return_pq == TRUE){
     message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
+  }
+
+  # Message d'erreur si ponderate n'est pas une chaîne de caractère
+  if(!is.character(ponderate)){
+    stop("ponderate doit \uEAtre une cha\uEEne de caract\uE8res.")
+  }
+
+  # Message d'erreur si ponderate n'est pas un seul élément
+  if(length(ponderate) != 1){
+    stop("ponderate doit \uEAtre un seul \uE9l\uE9ment.")
   }
 
 
@@ -218,7 +233,7 @@ gamme_ijkt_fontagne_1997 <- function(baci, alpha_H = 1.15,
       # Calcule de la médiane pondérée pour chaque couple (t,k)
       dplyr::mutate(
         .by = c(t, k),
-        med_ref_t_k = matrixStats::weightedMedian(uv, w = v, na.rm = TRUE)
+        med_ref_t_k = matrixStats::weightedMedian(uv, w = !!dplyr::sym(ponderate), na.rm = TRUE)
       ) |>
       # Retour en format arrow
       arrow::arrow_table() |>

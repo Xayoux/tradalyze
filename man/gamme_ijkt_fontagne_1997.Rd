@@ -10,6 +10,7 @@ et Péridy (1997)}
 \usage{
 gamme_ijkt_fontagne_1997(
   baci,
+  ponderate = "v",
   alpha_H = 1.15,
   alpha_L = alpha_H,
   years = NULL,
@@ -26,6 +27,12 @@ gamme_ijkt_fontagne_1997(
 les données de BACI au format parquet. Peut également être un dataframe ou
 bien des données au format arrow (requête ou non) permettant ainsi de chaîner
 les opérations entre elles. ce paramètre est obligatoire.}
+
+\item{ponderate}{La variable à utiliser pour pondérer la médiane. Par défaut,
+"v" (valeur totale du flux). Il est conseillé d'utiliser "v" ou "q" mais
+l'utilisation d'autres variables reste techniquement possible. Attention, la
+variable induite par \code{ponderate} doit être numérique sinon toutes les valeurs
+des gammes seront des NA.}
 
 \item{alpha_H}{Seuil pour déterminer les gammes hautes. Par défaut, 1.15
 (uv > 1.15 * medf_ref). Peut être un vecteur de numériques.}
