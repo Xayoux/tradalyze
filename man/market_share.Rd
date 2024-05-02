@@ -6,6 +6,7 @@
 \usage{
 market_share(
   baci,
+  summarize_k = "k",
   summarize_v = "exporter",
   by = NULL,
   seuil = 0,
@@ -22,14 +23,19 @@ les données de BACI au format parquet. Peut également être un dataframe ou
 bien des données au format arrow (requête ou non) permettant ainsi de chaîner
 les opérations entre elles. ce paramètre est obligatoire.}
 
+\item{summarize_k}{Nom de la variable "produit" permettant à partir de
+laquelle sera calculée la part de marché. Par c'est la avriable \code{k} (le code
+produit HS6) qui sera utilisé. On peut l'utiliser également pour une
+variable "chapitre" ou "secteur" par exemple.}
+
 \item{summarize_v}{Nom de la variable ( en chaîne de caractère) sur laquelle
 l'agrégation des flux va s'effectuer. Par défaut, c'est la variable
-\code{exportateur} qui est prise en compte.}
+\code{exporteur} qui est prise en compte.}
 
 \item{by}{Nom de la variable (en chaîne de caractère) sur laquelle les parts
 de marché peuvent être calculées à un niveau plus fin. Par défaut, les parts
 de marché sont calculées au niveau année-produit. Ce paramètre permet de
-rajouter une dimmension, qui sera classiquement \code{importateur}.}
+rajouter une dimmension, qui sera classiquement \code{importeur}.}
 
 \item{seuil}{Valeur numérique entre 0 et 100 qui permet de filtrer les
 données dans le dataframe en fonction de la part de marché. Seules les

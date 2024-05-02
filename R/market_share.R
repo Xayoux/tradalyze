@@ -42,13 +42,17 @@
 #' les données de BACI au format parquet. Peut également être un dataframe ou
 #' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
 #' les opérations entre elles. ce paramètre est obligatoire.
+#' @param summarize_k Nom de la variable "produit" permettant à partir de
+#' laquelle sera calculée la part de marché. Par c'est la avriable `k` (le code
+#' produit HS6) qui sera utilisé. On peut l'utiliser également pour une
+#' variable "chapitre" ou "secteur" par exemple.
 #' @param summarize_v Nom de la variable ( en chaîne de caractère) sur laquelle
 #' l'agrégation des flux va s'effectuer. Par défaut, c'est la variable
-#' `exportateur` qui est prise en compte.
+#' `exporteur` qui est prise en compte.
 #' @param by Nom de la variable (en chaîne de caractère) sur laquelle les parts
 #' de marché peuvent être calculées à un niveau plus fin. Par défaut, les parts
 #' de marché sont calculées au niveau année-produit. Ce paramètre permet de
-#' rajouter une dimmension, qui sera classiquement `importateur`.
+#' rajouter une dimmension, qui sera classiquement `importeur`.
 #' @param seuil Valeur numérique entre 0 et 100 qui permet de filtrer les
 #' données dans le dataframe en fonction de la part de marché. Seules les
 #' observations ayant une part de marché supérieure ou égale à ce seuil seront
@@ -71,7 +75,8 @@
 #' @export
 #'
 #' @examples # Pas d'exemple.
-market_share <- function(baci, summarize_v = "exporter", by = NULL,
+market_share <- function(baci, summarize_k = "k",
+                         summarize_v = "exporter", by = NULL,
                          seuil = 0, years = NULL, codes = NULL,
                          path_output = NULL, return_output = FALSE,
                          return_pq = FALSE){
@@ -164,17 +169,17 @@ market_share <- function(baci, summarize_v = "exporter", by = NULL,
       df_baci |>
       # Somme les valeurs et quantités de chaque exportateur pour chaque produit
       dplyr::summarize(
-        .by = c(t, k, {{summarize_v}}),
+        .by = c(t, {{summarize_k}}, {{summarize_v}}),
         v_t_k_i = sum(v, na.rm = TRUE),
         q_t_k_i = sum(q, na.rm = TRUE)
       ) |>
       dplyr::collect() |>
       dplyr::mutate(
-        .by = c(t, k),
+        .by = c(t, {{summarize_k}}),
         market_share_t_k_i = v_t_k_i / sum(v_t_k_i, na.rm = TRUE) * 100
       ) |>
       #arrow::arrow_table() |>
-      dplyr::arrange(t, k, !!dplyr::sym(summarize_v)) |>
+      dplyr::arrange(t, !!dplyr::sym(summarize_k), !!dplyr::sym(summarize_v)) |>
       dplyr::filter(market_share_t_k_i >= seuil)
   }
   else {
@@ -182,17 +187,17 @@ market_share <- function(baci, summarize_v = "exporter", by = NULL,
       df_baci |>
       # Somme les valeurs et quantités de chaque exportateur pour chaque produit
       dplyr::summarize(
-        .by = c(t, k, {{summarize_v}}, {{by}}),
+        .by = c(t, {{summarize_k}}, {{summarize_v}}, {{by}}),
         v_t_k_i_j = sum(v, na.rm = TRUE),
         q_t_k_i_j = sum(q, na.rm = TRUE)
       ) |>
       dplyr::collect() |>
       dplyr::mutate(
-        .by = c(t, k, {{by}}),
+        .by = c(t, {{summarize_k}}, {{by}}),
         market_share_t_k_i_j = v_t_k_i_j / sum(v_t_k_i_j, na.rm = TRUE) * 100
       ) |>
       arrow::arrow_table() |>
-      dplyr::arrange(t, k, !!dplyr::sym(summarize_v), !!dplyr::sym(by)) |>
+      dplyr::arrange(t, !!dplyr::sym(summarize_k), !!dplyr::sym(summarize_v), !!dplyr::sym(by)) |>
       dplyr::filter(market_share_t_k_i_j >= seuil)
   }
 
