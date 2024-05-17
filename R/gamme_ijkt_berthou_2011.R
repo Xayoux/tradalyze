@@ -1,3 +1,20 @@
+# Fonction pour calculer la moyenne pondérée ------------------------------
+#' Calcul une moyenne géométrique pondérée.
+#'
+#' @param x Un vecteur de données numériques.
+#' @param w Un vecteur de poids.
+#' @param ... Arguments supplémentaires à passer à la fonction `prod`.
+#' @source rogiersbart with his RTOOLZ package : https://rdrr.io/github/rogiersbart/rtoolz/man/weighted.geomean.html
+#'
+#' @return La moyenne géométrique pondérée.
+#'
+#' @examples # Pas d'exemple.
+#' @noRd
+weighted_geomean <- function(x, w, ...){
+  return(prod(x^w, ...)^(1/sum(w, ...)))
+}
+
+
 #' @title
 #' Calcul des gammes de valeurs unitaires selon la méthode Berthou & Emlinger
 #' (2011).
@@ -212,19 +229,5 @@ gamme_ijkt_berthou_2011 <- function(baci, years = NULL,
 
 
 
-# Fonction pour calculer la moyenne pondérée ------------------------------
-#' Calcul une moyenne géométrique pondérée.
-#'
-#' @param x Un vecteur de données numériques.
-#' @param w Un vecteur de poids.
-#' @param ... Arguments supplémentaires à passer à la fonction `prod`.
-#' @source rogiersbart with his RTOOLZ package : https://rdrr.io/github/rogiersbart/rtoolz/man/weighted.geomean.html
-#'
-#' @return La moyenne géométrique pondérée.
-#'
-#' @examples # Pas d'exemple.
-#' @noRd
-weighted_geomean <- function(x, w, ...){
-  return(prod(x^w, ...)^(1/sum(w, ...)))
-}
+
 
