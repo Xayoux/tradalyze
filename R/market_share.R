@@ -170,17 +170,17 @@ market_share <- function(baci, summarize_k = "k",
       # Somme les valeurs et quantités de chaque exportateur pour chaque produit
       dplyr::summarize(
         .by = c(t, {{summarize_k}}, {{summarize_v}}),
-        v_t_k_i = sum(v, na.rm = TRUE),
-        q_t_k_i = sum(q, na.rm = TRUE)
+        v = sum(v, na.rm = TRUE),
+        q = sum(q, na.rm = TRUE)
       ) |>
       dplyr::collect() |>
       dplyr::mutate(
         .by = c(t, {{summarize_k}}),
-        market_share_t_k_i = v_t_k_i / sum(v_t_k_i, na.rm = TRUE) * 100
+        market_share = v / sum(v, na.rm = TRUE) * 100
       ) |>
       #arrow::arrow_table() |>
       dplyr::arrange(t, !!dplyr::sym(summarize_k), !!dplyr::sym(summarize_v)) |>
-      dplyr::filter(market_share_t_k_i >= seuil)
+      dplyr::filter(market_share >= seuil)
   }
   else {
     df_baci <-
@@ -188,17 +188,17 @@ market_share <- function(baci, summarize_k = "k",
       # Somme les valeurs et quantités de chaque exportateur pour chaque produit
       dplyr::summarize(
         .by = c(t, {{summarize_k}}, {{summarize_v}}, {{by}}),
-        v_t_k_i_j = sum(v, na.rm = TRUE),
-        q_t_k_i_j = sum(q, na.rm = TRUE)
+        v = sum(v, na.rm = TRUE),
+        q = sum(q, na.rm = TRUE)
       ) |>
       dplyr::collect() |>
       dplyr::mutate(
         .by = c(t, {{summarize_k}}, {{by}}),
-        market_share_t_k_i_j = v_t_k_i_j / sum(v_t_k_i_j, na.rm = TRUE) * 100
+        market_share = v / sum(v, na.rm = TRUE) * 100
       ) |>
       arrow::arrow_table() |>
       dplyr::arrange(t, !!dplyr::sym(summarize_k), !!dplyr::sym(summarize_v), !!dplyr::sym(by)) |>
-      dplyr::filter(market_share_t_k_i_j >= seuil)
+      dplyr::filter(market_share >= seuil)
   }
 
   # Sauvegarder les données si path_output != NULL
