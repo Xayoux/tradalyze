@@ -25,6 +25,7 @@ Imports:
     purrr,
     readr,
     rvest,
+    scales,
     stats,
     stringr,
     tidyr,
