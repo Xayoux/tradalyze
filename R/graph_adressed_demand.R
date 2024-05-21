@@ -56,18 +56,25 @@
 #' @param print Indique si le graphique doit être affiché. Par défaut, c'est `TRUE`.
 #' @param return_output Indique si le graphique doit être retourné. Par défaut,
 #' c'est `TRUE`.
+#' @param var_linetype La variable qui va définir le type de ligne. Par défaut,
+#' c'est `NULL`, les lignes seront toutes les mêmes.
+#' @param manual_linetype Un vecteur indiquant à quelle entité quel type de ligne
+#' doit correspondre.
+#' @param linetype_legend Le titre de la légende des types de ligne. Par défaut,
+#' c'est `""`.
 #'
 #' @return Un graphique représentant l'évolution de la demande adressée.
 #' @export
 #'
 #' @examples # Pas d'exemples.
 graph_adressed_demand <- function(baci, x = "t", y, linewidth = 1,
+                                  var_linetype = NULL, manual_linetype = NULL,
                                   var_color = NULL, palette_color = NULL,
                                   manual_color = NULL,
                                   na.rm = TRUE, x_breaks = NULL, y_breaks = NULL,
                                   x_title = "", y_title = "", title = "",
                                   subtitle = "", caption = "", color_legend = "",
-                                  type_theme = "bw",
+                                  linetype_legend ="", type_theme = "bw",
                                   var_facet = NULL, path_output = NULL,
                                   width = 15, height = 8, print = TRUE,
                                   return_output = TRUE){
@@ -113,16 +120,20 @@ graph_adressed_demand <- function(baci, x = "t", y, linewidth = 1,
       )
     )
 
-  # Définir type de graphique + couleur si souhaitée
+  # Définir le graphique
+  graph <-
+    graph +
+    ggplot2::geom_line(
+      na.rm = na.rm,
+      linewidth = linewidth
+    )
+
+  # Définir les couleurs si souhaité
   if (!is.null(var_color)){
     graph <-
       graph +
-      ggplot2::geom_line(
-        ggplot2::aes(
-          color = !!dplyr::sym(var_color)
-        ),
-        na.rm = na.rm,
-        linewidth = linewidth
+      ggplot2::aes(
+        color = !!dplyr::sym(var_color)
       )
 
     # Définir la palette de couleur si souhaitée
@@ -133,6 +144,7 @@ graph_adressed_demand <- function(baci, x = "t", y, linewidth = 1,
           palette = palette_color
         )
     }
+
     # Définir les couleurs manuellement
     else if (!is.null(manual_color)){
       graph <-
@@ -142,13 +154,33 @@ graph_adressed_demand <- function(baci, x = "t", y, linewidth = 1,
         )
     }
   }
-  # Pas de couleurs
-  else {
+
+  # Définir le type de ligne si souhaité
+  if (!is.null(var_linetype)){
     graph <-
       graph +
-      ggplot2::geom_line(
-        na.rm = na.rm,
-        linewidth = linewidth
+      ggplot2::aes(
+        linetype = !!dplyr::sym(var_linetype)
+      )
+
+    # Définir le type de ligne manuellement
+    if (!is.null(manual_linetype)){
+      graph <-
+        graph +
+        ggplot2::scale_linetype_manual(
+          values = manual_linetype
+        )
+    }
+  }
+
+  # Fusionner les légendes de couleur et de type de ligne si les variables
+  # sont les mêmes
+  if (var_color == var_linetype){
+    graph <-
+      graph +
+      ggplot2::guides(
+        color = ggplot2::guide_legend(title = color_legend),
+        linetype = ggplot2::guide_legend(title = linetype_legend)
       )
   }
 

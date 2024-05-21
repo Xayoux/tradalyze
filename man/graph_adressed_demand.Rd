@@ -9,6 +9,8 @@ graph_adressed_demand(
   x = "t",
   y,
   linewidth = 1,
+  var_linetype = NULL,
+  manual_linetype = NULL,
   var_color = NULL,
   palette_color = NULL,
   manual_color = NULL,
@@ -21,6 +23,7 @@ graph_adressed_demand(
   subtitle = "",
   caption = "",
   color_legend = "",
+  linetype_legend = "",
   type_theme = "bw",
   var_facet = NULL,
   path_output = NULL,
@@ -41,6 +44,12 @@ défaut, la variable choisie étant dépendante du type de demande adressée
 calculée.}
 
 \item{linewidth}{L'épaisseur de la ligne du graphique. Par défaut, c'est 1.}
+
+\item{var_linetype}{La variable qui va définir le type de ligne. Par défaut,
+c'est \code{NULL}, les lignes seront toutes les mêmes.}
+
+\item{manual_linetype}{Un vecteur indiquant à quelle entité quel type de ligne
+doit correspondre.}
 
 \item{var_color}{La variable à mettre en couleur. Par défaut, c'est \code{NULL}.}
 
@@ -70,6 +79,9 @@ Dans ce cas, les valeurs sont prises par défaut.}
 \item{caption}{La caption du graphique. Par défaut, c'est \code{""}.}
 
 \item{color_legend}{Le titre de la légende des couleurs. Par défaut, c'est \code{""}.}
+
+\item{linetype_legend}{Le titre de la légende des types de ligne. Par défaut,
+c'est \code{""}.}
 
 \item{type_theme}{Le type de thème à utiliser. Par défaut, c'est \code{bw}. Les
 autres options sont \code{classic} et \code{minimal}.}
