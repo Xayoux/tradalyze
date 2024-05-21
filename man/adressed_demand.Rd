@@ -36,7 +36,7 @@ adressed_demand(
 \item{exporter_ref}{Exportateur de référence pour le calcul du ratio de la
 demande adressée.}
 
-\item{base_100}{Booléen indiquant si la demande adressée doit ête calculée
+\item{base_100}{Booléen indiquant si la demande adressée doit être calculée
 en base 100 par rapport à l'année de référence.}
 
 \item{compare}{Booléen indiquant si le ratio de la demande adressée doit être
@@ -59,6 +59,17 @@ demande adressée peut être calculée par pays ou par groupement de produits.
 Le résultat retourné peut être la valeur de la demande adressée, la demande
 adressée en base 100 ou bien le ratio de la abse 100 avec la base 100 d'un
 pays de référence.
+}
+\details{
+La demande adressée sert à observer l'évolution de la demande potentielle
+adressée à un pays en prenant en compte le positionnement du pays sur
+l'ensemble des marchés étudiés sur une année de référence. Elle est calculée
+en sommant l'ensemble des importations de tous les pays sur un produit donné,
+chaque valeur d'importation étant pondérée par la part que le pays représente
+dans les exportations totale du pays étudié sur le produit donné.
+La formule est la suivante :
+
+\eqn{DA_{it} = \sum_{jk}M_{jkt} \times \frac{X_{ijkt=0}}{X_{it=0}}}
 }
 \examples{
 # Pas d'exemples.
