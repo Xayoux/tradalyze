@@ -8,13 +8,13 @@
 #'
 #' @details
 #' La fonction permet de créer un graphique pour représenter l'évolution des
-#' parts de marché en fonction du temps. Cete fonction utilise les fonctions
+#' parts de marché en fonction du temps. Cette fonction utilise les fonctions
 #' de ggplot2 pour la création du graphique.
 #'
 #' Il est important de noter, que cette fonction ne calcule pas les parts de
 #' marché. Celles-ci doivent être calculées précédemment (de préférence avec
 #' la fonction \link{market_share}). Il est possible de passer d'autres variables
-#' celles définies à partir des fonctions de ce package. Néanmoins cela reste
+#' que celles définies à partir des fonctions de ce package. Néanmoins cela reste
 #' aux risques et périls de l'utilisateur si le rendu n'est pas cohérent.
 #'
 #' Grâce au paramètre `return_output`, il est possible de récupérer le graphique
