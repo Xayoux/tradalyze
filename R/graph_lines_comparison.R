@@ -67,7 +67,7 @@
 #' @export
 #'
 #' @examples # Pas d'exemples.
-graph_adressed_demand <- function(baci, x = "t", y, linewidth = 1,
+graph_lines_comparison <- function(baci, x = "t", y, linewidth = 1,
                                   var_linetype = NULL, manual_linetype = NULL,
                                   var_color = NULL, palette_color = NULL,
                                   manual_color = NULL,
