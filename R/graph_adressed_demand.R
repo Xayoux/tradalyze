@@ -175,13 +175,15 @@ graph_adressed_demand <- function(baci, x = "t", y, linewidth = 1,
 
   # Fusionner les légendes de couleur et de type de ligne si les variables
   # sont les mêmes
-  if (var_color == var_linetype){
-    graph <-
-      graph +
-      ggplot2::guides(
-        color = ggplot2::guide_legend(title = color_legend),
-        linetype = ggplot2::guide_legend(title = linetype_legend)
-      )
+  if (!is.null(var_color) & !is.null(var_linetype)){
+    if (var_color == var_linetype){
+      graph <-
+        graph +
+        ggplot2::guides(
+          color = ggplot2::guide_legend(title = color_legend),
+          linetype = ggplot2::guide_legend(title = linetype_legend)
+        )
+    }
   }
 
   # Paramètres graphiques ---------------------------------------------------
