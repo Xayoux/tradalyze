@@ -2,10 +2,10 @@
 #' Calculer la demande adressée à chaque pays
 #'
 #' @description
-#' Cacule la demande adressée à chaaue pays pour chaque année. La
+#' Cacule la demande adressée à chaque pays pour chaque année. La
 #' demande adressée peut être calculée par pays ou par groupement de produits.
 #' Le résultat retourné peut être la valeur de la demande adressée, la demande
-#' adressée en base 100 ou bien le ratio de la abse 100 avec la base 100 d'un
+#' adressée en base 100 ou bien le ratio de la base 100 avec la base 100 d'un
 #' pays de référence.
 #'
 #' @details
@@ -23,11 +23,12 @@
 #' à utiliser.
 #' @param years Années à garder dans les données.
 #' @param codes Codes à garder dans les données.
-#' @param year_ref Année de référence pour le calcul de la demande adressée.
+#' @param year_ref Année de référence pour le calcul de la demande adressée et
+#' de la base 100.
 #' @param var_exporter Variable contenant les exportateurs.
 #' @param var_k Variable à utiliser pour le groupement des produits.
 #' @param exporter_ref Exportateur de référence pour le calcul du ratio de la
-#' demande adressée.
+#' base 100.
 #' @param base_100 Booléen indiquant si la demande adressée doit être calculée
 #' en base 100 par rapport à l'année de référence.
 #' @param compare Booléen indiquant si le ratio de la demande adressée doit être
