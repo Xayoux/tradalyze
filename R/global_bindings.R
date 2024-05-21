@@ -7,4 +7,7 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "total_q_without_outliers", "total_v", "total_q",
                          "ratio_v", "ratio_q", "quantile_H", "ratio_value",
                          "iso_region", "name_region", "density", "ecart_type",
-                         "median_ikt", "lag_ijk", "lead_ijk"))
+                         "median_ikt", "lag_ijk", "lead_ijk", "poids",
+                         "importer", "med_ref_t_k", "exporter_iso_region",
+                         "importer_iso_region", "total_import_k", "DA",
+                         "DA_2010", "DA_100", "DA_diff", "DA_100_exporter_ref"))
