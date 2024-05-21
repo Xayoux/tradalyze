@@ -59,7 +59,7 @@ avec le calcul des gammes. Les variables du dataframe sont les suivantes :
 \item{uv}{Valeur unitaire du flux en milliers dollars courants par
 tonne métrique}
 \item{geom_mean_weighted}{Moyenne géométrique pondérée par les valeurs des
-valeurs unitaires des couples {t, k,j}}
+valeurs unitaires des couples (t, k,j)}
 \item{gamme_berthou_2011}{Gamme de valeur unitaire du flux commercial.
 Peut être 'L' ou 'H'}
 }
@@ -73,7 +73,7 @@ flux commerciaux.
 }
 \details{
 Les gammes sont déterminées de la façon suivante : une moyenne géométrique
-est calculée pour chaque couple {t, k, j} (année, produit, importateur).
+est calculée pour chaque couple (t, k, j) (année, produit, importateur).
 Cette valeur indique la valeur unitaire moyenne des flux commerciaux pour
 sur un produit donné pour un importateur donné sur une année donnée. La valeur
 unitaire d'un flux commercial est comparée à cette moyenne géométrique. Si la

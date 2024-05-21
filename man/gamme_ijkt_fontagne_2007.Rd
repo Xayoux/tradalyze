@@ -88,7 +88,7 @@ Les gammes sont définies de la façon suivante : un ratio r est calculé pour
 chaque flux s de la façon suivante :
 \eqn{r = UV_s/UV_m} avec \eqn{UV_s} la valeur unitaire du flux s et
 \eqn{UV_{m}} la médiane pondérée  par les valeurs commerciales des valeurs
-unitaires des flux du groupe {t, k}.
+unitaires des flux du groupe (t, k).
 \itemize{
 \item Si \eqn{r < 1}, alors la part du flux s dans la gamme Low est
 \eqn{1 - r^{\alpha}} et la part du flux s dans la gamme Medium est
@@ -105,7 +105,7 @@ moyenne sera grande.
 
 Les flux élémentaires ne sont pas forcément classés dans une uniquement
 gamme. Un flux peut donc correspondre à une ou deux lignes. Dans ce cas il
-faut bien utiliser la variable v_{alpha} qui représente la valeur du flux
+faut bien utiliser la variable v_alpha qui représente la valeur du flux
 dans la gamme correspondante et non la variable v qui représente la valeur
 totale du flux.
 
