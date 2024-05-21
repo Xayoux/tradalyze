@@ -66,11 +66,6 @@ uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
     df_baci <- baci
   }
 
-  # Passage au format arrow
-  df_baci <-
-    df_baci |>
-    arrow::arrow_table()
-
   # Garder les années voulues si years != NULL
   if(!is.null(years)){
     df_baci <-
@@ -115,13 +110,13 @@ uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
     if (compare == TRUE){
       df_uv_exporter_ref <-
         df_uv |>
-        dplyr::filter({{var_exporter}} == exporter_ref) |>
+        dplyr::filter(!!dplyr::sym(var_exporter) == exporter_ref) |>
         dplyr::select(-{{var_exporter}}) |>
         dplyr::rename(uv_100_exporter_ref = uv_100)
 
       df_uv <-
         df_uv |>
-        dplyr::filter({{var_exporter}} != exporter_ref) |>
+        dplyr::filter(!!dplyr::sym(var_exporter) != exporter_ref) |>
         dplyr::left_join(
           df_uv_exporter_ref,
           dplyr::join_by(t, {{var_k}})
@@ -140,7 +135,7 @@ uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
         df_uv |>
         arrow::arrow_table()
     }
-    return(df_uv)
+    return(df_uv |> dplyr::collect())
   }
 
   # Enregistrer le résultat

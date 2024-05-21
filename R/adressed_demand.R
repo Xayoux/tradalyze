@@ -162,7 +162,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
       # Calculer le ratio entre les et les DA du pays de ref
       df_da <-
         df_da |>
-        dplyr::filter(!!{{var_exporter}} != exporter_ref) |>
+        dplyr::filter(!!sym(var_exporter) != exporter_ref) |>
         dplyr::left_join(
           df_da_100_exporter_ref,
           dplyr::join_by({{var_k}}, t)
@@ -182,7 +182,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
        arrow::arrow_table()
    }
 
-   return(df_da)
+   return(df_da |>  dplyr::collect())
  }
 
   # Enregistrer le résultat
