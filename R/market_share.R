@@ -42,9 +42,9 @@
 #' les données de BACI au format parquet. Peut également être un dataframe ou
 #' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
 #' les opérations entre elles. ce paramètre est obligatoire.
-#' @param summarize_k Nom de la variable "produit" permettant à partir de
-#' laquelle sera calculée la part de marché. Par c'est la avriable `k` (le code
-#' produit HS6) qui sera utilisé. On peut l'utiliser également pour une
+#' @param summarize_k Nom de la variable "produit" à partir de
+#' laquelle sera calculée la part de marché. Par défaut c'est la variable `k`
+#' (le code produit HS6) qui sera utilisé. On peut l'utiliser également pour une
 #' variable "chapitre" ou "secteur" par exemple.
 #' @param summarize_v Nom de la variable ( en chaîne de caractère) sur laquelle
 #' l'agrégation des flux va s'effectuer. Par défaut, c'est la variable
@@ -193,7 +193,7 @@ market_share <- function(baci, summarize_k = "k",
       ) |>
       dplyr::collect() |>
       dplyr::mutate(
-        .by = c(t, {{summarize_k}}, {{by}}),
+        .by = c(t, {{summarize_k}}, {{summarize_v}}),
         market_share = v / sum(v, na.rm = TRUE) * 100
       ) |>
       arrow::arrow_table() |>
