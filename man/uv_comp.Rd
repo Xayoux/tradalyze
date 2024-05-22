@@ -8,6 +8,8 @@ uv_comp(
   baci,
   years = NULL,
   codes = NULL,
+  formula = "median_pond",
+  var_pond = NULL,
   year_ref,
   var_exporter,
   var_k,
@@ -26,6 +28,13 @@ uv_comp(
 \item{years}{Années à garder dans les données.}
 
 \item{codes}{Codes à garder dans les données.}
+
+\item{formula}{Formule à utiliser pour calculer les valeurs unitaires. Peut
+être "mean" pour la moyenne, "median" pour la médiane, "mean_pond" pour la
+moyenne pondérée, ou "median_pond" pour la médiane pondérée.}
+
+\item{var_pond}{Variable à utiliser pour la pondération des valeurs unitaire
+lorsque formula demande une pondération.}
 
 \item{year_ref}{Année de référence pour le calcul de la base 100.}
 

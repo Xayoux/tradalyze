@@ -37,12 +37,18 @@
 #' parquet.
 #' @param path_output Chemin d'accès pour enregistrer le résultat. Peut être
 #' en format csv ou parquet.
+#' @param formula Formule à utiliser pour calculer les valeurs unitaires. Peut
+#' être "mean" pour la moyenne, "median" pour la médiane, "mean_pond" pour la
+#' moyenne pondérée, ou "median_pond" pour la médiane pondérée.
+#' @param var_pond Variable à utiliser pour la pondération des valeurs unitaire
+#' lorsque formula demande une pondération.
 #'
 #' @return Un dataframe contenant l'évolution des valeurs unitaires.
 #' @export
 #'
 #' @examples # Pas d'exemples.
-uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
+uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
+                    var_pond = NULL, year_ref, var_exporter,
                             var_k, exporter_ref = NULL, base_100 = TRUE,
                             compare = FALSE,
                             return_output = TRUE, return_pq = FALSE,
@@ -81,12 +87,42 @@ uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
   }
 
   # Faire la moyenne des valeurs unitaires pour chaque année, exporter, produits
-  df_uv <-
-    df_baci |>
-    dplyr::summarize(
-      .by = c(t, {{var_exporter}}, {{var_k}}),
-      uv_mean = mean(uv, na.rm = TRUE)
-    )
+  if(formula == "mean"){
+    df_uv <-
+      df_baci |>
+      dplyr::summarize(
+        .by = c(t, {{var_exporter}}, {{var_k}}),
+        uv = mean(uv, na.rm = TRUE)
+      )
+  }
+  else if (formula == "median"){
+    df_uv <-
+      df_baci |>
+      dplyr::summarize(
+        .by = c(t, {{var_exporter}}, {{var_k}}),
+        uv = stats::median(uv, na.rm = TRUE)
+      )
+  }
+  else if (formula == "median_pond"){
+    df_uv <-
+      df_baci |>
+      dplyr::collect() |>
+      dplyr::summarize(
+        .by = c(t, {{var_exporter}}, {{var_k}}),
+        uv = matrixStats::weightedMedian(uv, w = !!dplyr::sym(var_pond), na.rm = TRUE)
+      )
+  }
+  else if (formula == "mean_pond"){
+    df_uv <-
+      df_baci |>
+      dplyr::collect() |>
+      dplyr::summarize(
+        .by = c(t, {{var_exporter}}, {{var_k}}),
+        uv = stats::weighted.mean(uv, w = !!dplyr::sym(var_pond), na.rm = TRUE)
+      )
+  }
+
+
 
   # Mettre en base 100 si voulu
   if (base_100 == TRUE){
@@ -94,7 +130,7 @@ uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
       df_uv |>
       dplyr::filter(t == year_ref) |>
       dplyr::select(-t) |>
-      dplyr::rename(uv_year_ref = uv_mean)
+      dplyr::rename(uv_year_ref = uv)
 
     df_uv <-
       df_uv |>
@@ -103,9 +139,9 @@ uv_comp <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
         dplyr::join_by({{var_exporter}}, {{var_k}})
       ) |>
       dplyr::mutate(
-        uv_100 = uv_mean / uv_year_ref * 100
+        uv_100 = uv / uv_year_ref * 100
       ) |>
-      dplyr::select(-c(uv_year_ref, uv_mean))
+      dplyr::select(-c(uv_year_ref, uv))
 
     if (compare == TRUE){
       df_uv_exporter_ref <-
