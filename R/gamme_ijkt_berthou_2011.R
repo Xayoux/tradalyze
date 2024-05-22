@@ -9,7 +9,7 @@
 #' @return La moyenne géométrique pondérée.
 #'
 #' @examples # Pas d'exemple.
-#' @noRd
+#' @export
 weighted_geomean <- function(x, w, ...){
   return(prod(x^w, ...)^(1/sum(w, ...)))
 }
