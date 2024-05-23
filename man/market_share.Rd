@@ -23,9 +23,9 @@ les données de BACI au format parquet. Peut également être un dataframe ou
 bien des données au format arrow (requête ou non) permettant ainsi de chaîner
 les opérations entre elles. ce paramètre est obligatoire.}
 
-\item{summarize_k}{Nom de la variable "produit" permettant à partir de
-laquelle sera calculée la part de marché. Par c'est la avriable \code{k} (le code
-produit HS6) qui sera utilisé. On peut l'utiliser également pour une
+\item{summarize_k}{Nom de la variable "produit" à partir de
+laquelle sera calculée la part de marché. Par défaut c'est la variable \code{k}
+(le code produit HS6) qui sera utilisé. On peut l'utiliser également pour une
 variable "chapitre" ou "secteur" par exemple.}
 
 \item{summarize_v}{Nom de la variable ( en chaîne de caractère) sur laquelle
