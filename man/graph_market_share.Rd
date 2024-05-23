@@ -15,7 +15,6 @@ graph_market_share(
   percent = TRUE,
   na.rm = TRUE,
   x_breaks = NULL,
-  y_breaks = NULL,
   x_title = "",
   y_title = "",
   title = "",
@@ -71,10 +70,6 @@ ne doit pas être exprimées de base de proportion, mais bien en pourcentage
 \item{x_breaks}{Les valeurs à afficher sur l'axe des abscisses. Par défaut,
 cette variable est NULL. Dans ce cas, les valeurs vont du minimum au maximum
 de la variable x avec un écart de 2 entre chaque valeur.}
-
-\item{y_breaks}{Les valeurs à afficher sur l'axe des ordonnées. Par défaut,
-cette variable est NULL. Dans ce cas, les valeurs vont de 0 à 100 avec un
-écart de 25 entre chaque valeur.}
 
 \item{x_title}{Le titre de l'axe des abscisses. Par défaut, cette variable
 est vide.}

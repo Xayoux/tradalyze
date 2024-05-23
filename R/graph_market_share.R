@@ -50,9 +50,6 @@
 #' @param x_breaks Les valeurs à afficher sur l'axe des abscisses. Par défaut,
 #' cette variable est NULL. Dans ce cas, les valeurs vont du minimum au maximum
 #' de la variable x avec un écart de 2 entre chaque valeur.
-#' @param y_breaks Les valeurs à afficher sur l'axe des ordonnées. Par défaut,
-#' cette variable est NULL. Dans ce cas, les valeurs vont de 0 à 100 avec un
-#' écart de 25 entre chaque valeur.
 #' @param x_title Le titre de l'axe des abscisses. Par défaut, cette variable
 #' est vide.
 #' @param y_title Le titre de l'axe des ordonnées. Par défaut, cette variable
@@ -91,7 +88,7 @@ graph_market_share <- function(baci, x = "t", y = "market_share",
                                graph_type = "area",
                                var_fill_color = NULL, palette_color = NULL,
                                manual_color = NULL, percent = TRUE,
-                               na.rm = TRUE, x_breaks = NULL, y_breaks = NULL,
+                               na.rm = TRUE, x_breaks = NULL,
                                x_title = "", y_title = "", title = "",
                                subtitle = "", caption = "", color_legend = "",
                                fill_legend = "", type_theme = "bw",
@@ -128,12 +125,6 @@ graph_market_share <- function(baci, x = "t", y = "market_share",
       by = 2
     )
   }
-
-  # si pas de y_breaks spécifié alors y va de 0 à 100 avec un écart de 25 entre chaque valeur
-  if (is.null(y_breaks)){
-    y_breaks <- seq(0, 100, by = 25)
-  }
-
 
   # Fondations du graph
   graph <-
@@ -245,15 +236,7 @@ graph_market_share <- function(baci, x = "t", y = "market_share",
       graph +
       # Suppose que les parts de marché sont en pourcentage et non pas proportion
       ggplot2::scale_y_continuous(
-        labels = scales::label_percent(scale = 1),
-        breaks = y_breaks
-      )
-  }
-  else {
-    graph <-
-      graph +
-      ggplot2::scale_y_continuous(
-        breaks = y_breaks
+        labels = scales::label_percent(scale = 1)
       )
   }
 
