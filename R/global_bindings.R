@@ -12,4 +12,5 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "importer_iso_region", "total_import_k", "DA",
                          "DA_2010", "DA_100", "DA_diff", "DA_100_exporter_ref",
                          "uv_mean", "uv_year_ref", "uv_100", "sector",
-                         "uv_100_exporter_ref"))
+                         "uv_100_exporter_ref", "iso3_o", "iso3_d", "HS6",
+                         "sigma", "exporter", "p"))

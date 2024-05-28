@@ -3,6 +3,7 @@
 export(add_chelem_classification)
 export(adressed_demand)
 export(clean_uv_outliers)
+export(create_quality_df)
 export(dl_baci)
 export(dl_gravity)
 export(eval_outliers_dist)
