@@ -8,7 +8,7 @@
 #'
 #' @param dl_folder Chemin d'accès au dossier où seront stockés les fichiers
 #' csv de Gravity. Ils seront stockés dans un dossier nommé
-#' "Gravity_csv_V{version}". Ainsi si la version change un nouveau sous-dossier
+#' "Gravity_csv_V(version)". Ainsi si la version change un nouveau sous-dossier
 #' sera créé.
 #' @param dl_zip Si TRUE, télécharge le fichier zip de Gravity dans tous les cas.
 #' Si FALSE, vérifie si le fichier zip existe déjà. Si oui, ne télécharge pas et
@@ -73,7 +73,7 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
     )
   }
   else { # Si Faux télécharger le zip que s'il n'existe pas
-    if (!file.exists(gravity_folder)) {
+    if (!file.exists(gravity_zip)) {
       # Si le fichier zip n'existe pas, télécharger BACI
       curl::multi_download(
         dl_link,
@@ -81,7 +81,6 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
       )
     }
   }
-
 
   # Décompresser le fichier zip au même endroit
   gravity_zip |>
@@ -122,8 +121,6 @@ transfo_gravity_pq <- function(csv_folder, path_output = csv_folder, version){
   if (!dir.exists(here::here(path_output, "Gravity-parquet"))) {
     dir.create(here::here(path_output, "Gravity-parquet"), recursive = TRUE)
   }
-
-  print(gravity_path)
 
   # Ecrire la base gravity en parquet : un par année : gain de place + efficacité
   gravity_path |>

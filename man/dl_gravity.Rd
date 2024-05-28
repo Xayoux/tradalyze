@@ -13,7 +13,7 @@ dl_gravity(dl_folder, dl_zip = FALSE)
 \arguments{
 \item{dl_folder}{Chemin d'accès au dossier où seront stockés les fichiers
 csv de Gravity. Ils seront stockés dans un dossier nommé
-"Gravity_csv_V{version}". Ainsi si la version change un nouveau sous-dossier
+"Gravity_csv_V(version)". Ainsi si la version change un nouveau sous-dossier
 sera créé.}
 
 \item{dl_zip}{Si TRUE, télécharge le fichier zip de Gravity dans tous les cas.
