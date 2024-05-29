@@ -91,7 +91,7 @@ quality_aggregate <- function(data_quality, var_aggregate = "k",
       df_data_quality |>
       dplyr::summarize(
         .by = c(t, exporter, {{var_aggregate}}),
-        quality = median(quality, na.rm = TRUE)
+        quality = stats::median(quality, na.rm = TRUE)
       )
   }
 
@@ -102,14 +102,14 @@ quality_aggregate <- function(data_quality, var_aggregate = "k",
     df_pond <-
       df_data_quality |>
       dplyr::filter(t == year_ref) |>
-      select(exporter, k, !!dplyr::sym(weighted_var))
+      dplyr::select(exporter, k, !!dplyr::sym(weighted_var))
 
     df_data_quality <-
       df_data_quality |>
-      select(-c(!!dplyr::sym(weighted_var))) |>
+      dplyr::select(-c(!!dplyr::sym(weighted_var))) |>
       dplyr::left_join(
         df_pond,
-        join_by(exporter, k)
+        dplyr::join_by(exporter, k)
       )
   }
 
