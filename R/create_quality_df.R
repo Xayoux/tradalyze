@@ -29,6 +29,10 @@
 #' gardés.
 #' @param gravity_variables Les variables de gravité à garder. Par défaut, toutes
 #' les variables sont gardées.
+#' @param baci_variables Les variables de BACI à garder. Par défaut, toutes les
+#' variables sont gardées. Les variables automatiquement gardées peu importe
+#' la sélection sont exporter, importer, k, t, v et q afin de permettre le bon
+#' déroulement de la suite.
 #' @param revision_codes La révision de laquelle les codes fournis proviennent.
 #' Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12", "HS17" et
 #' "HS22". Par défaut, les codes sont supposés être en HS92.
@@ -50,7 +54,8 @@
 #' @source [Conte, M., P. Cotterlaz and T. Mayer (2022), "The CEPII Gravity database". CEPII Working Paper N°2022-05, July 2022.](http://www.cepii.fr/DATA_DOWNLOAD/gravity/doc/Gravity_documentation.pdf)
 #' @source [Fontagné L., Guimbard H. and Orefice G. (2022) Product-Level Trade Elasticities. Journal of International Economics, vol 137](https://www.sciencedirect.com/science/article/abs/pii/S0022199622000253?via%3Dihub)
 create_quality_df <- function(baci, gravity, years = NULL, codes = NULL,
-                              gravity_variables = NULL, revision_codes = "HS92",
+                              gravity_variables = NULL, baci_variables = NULL,
+                              revision_codes = "HS92",
                               print = FALSE, return_output = TRUE,
                               return_parquet = FALSE, path_output = NULL,
                               format = "parquet", na.rm = TRUE){
@@ -88,6 +93,14 @@ create_quality_df <- function(baci, gravity, years = NULL, codes = NULL,
     df_baci <-
       df_baci |>
       dplyr::filter(k %in% codes)
+  }
+
+  # Garder les variables voulue et les variables essentielles pour les join
+  if(!is.null(baci_variables)){
+    df_baci <-
+      df_baci |>
+      dplyr::select(dplyr::all_of(baci_variables),
+                    exporter, importer, k, t, v, q)
   }
 
 
@@ -196,8 +209,6 @@ create_quality_df <- function(baci, gravity, years = NULL, codes = NULL,
   # Créer le dataframe utilisable pour estimer la qualité d'un produit
   df <-
     df_baci |>
-    # Sélectionner les variables nécessaires de BACI
-    dplyr::select(t, k, v, q, exporter, importer) |>
     # Mettre la variable t en numeric pour éviter les problèmes de fusion
     dplyr::mutate(t = as.numeric(t)) |>
     # Left_join avec plte pour ajouter les élasticités de chaque produit

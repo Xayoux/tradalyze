@@ -17,6 +17,7 @@ create_quality_df(
   years = NULL,
   codes = NULL,
   gravity_variables = NULL,
+  baci_variables = NULL,
   revision_codes = "HS92",
   print = FALSE,
   return_output = TRUE,
@@ -40,6 +41,11 @@ gardés.}
 
 \item{gravity_variables}{Les variables de gravité à garder. Par défaut, toutes
 les variables sont gardées.}
+
+\item{baci_variables}{Les variables de BACI à garder. Par défaut, toutes les
+variables sont gardées. Les variables automatiquement gardées peu importe
+la sélection sont exporter, importer, k, t, v et q afin de permettre le bon
+déroulement de la suite.}
 
 \item{revision_codes}{La révision de laquelle les codes fournis proviennent.
 Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12", "HS17" et
