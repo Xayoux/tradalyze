@@ -12,9 +12,10 @@ Khandelwal et al (2013)}
 \usage{
 khandelwal_quality_eq(
   data_reg,
-  y_var,
-  x_var,
-  fe_var,
+  reg_formula = NULL,
+  y_var = NULL,
+  x_var = NULL,
+  fe_var = NULL,
   path_latex_output = NULL,
   title_latex = NULL,
   label_latex = NULL,
@@ -27,6 +28,10 @@ khandelwal_quality_eq(
 chemin vers un dossier parquet, un dataframe ou un objet arrow. Il est
 recommandé d'utiliser la fonction \link{create_quality_df} pour obtenir
 les données nécessaires.}
+
+\item{reg_formula}{Objet formula indiquant la formule à utiliser pour
+l'équation de régression. Si ce paramètre est renseigné, les paramètres
+\verb{y_var, }x_var  et \code{fe_var} ne seront pas pris en compte.}
 
 \item{y_var}{La variable dépendante de l'équation de régression.}
 

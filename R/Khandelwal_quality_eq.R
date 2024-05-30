@@ -66,6 +66,9 @@
 #' chemin vers un dossier parquet, un dataframe ou un objet arrow. Il est
 #' recommandé d'utiliser la fonction \link{create_quality_df} pour obtenir
 #' les données nécessaires.
+#' @param reg_formula Objet formula indiquant la formule à utiliser pour
+#' l'équation de régression. Si ce paramètre est renseigné, les paramètres
+#' `y_var, `x_var  et `fe_var` ne seront pas pris en compte. 
 #' @param y_var La variable dépendante de l'équation de régression.
 #' @param x_var Les variables indépendantes de l'équation de régression.
 #' @param fe_var Les variables pour les effets fixes de l'équation de régression.
@@ -88,11 +91,12 @@
 #' @source [Bas, M., Fontagné, L., Martin, P., & Mayer, T. (2015). À la recherche des parts de marché perdues (Research Report No. 2015–23). Conseil d’Analyse Economique.](https://www.cairn.info/revue-notes-du-conseil-d-analyse-economique-2015-4-page-1.htm)
 #'
 #' @importFrom data.table :=
-khandelwal_quality_eq <- function(data_reg, y_var, x_var, fe_var,
+khandelwal_quality_eq <- function(data_reg, reg_formula = NULL, y_var = NULL,
+                                  x_var = NULL, fe_var = NULL,
                                   path_latex_output = NULL, title_latex = NULL,
                                   label_latex = NULL, print_reg_output = TRUE,
                                   return_output = TRUE){
-
+  
   # Ouvrir les données de data_reg
   if (is.character(data_reg) == TRUE){
     # Ouvrir les données depuis un dossier parquet
@@ -112,26 +116,28 @@ khandelwal_quality_eq <- function(data_reg, y_var, x_var, fe_var,
       dplyr::collect()
   }
 
+  # Créer la formule "manuellement" si formula = NULL
+  if (is.null(reg_formula) == TRUE | !methods::is(reg_formula, "formula")){
+    # Si la longeur de x_var est de 1 = écriture sous forme de 'formule'.
+    # So > 1 = uniquement noms de variables -> transformation en 'formule'
+    # Uniquement sous forme additive
+    if(length(x_var > 1)){
+      x_var <- paste(x_var, collapse = " + ")
+    }
 
-  # Si la longeur de x_var est de 1 = écriture sous forme de 'formule'.
-  # So > 1 = uniquement noms de variables -> transformation en 'formule'
-  # Uniquement sous forme additive
-  if(length(x_var > 1)){
-    x_var <- paste(x_var, collapse = " + ")
-  }
+    # Pareil pour fe_var
+    if(length(fe_var > 1)){
+      fe_var <- paste(fe_var, collapse = " + ")
+    }
 
-  # Pareil pour fe_var
-  if(length(fe_var > 1)){
-    fe_var <- paste(fe_var, collapse = " + ")
-  }
-
-  # Création de la formule de régression
-  reg_formula <-
-    stats::formula(
-      stringr::str_glue(
-        "{y_var} ~ {x_var} | {fe_var}"
+    # Création de la formule de régression
+    reg_formula <-
+      stats::formula(
+        stringr::str_glue(
+          "{y_var} ~ {x_var} | {fe_var}"
+        )
       )
-    )
+  }  
 
   # Estimation de la régression OLS
   lm <- fixest::feols(
