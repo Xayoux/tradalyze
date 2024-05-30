@@ -14,6 +14,10 @@ quality_aggregate(
   year_ref = NULL,
   print_output = FALSE,
   return_output = TRUE,
+  base_100 = FALSE,
+  compare = FALSE,
+  year_ref_base_100 = year_ref,
+  exporter_ref = NULL,
   return_pq = FALSE,
   path_output = NULL
 )
@@ -50,6 +54,19 @@ défaut, \code{FALSE}.}
 
 \item{return_output}{Si \code{TRUE}, renvoie les données aggrégées. Par
 défaut, \code{TRUE}.}
+
+\item{base_100}{Booléen indiquant si la qualité doit être calculée en base
+100 par rapport à une année de référence.}
+
+\item{compare}{Booléen indiquant si la qualité en base 100 doit être comparée
+à un pays de référence (par un ratio).}
+
+\item{year_ref_base_100}{L'année de référence à utiliser si la qualité doit
+être calculée en base 100.}
+
+\item{exporter_ref}{L'entité exportatrice de référence à utiliser pour
+la comparaison avec un pays de référence. L'entité doit se trouver dans la
+variable \code{var_aggregate_i}.}
 
 \item{return_pq}{Si \code{TRUE}, renvoie les données de qualité sous format
 arrow. Par défaut, \code{FALSE}.}

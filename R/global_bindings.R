@@ -1,4 +1,4 @@
-# Global variable bindings ------------------------------------------------
+# Global variables bindings ------------------------------------------------
 utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "extreme", "j", "v_share", "gamme_fontagne_1997",
                          "med_ref_ijkt", "v_t_k_i", "market_share_t_k_i",
@@ -13,4 +13,6 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "DA_2010", "DA_100", "DA_diff", "DA_100_exporter_ref",
                          "uv_mean", "uv_year_ref", "uv_100", "sector",
                          "uv_100_exporter_ref", "iso3_o", "iso3_d", "HS6",
-                         "sigma", "exporter", "p", "epsilon", "quality"))
+                         "sigma", "exporter", "p", "epsilon", "quality",
+                         "quality_ref_year", "quality_100",
+                         "quality_exporter_ref"))
