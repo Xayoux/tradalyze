@@ -6,7 +6,8 @@
 \usage{
 quality_aggregate(
   data_quality,
-  var_aggregate = "k",
+  var_aggregate_k = "k",
+  var_aggregate_i = "i",
   method_aggregate = "weighted.median",
   weighted_var = "q",
   fixed_weight = FALSE,
@@ -23,8 +24,11 @@ de chaque flux. Peut-être un dataframe, un fichier parquet ou un objet
 arrow. Il est recommandé d'utilisé les données renvoyées par la fonction
 \link{khandelwal_quality_eq}.}
 
-\item{var_aggregate}{La variable servant à aggréger les données. Par
+\item{var_aggregate_k}{La variable servant à aggréger les données. Par
 défaut, la variable \code{k} est utilisée.}
+
+\item{var_aggregate_i}{La variable des pays/régions d'origine servant à
+aggréger les données. Par défaut la variable \code{i} est utilisée.}
 
 \item{method_aggregate}{La méthode d'aggrégation des données. Par défaut,
 la médiane pondérée avec \code{weighted.median} est utilisée. Les autres
@@ -64,7 +68,7 @@ chaque produit/ensembles de produits.
 \details{
 Le calcul des données aggrégées de la qualité se fait obligatoirement
 au niveau année-exporter. Il est possible de choisir sur quel ensemble de
-produits, ces données sont calculées grâce au paramètre \code{var_aggregate}.
+produits, ces données sont calculées grâce au paramètre \code{var_aggregate_k}.
 
 4 méthodes différentes sont disponibles pour effectuer l'aggrégations :
 la moyenne arithmétique, la médiane, la moyenne arithmétique pondérée et la
@@ -72,6 +76,10 @@ médiane pondérée. Le choix de la variable de pondération s'effectue grâce a
 paramètre \code{weighted_var}. Les pondérations peuvent varier chaque année,
 ou bien être fixée à une année de référence grâce aux paramètres
 \code{fixed_weight} et \code{year_ref}.
+
+Pour utiliser correctement cette fonction, il faut que la fonction
+\link{khandelwal_quality_eq} ait été utilisée au niveau des exportateurs et
+non pas à un niveau plus agrégé de pays d'origine.
 }
 \examples{
 # Pas d'exemple

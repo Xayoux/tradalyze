@@ -7,7 +7,7 @@
 #' @details
 #' Le calcul des données aggrégées de la qualité se fait obligatoirement
 #' au niveau année-exporter. Il est possible de choisir sur quel ensemble de
-#' produits, ces données sont calculées grâce au paramètre \code{var_aggregate}.
+#' produits, ces données sont calculées grâce au paramètre \code{var_aggregate_k}.
 #'
 #' 4 méthodes différentes sont disponibles pour effectuer l'aggrégations :
 #' la moyenne arithmétique, la médiane, la moyenne arithmétique pondérée et la
@@ -16,12 +16,16 @@
 #' ou bien être fixée à une année de référence grâce aux paramètres
 #' \code{fixed_weight} et \code{year_ref}.
 #'
+#' Pour utiliser correctement cette fonction, il faut que la fonction
+#' \link{khandelwal_quality_eq} ait été utilisée au niveau des exportateurs et
+#' non pas à un niveau plus agrégé de pays d'origine.
+#'
 #'
 #' @param data_quality Les données contenant les informations sur la qualité
 #' de chaque flux. Peut-être un dataframe, un fichier parquet ou un objet
 #' arrow. Il est recommandé d'utilisé les données renvoyées par la fonction
 #' \link{khandelwal_quality_eq}.
-#' @param var_aggregate La variable servant à aggréger les données. Par
+#' @param var_aggregate_k La variable servant à aggréger les données. Par
 #' défaut, la variable \code{k} est utilisée.
 #' @param method_aggregate La méthode d'aggrégation des données. Par défaut,
 #' la médiane pondérée avec \code{weighted.median} est utilisée. Les autres
@@ -43,12 +47,15 @@
 #' @param path_output Le chemin où sauvegarder les données aggrégées. Par
 #' défaut, \code{NULL}. Peut être un chemin vers un fichier parquet ou un
 #' fichier csv ou xlsx.
+#' @param var_aggregate_i La variable des pays/régions d'origine servant à
+#' aggréger les données. Par défaut la variable \code{i} est utilisée.
 #'
 #' @return Un dataframe contenant les données aggrégées de la qualité.
 #' @export
 #'
 #' @examples # Pas d'exemple
-quality_aggregate <- function(data_quality, var_aggregate = "k",
+quality_aggregate <- function(data_quality, var_aggregate_k = "k",
+                              var_aggregate_i = "i",
                               method_aggregate = "weighted.median",
                               weighted_var = "q", fixed_weight = FALSE,
                               year_ref = NULL, print_output = FALSE,
@@ -80,7 +87,7 @@ quality_aggregate <- function(data_quality, var_aggregate = "k",
     df_quality_agg <-
       df_data_quality |>
       dplyr::summarize(
-        .by = c(t, exporter, {{var_aggregate}}),
+        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
         quality = mean(quality, na.rm = TRUE)
       )
   }
@@ -90,7 +97,7 @@ quality_aggregate <- function(data_quality, var_aggregate = "k",
     df_quality_agg <-
       df_data_quality |>
       dplyr::summarize(
-        .by = c(t, exporter, {{var_aggregate}}),
+        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
         quality = stats::median(quality, na.rm = TRUE)
       )
   }
@@ -120,7 +127,7 @@ quality_aggregate <- function(data_quality, var_aggregate = "k",
       df_data_quality |>
       dplyr::collect() |>
       dplyr::summarize(
-        .by = c(t, exporter, {{var_aggregate}}),
+        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
         quality = stats::weighted.mean(quality, w = !!dplyr::sym(weighted_var), na.rm = TRUE)
       )
   }
@@ -131,7 +138,7 @@ quality_aggregate <- function(data_quality, var_aggregate = "k",
       df_data_quality |>
       dplyr::collect() |>
       dplyr::summarize(
-        .by = c(t, exporter, {{var_aggregate}}),
+        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
         quality = matrixStats::weightedMedian(quality,
                                               w = !!dplyr::sym(weighted_var),
                                               na.rm = TRUE)
