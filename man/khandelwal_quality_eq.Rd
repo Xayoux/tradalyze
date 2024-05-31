@@ -55,7 +55,9 @@ les données.}
 }
 \value{
 Les résultats de la régression ainsi que les données contenant la
-qualité si return_output = TRUE.
+compétitivité hors-prix si return_output = TRUE.
+Les données de la compétitivité hors-prix renvoyées sont les données en
+niveau (mise à l'exponentielle).
 }
 \description{
 Estimation de la qualité d'un produit à partir d'une équation à la
@@ -85,8 +87,11 @@ de ce produit (flux) lequel est multiplié par son élasticité prix (la
 demande décroit en fonction du prix) avec le PIB du pays d'origine, des
 variables de gravité et un effet fixe produit-importateur-année.
 
-La qualité est définie comme le résidu de cette relation normalisé par
-l'élasticité prix du produit correspond \eqn{\frac{\epsilon_{ijkt}}{\sigma_{k} - 1}}.
+Le logarithme de la compétitivité hors-prix est défini comme le résidu de
+cette relation normalisé par l'élasticité prix du produit correspondant
+\eqn{\frac{\epsilon_{ijkt}}{\sigma_{k} - 1}}. Le niveau de la compétitivité
+hors prix est obtenu en prenant l'exponentielle. Le résultat en niveau est
+le résultat renvoyé par cette fonction.
 }
 
 \subsection{Utilisation des variables}{

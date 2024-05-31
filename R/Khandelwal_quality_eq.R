@@ -29,8 +29,11 @@
 #' demande décroit en fonction du prix) avec le PIB du pays d'origine, des
 #' variables de gravité et un effet fixe produit-importateur-année.
 #'
-#' La qualité est définie comme le résidu de cette relation normalisé par
-#' l'élasticité prix du produit correspond \eqn{\frac{\epsilon_{ijkt}}{\sigma_{k} - 1}}.
+#' Le logarithme de la compétitivité hors-prix est défini comme le résidu de
+#' cette relation normalisé par l'élasticité prix du produit correspondant
+#' \eqn{\frac{\epsilon_{ijkt}}{\sigma_{k} - 1}}. Le niveau de la compétitivité
+#' hors prix est obtenu en prenant l'exponentielle. Le résultat en niveau est
+#' le résultat renvoyé par cette fonction. 
 #'
 #' ## Utilisation des variables
 #' Cette fonction utilise la fonction \code{\link[fixest]{feols}} du du package
@@ -83,7 +86,9 @@
 #' les données.
 #'
 #' @return Les résultats de la régression ainsi que les données contenant la
-#' qualité si return_output = TRUE.
+#' compétitivité hors-prix si return_output = TRUE.
+#' Les données de la compétitivité hors-prix renvoyées sont les données en
+#' niveau (mise à l'exponentielle).
 #' @export
 #'
 #' @examples # Pas d'exemple
@@ -161,7 +166,7 @@ khandelwal_quality_eq <- function(data_reg, reg_formula = NULL, y_var = NULL,
         data_reg |>
         dplyr::mutate(
           !!colname_epsilon := lm[[i]]$residuals,
-          !!colname_quality := lm[[i]]$residuals / (sigma - 1)
+          !!colname_quality := exp(lm[[i]]$residuals / (sigma - 1))
         )
     }
   }
@@ -170,7 +175,7 @@ khandelwal_quality_eq <- function(data_reg, reg_formula = NULL, y_var = NULL,
       data_reg |>
       dplyr::mutate(
         epsilon = lm$residuals,
-        quality = epsilon / (sigma - 1)
+        quality = exp(epsilon / (sigma - 1))
       )
   }
 
