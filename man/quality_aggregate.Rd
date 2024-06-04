@@ -6,8 +6,7 @@
 \usage{
 quality_aggregate(
   data_quality,
-  var_aggregate_k = "k",
-  var_aggregate_i = "i",
+  var_aggregate,
   method_aggregate = "weighted.median",
   weighted_var = "q",
   fixed_weight = FALSE,
@@ -28,11 +27,10 @@ de chaque flux. Peut-être un dataframe, un fichier parquet ou un objet
 arrow. Il est recommandé d'utilisé les données renvoyées par la fonction
 \link{khandelwal_quality_eq}.}
 
-\item{var_aggregate_k}{La variable servant à aggréger les données. Par
-défaut, la variable \code{k} est utilisée.}
-
-\item{var_aggregate_i}{La variable des pays/régions d'origine servant à
-aggréger les données. Par défaut la variable \code{i} est utilisée.}
+\item{var_aggregate}{Vecteur contenant les variables (sous forme de chaînes
+de caractères) à partir desquelle l'aggrégation doit se faire. Aucune
+variable par défaut n'est mise. Il faut donc penser à bien toutes les
+spécifier.}
 
 \item{method_aggregate}{La méthode d'aggrégation des données. Par défaut,
 la médiane pondérée avec \code{weighted.median} est utilisée. Les autres

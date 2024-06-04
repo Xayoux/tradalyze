@@ -26,11 +26,10 @@
 #' de chaque flux. Peut-être un dataframe, un fichier parquet ou un objet
 #' arrow. Il est recommandé d'utilisé les données renvoyées par la fonction
 #' \link{khandelwal_quality_eq}.
-#' @param var_aggregate_k La variable servant à aggréger les données. Par
-#' défaut, la variable \code{k} est utilisée.
-#' @param var_aggregate_i La variable des pays/régions d'origine servant à
-#' aggréger les données. Par défaut la variable \code{i} est utilisée.
-#'
+#' @param var_aggregate Vecteur contenant les variables (sous forme de chaînes
+#' de caractères) à partir desquelle l'aggrégation doit se faire. Aucune
+#' variable par défaut n'est mise. Il faut donc penser à bien toutes les
+#' spécifier. 
 #' @param method_aggregate La méthode d'aggrégation des données. Par défaut,
 #' la médiane pondérée avec \code{weighted.median} est utilisée. Les autres
 #' méthodes disponibles sont : \code{mean}, \code{median} et
@@ -65,8 +64,7 @@
 #'
 #' @examples # Pas d'exemple
 # Fonction quality_aggregage --------------------------------------------------
-quality_aggregate <- function(data_quality, var_aggregate_k = "k",
-                              var_aggregate_i = "i",
+quality_aggregate <- function(data_quality, var_aggregate,
                               method_aggregate = "weighted.median",
                               weighted_var = "q", fixed_weight = FALSE,
                               year_ref = NULL, print_output = FALSE,
@@ -102,7 +100,7 @@ quality_aggregate <- function(data_quality, var_aggregate_k = "k",
     df_quality_agg <-
       df_data_quality |>
       dplyr::summarize(
-        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
+        .by = c({{var_aggregate}}),
         quality = mean(quality, na.rm = TRUE)
       )
   }
@@ -112,7 +110,7 @@ quality_aggregate <- function(data_quality, var_aggregate_k = "k",
     df_quality_agg <-
       df_data_quality |>
       dplyr::summarize(
-        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
+        .by = c({{var_aggregate}}),
         quality = stats::median(quality, na.rm = TRUE)
       )
   }
@@ -120,6 +118,7 @@ quality_aggregate <- function(data_quality, var_aggregate_k = "k",
   # Uniquement sur les calculs avec des pondérations
   # Si les poids sont fixes, calculés les poids de l'année de référence
   # Les associer aux flux
+  # CORRIGER CEST CASSE
   if (fixed_weight == TRUE){
     df_pond <-
       df_data_quality |>
@@ -142,7 +141,7 @@ quality_aggregate <- function(data_quality, var_aggregate_k = "k",
       df_data_quality |>
       dplyr::collect() |>
       dplyr::summarize(
-        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
+        .by = c({{var_aggregate}}),
         quality = stats::weighted.mean(quality, w = !!dplyr::sym(weighted_var), na.rm = TRUE)
       )
   }
@@ -153,7 +152,7 @@ quality_aggregate <- function(data_quality, var_aggregate_k = "k",
       df_data_quality |>
       dplyr::collect() |>
       dplyr::summarize(
-        .by = c(t, {{var_aggregate_i}}, {{var_aggregate_k}}),
+        .by = c({{var_aggregate}}),
         quality = matrixStats::weightedMedian(quality,
                                               w = !!dplyr::sym(weighted_var),
                                               na.rm = TRUE)
