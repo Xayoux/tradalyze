@@ -115,24 +115,24 @@ quality_aggregate <- function(data_quality, var_aggregate,
       )
   }
 
-  # Uniquement sur les calculs avec des pondérations
-  # Si les poids sont fixes, calculés les poids de l'année de référence
-  # Les associer aux flux
-  # CORRIGER CEST CASSE
-  if (fixed_weight == TRUE){
-    df_pond <-
-      df_data_quality |>
-      dplyr::filter(t == year_ref) |>
-      dplyr::select(exporter, k, !!dplyr::sym(weighted_var))
+  ## # Uniquement sur les calculs avec des pondérations
+  ## # Si les poids sont fixes, calculés les poids de l'année de référence
+  ## # Les associer aux flux
+  ## # CORRIGER CEST CASSE
+  ## if (fixed_weight == TRUE){
+  ##   df_pond <-
+  ##     df_data_quality |>
+  ##     dplyr::filter(t == year_ref) |>
+  ##     dplyr::select(exporter, k, !!dplyr::sym(weighted_var))
 
-    df_data_quality <-
-      df_data_quality |>
-      dplyr::select(-c(!!dplyr::sym(weighted_var))) |>
-      dplyr::left_join(
-        df_pond,
-        dplyr::join_by(exporter, k)
-      )
-  }
+  ##   df_data_quality <-
+  ##     df_data_quality |>
+  ##     dplyr::select(-c(!!dplyr::sym(weighted_var))) |>
+  ##     dplyr::left_join(
+  ##       df_pond,
+  ##       dplyr::join_by(exporter, k)
+  ##     )
+  ## }
 
 
   # Agréger les données avec la moyenne pondérée
