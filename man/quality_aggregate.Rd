@@ -17,6 +17,7 @@ quality_aggregate(
   compare = FALSE,
   year_ref_base_100 = year_ref,
   exporter_ref = NULL,
+  var_exporter_ref = NULL,
   return_pq = FALSE,
   path_output = NULL
 )

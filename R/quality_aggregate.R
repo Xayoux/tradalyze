@@ -1,4 +1,4 @@
-# Documentation ----------------------------------------------------------------
+x# Documentation ----------------------------------------------------------------
 #' @title Cacule la qualité aggrégé pour un ensemble de produits
 #'
 #' @description
@@ -54,6 +54,8 @@
 #' @param exporter_ref L'entité exportatrice de référence à utiliser pour
 #' la comparaison avec un pays de référence. L'entité doit se trouver dans la
 #' variable `var_aggregate_i`.
+#' @param var_eporter_ref La avriable contenant l'entité exportatrice qui
+#' servira de référence pour la comparaison dans le cas où `compare = TRUE`.
 #' @param return_pq Si \code{TRUE}, renvoie les données de qualité sous format
 #' arrow. Par défaut, \code{FALSE}.
 #' @param path_output Le chemin où sauvegarder les données aggrégées. Par
@@ -70,7 +72,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
                               year_ref = NULL, print_output = FALSE,
                               return_output = TRUE, base_100 = FALSE,
                               compare = FALSE, year_ref_base_100 = year_ref,
-                              exporter_ref = NULL,
+                              exporter_ref = NULL, var_exporter_ref = NULL,
                               return_pq = FALSE, path_output = NULL){
 
   ## Importer les données de qualité ------------------------------------------
@@ -162,51 +164,60 @@ quality_aggregate <- function(data_quality, var_aggregate,
   ## ## Base 100 -------------------------------------------------------------------
 # IL FAUT EXCLURE LA VARIABLE t SI ELLE EST DANS LE VECTEUR DE var_aggregate !!
   
-  ## # Passer les données en base 100 si voulu
-  ## if (base_100 == TRUE){
-  ##   # Isoler la qualité pour l'année de référence
-  ##   # Sert de base pour la base 100
-  ##   df_quality_agg_year_ref <-
-  ##     df_quality_agg |>
-  ##     dplyr::filter(t == year_ref_base_100) |>
-  ##     # Enlever la variable t pour la fusion avec toutes les données
-  ##     dplyr::select(-t) |>
-  ##     dplyr::rename(quality_year_ref = quality)
+  # Passer les données en base 100 si voulu
+  if (base_100 == TRUE){
+    # Isoler la qualité pour l'année de référence
+    # Sert de base pour la base 100
+    df_quality_agg_year_ref <-
+      df_quality_agg |>
+      dplyr::filter(t == year_ref_base_100) |>
+      # Enlever la variable t pour la fusion avec toutes les données
+      dplyr::select(-t) |>
+      dplyr::rename(quality_year_ref = quality)
 
-  ##   # Calculer la qualité en base 100 en se basant sur l'année de référence
-  ##   df_quality_agg <-
-  ##     df_quality_agg |>
-  ##     dplyr::left_join(
-  ##       df_quality_agg_year_ref,
-  ##       dplyr::join_by({{var_aggregate_i}}, {{var_aggregate_k}})
-  ##     ) |>
-  ##     dplyr::mutate(
-  ##       quality_100 = quality / quality_year_ref * 100
-  ##     )
-  ## }
+    # Supprimer la variable t des variables servant à faire la fusion
+    # Permet d'ajouter les valeurs pour les mêmes entités peu importe l'année
+    var_aggregate_join <-
+      var_aggregate[var_aggregate != "t"]
+    
+    # Calculer la qualité en base 100 en se basant sur l'année de référence
+    df_quality_agg <-
+      df_quality_agg |>
+      dplyr::left_join(
+        df_quality_agg_year_ref,
+        dplyr::join_by({{var_aggregate_join}})
+      ) |>
+      dplyr::mutate(
+        quality_100 = quality / quality_year_ref * 100
+      )
+  }
 
-  ## ## Comparaison avec un pays ---------------------------------------------------
-  ## # Comparer les bases 100 des pays par rapport à un pays de référence
-  ## if (compare == TRUE){
-  ##   # Isoler la qalité de l'exportateur de référence
-  ##   df_quality_agg_exporter_ref <-
-  ##     df_quality_agg  |>
-  ##     dplyr::filter(!!dplyr::sym(var_aggregate_i) == exporter_ref) |>
-  ##     dplyr::select({{var_aggregate_k}}, t, quality_100) |>
-  ##     dplyr::rename(quality_100_exporter_ref = quality_100)
+  ## Comparaison avec un pays ---------------------------------------------------
+  # Comparer les bases 100 des pays par rapport à un pays de référence
+  if (compare == TRUE){
 
-  ##   # Calculer le ratio entre les qualités et la qualité du pays de référence
-  ##   df_quality_agg <-
-  ##     df_quality_agg |>
-  ##     dplyr::filter(!!dplyr::sym(var_aggregate_i) != exporter_ref) |>
-  ##     dplyr::left_join(
-  ##       df_quality_agg_exporter_ref,
-  ##       dplyr::join_by(t, {{var_aggregate_k}})
-  ##     ) |>
-  ##     dplyr::mutate(
-  ##       quality_ratio = quality_100 / quality_100_exporter_ref
-  ##     )
-  ## }
+    var_aggregate_join_compare <-
+      var_aggregate[var_aggregate != var_exporter_ref]
+    
+    # Isoler la qalité de l'exportateur de référence
+    df_quality_agg_exporter_ref <-
+      df_quality_agg  |>
+      dplyr::filter(!!dplyr::sym(var_exporter_ref) == exporter_ref) |>
+      dplyr::select({{var_aggregate_join_compare}}, t, quality_100) |>
+      dplyr::rename(quality_100_exporter_ref = quality_100)
+
+    # Calculer le ratio entre les qualités et la qualité du pays de référence
+    df_quality_agg <-
+      df_quality_agg |>
+      dplyr::filter(!!dplyr::sym(var_exporter_ref) != exporter_ref) |>
+      dplyr::left_join(
+        df_quality_agg_exporter_ref,
+        dplyr::join_by(t, {{var_aggregate_join_compare}})
+      ) |>
+      dplyr::mutate(
+        quality_ratio = quality_100 / quality_100_exporter_ref
+      )
+  }
 
   ## Export des résultats -------------------------------------------------------
   if (print_output == TRUE){
