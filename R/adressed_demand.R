@@ -1,3 +1,5 @@
+
+# Documentation -------------------------------------------------------------
 #' @title
 #' Calculer la demande adressée à chaque pays
 #'
@@ -43,12 +45,15 @@
 #' @export
 #'
 #' @examples # Pas d'exemples.
+# Fonction adressed_demand -------------------------------------------------
+## Définition de la fonction -----------------------------------------------
 adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
                             var_k, exporter_ref = NULL, base_100 = TRUE,
                             compare = FALSE,
                             return_output = TRUE, return_pq = FALSE,
                             path_output = NULL){
 
+  ## Importation des données------------------------------------------------
   # Ouvrir les données de BACI
   if (is.character(baci) == TRUE){
     # Ouvrir les données depuis un dossier parquet (si chemin c'est parquet)
@@ -82,8 +87,10 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
       dplyr::filter(k %in% codes)
   }
 
-
+  ## Calcul de la demande adressée -----------------------------------------
   # Calcul des poids de chaque marché pour tous les exportateurs
+  # les poids sont déterminés sur une année uniquement
+  # Permet la comparaison dans le temps à partir d'une situation de départ
   df_poids <-
     baci |>
     # Les poids ne sont calculé que par rapport à l'année de référence
@@ -92,7 +99,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     ) |>
     dplyr::collect() |>
     # Calculer ce que le marché (pays-produit) représente dans les exportation du pays
-    # par catégroies de var_k
+    # par catégories de var_k
     dplyr::mutate(
       .by = c({{var_exporter}}, {{var_k}}, t),
       poids = v / sum(v, na.rm = TRUE)
@@ -106,9 +113,8 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
   # Calculer la demande adressée pour chaque pays, chaque année
   df_da <-
     baci |>
-    dplyr::select(-c(uv, med_ref_t_k, gamme_fontagne_1997, exporter_iso_region, importer_iso_region)) |>
     dplyr::collect() |>
-    # Calcul di total des imports de chaque importateur pour chaque produit
+    # Calcul du total des imports de chaque importateur pour chaque produit
     dplyr::summarize(
       .by = c({{var_k}}, t, importer, k),
       total_import_k = sum(v, na.rm = TRUE)
@@ -128,7 +134,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     ) |>
     dplyr::filter(!is.na({{var_exporter}}))
 
-
+  ## Base 100 ---------------------------------------------------------------
   if (base_100 == TRUE){
     # Isoler la demande adressée de l'année de référence
     # Sert à calculer la base 100
@@ -151,6 +157,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
         DA_100 = DA / DA_2010 * 100
       )
 
+    ## Comparaison avec un pays de référence ---------------------------------
     if (compare == TRUE){
       # Isoler la demande adressée de l'exportateur de référence
       df_da_100_exporter_ref <-
@@ -174,6 +181,8 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     }
   }
 
+
+  ## Exportation des résultats -----------------------------------------------
   # Retourner le résultat
  if (return_output == TRUE){
    if (return_pq == TRUE){
