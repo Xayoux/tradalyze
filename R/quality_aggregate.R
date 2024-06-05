@@ -1,4 +1,4 @@
-# Documentation ----------------------------------------------------------------
+# Documentation ---------------------------------------------------------------
 #' @title Cacule la qualité aggrégé pour un ensemble de produits
 #'
 #' @description
@@ -39,6 +39,13 @@
 #' utilisée correspond à \code{weighted.mean} ou \code{weighted.median}.
 #' @param fixed_weight Si \code{TRUE}, les pondérations sont fixées à une
 #' année de référence. Par défaut, \code{FALSE}.
+#' @param var_desagregate Vecteur de variabvles (sous forme de chaînes de
+#' caractères) indiquant le niveau le plus désagrégé possible des données
+#' fournies pour l'année, les exportateurs, importateurs et les produits.
+#' Ces variables servent à définir les poids fixes pour chaque flux. Par
+#' défaut les variables sont `c("t", "exporter", "importer", "k")`. Il n'est
+#' normalement pas nécessaire de les changer si les données utilisées
+#' proviennent des fonctions de ce package. 
 #' @param year_ref L'année de référence pour les pondérations. Utile uniquement
 #' si \code{fixed_weight} est \code{TRUE}.
 #' @param print_output Si \code{TRUE}, affiche les données aggrégées. Par
@@ -54,7 +61,7 @@
 #' @param exporter_ref L'entité exportatrice de référence à utiliser pour
 #' la comparaison avec un pays de référence. L'entité doit se trouver dans la
 #' variable `var_aggregate_i`.
-#' @param var_eporter_ref La avriable contenant l'entité exportatrice qui
+#' @param var_exporter_ref La variable contenant l'entité exportatrice qui
 #' servira de référence pour la comparaison dans le cas où `compare = TRUE`.
 #' @param return_pq Si \code{TRUE}, renvoie les données de qualité sous format
 #' arrow. Par défaut, \code{FALSE}.
@@ -65,17 +72,19 @@
 #' @export
 #'
 #' @examples # Pas d'exemple
-# Fonction quality_aggregage --------------------------------------------------
+# Fonction quality_aggregate --------------------------------------------------
+## Définition de la fonction --------------------------------------------------
 quality_aggregate <- function(data_quality, var_aggregate,
                               method_aggregate = "weighted.median",
                               weighted_var = "q", fixed_weight = FALSE,
+                              var_desagregate = c("t", "exporter", "importer", "k"),
                               year_ref = NULL, print_output = FALSE,
                               return_output = TRUE, base_100 = FALSE,
                               compare = FALSE, year_ref_base_100 = year_ref,
                               exporter_ref = NULL, var_exporter_ref = NULL,
                               return_pq = FALSE, path_output = NULL){
 
-  ## Importer les données de qualité ------------------------------------------
+  ## Importer les données de qualité ----------------------------------------
   # Ouvrir les données de data_quality
   if (is.character(data_quality) == TRUE){
     # Ouvrir les données depuis un dossier parquet
@@ -96,7 +105,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
       dplyr::collect()
   }
 
-  ## Calculer les qualités aggrégés selon les 4 méthodes -----------------------
+  ## Calculer les qualités aggrégés selon les 4 méthodes --------------------
   # Agréger les données avec la moyenne
   if (method_aggregate == "mean"){
     df_quality_agg <-
@@ -117,24 +126,27 @@ quality_aggregate <- function(data_quality, var_aggregate,
       )
   }
 
-  ## # Uniquement sur les calculs avec des pondérations
-  ## # Si les poids sont fixes, calculés les poids de l'année de référence
-  ## # Les associer aux flux
-  ## # CORRIGER CEST CASSE
-  ## if (fixed_weight == TRUE){
-  ##   df_pond <-
-  ##     df_data_quality |>
-  ##     dplyr::filter(t == year_ref) |>
-  ##     dplyr::select(exporter, k, !!dplyr::sym(weighted_var))
+  # Uniquement sur les calculs avec des pondérations
+  # Si les poids sont fixes, calculés les poids de l'année de référence
+  # Les associer aux flux
+  if (fixed_weight == TRUE){
+    df_pond <-
+      df_data_quality |>
+      dplyr::filter(t == year_ref) |>
+      dplyr::select({{var_desagregate}}, weighted_var) |>
+      dplyr::select(-t)
 
-  ##   df_data_quality <-
-  ##     df_data_quality |>
-  ##     dplyr::select(-c(!!dplyr::sym(weighted_var))) |>
-  ##     dplyr::left_join(
-  ##       df_pond,
-  ##       dplyr::join_by(exporter, k)
-  ##     )
-  ## }
+    var_desagregate_join <-
+      var_desagregate[var_desagregate != "t"]
+
+    df_data_quality <-
+      df_data_quality |>
+      dplyr::select(-weighted_var) |>
+      dplyr::left_join(
+        df_pond,
+        by = var_desagregate_join
+      )
+  }
 
 
   # Agréger les données avec la moyenne pondérée
@@ -143,7 +155,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
       df_data_quality |>
       dplyr::collect() |>
       dplyr::summarize(
-        .by = c({{var_aggregate}}),
+        .by = c(var_aggregate),
         quality = stats::weighted.mean(quality, w = !!dplyr::sym(weighted_var), na.rm = TRUE)
       )
   }
@@ -154,14 +166,14 @@ quality_aggregate <- function(data_quality, var_aggregate,
       df_data_quality |>
       dplyr::collect() |>
       dplyr::summarize(
-        .by = c({{var_aggregate}}),
+        .by = c(var_aggregate),
         quality = matrixStats::weightedMedian(quality,
                                               w = !!dplyr::sym(weighted_var),
                                               na.rm = TRUE)
       )
   }
 
-  ## ## Base 100 -------------------------------------------------------------------
+  ## ## Base 100 ------------------------------------------------------------
 # IL FAUT EXCLURE LA VARIABLE t SI ELLE EST DANS LE VECTEUR DE var_aggregate !!
   
   # Passer les données en base 100 si voulu
@@ -185,7 +197,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
       df_quality_agg |>
       dplyr::left_join(
         df_quality_agg_year_ref,
-        by = c({{var_aggregate_join}})
+        by = c(var_aggregate_join)
       ) |>
       dplyr::mutate(
         quality_100 = quality / quality_year_ref * 100

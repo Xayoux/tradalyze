@@ -10,6 +10,7 @@ quality_aggregate(
   method_aggregate = "weighted.median",
   weighted_var = "q",
   fixed_weight = FALSE,
+  var_desagregate = c("t", "exporter", "importer", "k"),
   year_ref = NULL,
   print_output = FALSE,
   return_output = TRUE,
@@ -45,6 +46,14 @@ utilisée correspond à \code{weighted.mean} ou \code{weighted.median}.}
 \item{fixed_weight}{Si \code{TRUE}, les pondérations sont fixées à une
 année de référence. Par défaut, \code{FALSE}.}
 
+\item{var_desagregate}{Vecteur de variabvles (sous forme de chaînes de
+caractères) indiquant le niveau le plus désagrégé possible des données
+fournies pour l'année, les exportateurs, importateurs et les produits.
+Ces variables servent à définir les poids fixes pour chaque flux. Par
+défaut les variables sont \code{c("t", "exporter", "importer", "k")}. Il n'est
+normalement pas nécessaire de les changer si les données utilisées
+proviennent des fonctions de ce package.}
+
 \item{year_ref}{L'année de référence pour les pondérations. Utile uniquement
 si \code{fixed_weight} est \code{TRUE}.}
 
@@ -66,6 +75,9 @@ défaut, \code{TRUE}.}
 \item{exporter_ref}{L'entité exportatrice de référence à utiliser pour
 la comparaison avec un pays de référence. L'entité doit se trouver dans la
 variable \code{var_aggregate_i}.}
+
+\item{var_exporter_ref}{La variable contenant l'entité exportatrice qui
+servira de référence pour la comparaison dans le cas où \code{compare = TRUE}.}
 
 \item{return_pq}{Si \code{TRUE}, renvoie les données de qualité sous format
 arrow. Par défaut, \code{FALSE}.}
