@@ -1,4 +1,4 @@
-x# Documentation ----------------------------------------------------------------
+# Documentation ----------------------------------------------------------------
 #' @title Cacule la qualité aggrégé pour un ensemble de produits
 #'
 #' @description
@@ -185,7 +185,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
       df_quality_agg |>
       dplyr::left_join(
         df_quality_agg_year_ref,
-        dplyr::join_by({{var_aggregate_join}})
+        by = c({{var_aggregate_join}})
       ) |>
       dplyr::mutate(
         quality_100 = quality / quality_year_ref * 100
@@ -199,7 +199,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
     var_aggregate_join_compare <-
       var_aggregate[var_aggregate != var_exporter_ref]
     
-    # Isoler la qalité de l'exportateur de référence
+    # Isoler la qualité de l'exportateur de référence
     df_quality_agg_exporter_ref <-
       df_quality_agg  |>
       dplyr::filter(!!dplyr::sym(var_exporter_ref) == exporter_ref) |>
@@ -212,7 +212,7 @@ quality_aggregate <- function(data_quality, var_aggregate,
       dplyr::filter(!!dplyr::sym(var_exporter_ref) != exporter_ref) |>
       dplyr::left_join(
         df_quality_agg_exporter_ref,
-        dplyr::join_by(t, {{var_aggregate_join_compare}})
+        by = ({{var_aggregate_join_compare}})
       ) |>
       dplyr::mutate(
         quality_ratio = quality_100 / quality_100_exporter_ref
