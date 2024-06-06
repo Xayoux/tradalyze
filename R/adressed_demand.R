@@ -95,7 +95,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
   baci <-
     baci  |>
     dplyr::summarize(
-      .by = c(t, {{var_exporter}}, {{var_k}}, {{var_importer}}),
+      .by = c(t, k, {{var_exporter}}, {{var_importer}}),
       v = sum(v, na.rm = TRUE)
     )
 
@@ -116,7 +116,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
       .by = c({{var_exporter}}, {{var_k}}),
       poids = v / sum(v, na.rm = TRUE)
     ) |>
-    dplyr::select({{var_k}}, poids, {{var_exporter}}, {{var_importer}})
+    dplyr::select({{var_k}}, poids, {{var_exporter}}, {{var_importer}}, v, k)
 
 
   # Calculer la demande adressée pour chaque pays, chaque année
@@ -125,13 +125,13 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     dplyr::collect() |>
     # Calcul du total des imports de chaque importateur pour chaque produit
     dplyr::summarize(
-      .by = c({{var_k}}, t, {{var_importer}}),
+      .by = c(k, t, {{var_importer}}),
       total_import_jk = sum(v, na.rm = TRUE)
     ) |>
     # Joindre les poids calculés précédemment un poids par importer-k
     dplyr::left_join(
       df_poids,
-      dplyr::join_by({{var_k}}, {{var_importer}}),
+      dplyr::join_by(k, {{var_importer}}),
       relationship = "many-to-many"
     ) |>
     # Si pas de poids = pas d'exports vers le pays = 0
