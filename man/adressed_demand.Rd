@@ -11,6 +11,7 @@ adressed_demand(
   year_ref,
   var_exporter,
   var_k,
+  var_importer = "importer",
   exporter_ref = NULL,
   base_100 = TRUE,
   compare = FALSE,
@@ -33,6 +34,9 @@ de la base 100.}
 \item{var_exporter}{Variable contenant les exportateurs.}
 
 \item{var_k}{Variable à utiliser pour le groupement des produits.}
+
+\item{var_importer}{Variable à utiliser pour le groupement exportateurs.
+Il est fortement recommandé de laisser "importer".}
 
 \item{exporter_ref}{Exportateur de référence pour le calcul du ratio de la
 base 100.}

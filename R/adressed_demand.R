@@ -29,6 +29,8 @@
 #' de la base 100.
 #' @param var_exporter Variable contenant les exportateurs.
 #' @param var_k Variable à utiliser pour le groupement des produits.
+#' @param var_importer Variable à utiliser pour le groupement exportateurs.
+#' Il est fortement recommandé de laisser "importer". 
 #' @param exporter_ref Exportateur de référence pour le calcul du ratio de la
 #' base 100.
 #' @param base_100 Booléen indiquant si la demande adressée doit être calculée
@@ -48,12 +50,13 @@
 # Fonction adressed_demand -------------------------------------------------
 ## Définition de la fonction -----------------------------------------------
 adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
-                            var_k, exporter_ref = NULL, base_100 = TRUE,
+                            var_k, var_importer = "importer",
+                            exporter_ref = NULL, base_100 = TRUE,
                             compare = FALSE,
                             return_output = TRUE, return_pq = FALSE,
                             path_output = NULL){
 
-  ## Importation des données------------------------------------------------
+## Importation des données------------------------------------------------
   # Ouvrir les données de BACI
   if (is.character(baci) == TRUE){
     # Ouvrir les données depuis un dossier parquet (si chemin c'est parquet)
@@ -87,7 +90,16 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
       dplyr::filter(k %in% codes)
   }
 
-  ## Calcul de la demande adressée -----------------------------------------
+## Calcul de la demande adressée -----------------------------------------
+  # Agréger le commerce
+  baci <-
+    baci  |>
+    dplyr::summarize(
+      .by = c(t, {{var_exporter}}, {{var_k}}, {{var_importer}}),
+      v = sum(v, na.rm = TRUE)
+    )
+
+  
   # Calcul des poids de chaque marché pour tous les exportateurs
   # les poids sont déterminés sur une année uniquement
   # Permet la comparaison dans le temps à partir d'une situation de départ
@@ -101,13 +113,10 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     # Calculer ce que le marché (pays-produit) représente dans les exportation du pays
     # par catégories de var_k
     dplyr::mutate(
-      .by = c({{var_exporter}}, {{var_k}}, t),
+      .by = c({{var_exporter}}, {{var_k}}),
       poids = v / sum(v, na.rm = TRUE)
     ) |>
-    dplyr::ungroup() |>
-    dplyr::select(k, {{var_k}}, poids, {{var_exporter}}, importer) |>
-    # arrange(k, t, importer) |>
-    dplyr::arrange(k, dplyr::desc(poids))
+    dplyr::select({{var_k}}, poids, {{var_exporter}}, {{var_importer}})
 
 
   # Calculer la demande adressée pour chaque pays, chaque année
@@ -116,13 +125,13 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     dplyr::collect() |>
     # Calcul du total des imports de chaque importateur pour chaque produit
     dplyr::summarize(
-      .by = c({{var_k}}, t, importer, k),
-      total_import_k = sum(v, na.rm = TRUE)
+      .by = c({{var_k}}, t, {{var_importer}}),
+      total_import_jk = sum(v, na.rm = TRUE)
     ) |>
     # Joindre les poids calculés précédemment un poids par importer-k
     dplyr::left_join(
       df_poids,
-      dplyr::join_by({{var_k}}, importer, k),
+      dplyr::join_by({{var_k}}, {{var_importer}}),
       relationship = "many-to-many"
     ) |>
     # Si pas de poids = pas d'exports vers le pays = 0
@@ -130,7 +139,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     # pour chaque exporter-t-produit : somme des poids * total_import_k
     dplyr::summarize(
       .by = c({{var_exporter}}, t, {{var_k}}),
-      DA = sum(poids * total_import_k, na.rm = TRUE)
+      DA = sum(poids * total_import_jk, na.rm = TRUE)
     ) |>
     dplyr::filter(!is.na({{var_exporter}}))
 
