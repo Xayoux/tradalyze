@@ -95,7 +95,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
   baci <-
     baci  |>
     dplyr::summarize(
-      .by = c(t, k, {{var_exporter}}, {{var_importer}}),
+      .by = c(t, k, {{var_exporter}}, {{var_importer}}, {{var_k}}),
       v = sum(v, na.rm = TRUE)
     )
 
