@@ -46,7 +46,7 @@ utilisée correspond à \code{weighted.mean} ou \code{weighted.median}.}
 \item{fixed_weight}{Si \code{TRUE}, les pondérations sont fixées à une
 année de référence. Par défaut, \code{FALSE}.}
 
-\item{var_desagregate}{Vecteur de variabvles (sous forme de chaînes de
+\item{var_desagregate}{Vecteur de variables (sous forme de chaînes de
 caractères) indiquant le niveau le plus désagrégé possible des données
 fournies pour l'année, les exportateurs, importateurs et les produits.
 Ces variables servent à définir les poids fixes pour chaque flux. Par
