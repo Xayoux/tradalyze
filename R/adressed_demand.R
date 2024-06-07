@@ -91,7 +91,9 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
   }
 
 ## Calcul de la demande adressée -----------------------------------------
-  # Agréger le commerce
+  # Agréger le commerce par "Régions exportatrices", importer et produits HS6.
+  # Permet une aggégration des exportateurs mais reste sur le niveau
+  # le plus fin pour le reste.
   baci <-
     baci  |>
     dplyr::summarize(
@@ -110,8 +112,8 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
       t == year_ref
     ) |>
     dplyr::collect() |>
-    # Calculer ce que le marché (pays-produit) représente dans les exportation du pays
-    # par catégories de var_k
+    # Calculer ce que le marché (pays-produit) représente dans les exportation 
+    # du pays/région par catégories de var_k : permet d'aggréger l'information
     dplyr::mutate(
       .by = c({{var_exporter}}, {{var_k}}),
       poids = v / sum(v, na.rm = TRUE)
@@ -124,11 +126,12 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     baci |>
     dplyr::collect() |>
     # Calcul du total des imports de chaque importateur pour chaque produit
+    # rester au niveau le plus fin possible. 
     dplyr::summarize(
       .by = c(k, t, {{var_importer}}),
       total_import_jk = sum(v, na.rm = TRUE)
     ) |>
-    # Joindre les poids calculés précédemment un poids par importer-k
+    # Joindre les poids calculés précédemment par importer-k. Niveau le + fin
     dplyr::left_join(
       df_poids,
       dplyr::join_by(k, {{var_importer}}),
@@ -137,6 +140,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     # Si pas de poids = pas d'exports vers le pays = 0
     dplyr::mutate(poids = tidyr::replace_na(poids, 0)) |>
     # pour chaque exporter-t-produit : somme des poids * total_import_k
+    # Obtenir l'information au niveau agrégé que l'on souhaite
     dplyr::summarize(
       .by = c({{var_exporter}}, t, {{var_k}}),
       DA = sum(poids * total_import_jk, na.rm = TRUE)
