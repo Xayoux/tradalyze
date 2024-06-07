@@ -82,8 +82,7 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, var_t = NULL,
                                 return_output = TRUE){
 
 
-  # Messages d'erreur -------------------------------------------------------
-
+  # Importer les données ---------------------------------------------------
   # Ouvrir les données de baci depuis un chemin d'accès
   if (is.character(baci) == TRUE){
     # Ouvrir le ficheir csv
@@ -103,6 +102,7 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, var_t = NULL,
   # Collecter les données (être sûr que les données sont en format R)
   df_baci <- dplyr::collect(df_baci)
 
+  # Création du corps du graphique ------------------------------------------
   # Fondations du graph
   graph <- ggplot2::ggplot()
 
