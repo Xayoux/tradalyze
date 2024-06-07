@@ -10,8 +10,11 @@ uv_comp(
   codes = NULL,
   formula = "median_pond",
   var_pond = NULL,
+  fixed_weight = FALSE,
   year_ref,
   var_exporter,
+  year_ref_fixed_weight = year_ref,
+  var_desagregate = c("t", "exporter", "importer", "k"),
   var_k,
   exporter_ref = NULL,
   base_100 = TRUE,
@@ -36,9 +39,23 @@ moyenne pondérée, ou "median_pond" pour la médiane pondérée.}
 \item{var_pond}{Variable à utiliser pour la pondération des valeurs unitaire
 lorsque formula demande une pondération.}
 
+\item{fixed_weight}{Booléen indiquant si les poids utilisés pour la
+pondération doivent être fixés à une année ou non.}
+
 \item{year_ref}{Année de référence pour le calcul de la base 100.}
 
 \item{var_exporter}{Variable contenant les exportateurs.}
+
+\item{year_ref_fixed_weight}{Année à partir dequels les poids fixes doivent
+être calculés si nécessaire.}
+
+\item{var_desagregate}{Vecteur de variables (sous forme de chaînes de
+caractères) indiquant le niveau le plus désagrégé possible des données
+fournies pour l'année, les exportateurs, importateurs et les produits.
+Ces variables servent à définir les poids fixes pour chaque flux. Par
+défaut les variables sont \code{c("t", "exporter", "importer", "k")}. Il n'est
+normalement pas nécessaire de les changer si les données utilisées
+proviennent des fonctions de ce package.}
 
 \item{var_k}{Variable à utiliser pour le groupement des produits.}
 
