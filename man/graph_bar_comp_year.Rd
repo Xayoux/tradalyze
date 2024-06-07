@@ -9,6 +9,7 @@ graph_bar_comp_year(
   x,
   y,
   stack = TRUE,
+  double_bar = FALSE,
   var_t = NULL,
   year_1 = NULL,
   year_2 = NULL,
@@ -18,6 +19,9 @@ graph_bar_comp_year(
   var_fill = NULL,
   palette_fill = NULL,
   manual_fill = NULL,
+  shape = 22,
+  size_shape = 5,
+  fill_shape = "black",
   na.rm = TRUE,
   x_title = "",
   y_title = "",
@@ -46,6 +50,11 @@ graph_bar_comp_year(
 Si TRUE, alors la comparaison ne peut se faire qu'entre deux années et les
 paramètres \code{year_1} et \code{year_2} doivent être définis.}
 
+\item{double_bar}{Booléen indiquant si dans le cas où \code{stack = TRUE}, les
+deux barres doivent êtres représentées, ou bien si une seule année doit être
+représentée sous forme de barre et la deuxième sous forme de point sur la
+barre.}
+
 \item{var_t}{Variable temporelle à utiliser pour la comparaison des années.}
 
 \item{year_1}{Année 1 à comparer.}
@@ -69,6 +78,14 @@ permet de voir la barre de l'année 1 à travers la barre de l'année 2.}
 barres.}
 
 \item{manual_fill}{Les couleurs à utliser définies manuellement.}
+
+\item{shape}{Numéros correspond à la formevoulue dans le cas où
+\code{stack = TRUE} et \code{double_bar = FALSE}}
+
+\item{size_shape}{= la taille de la forme utilisée.}
+
+\item{fill_shape}{= la couleur de la forme à utiliser. Couleur indentique
+pour toutes les formes.}
 
 \item{na.rm}{Booléen indiquant si les valeurs manquantes doivent être
 retirée.}

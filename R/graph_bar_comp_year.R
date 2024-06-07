@@ -1,3 +1,4 @@
+# Documentation -------------------------------------------------------------
 #' @title
 #' Graphique de comparaison en barres
 #'
@@ -32,6 +33,10 @@
 #' @param stack Booléen indiquant si les barres doivent être empilées ou non.
 #' Si TRUE, alors la comparaison ne peut se faire qu'entre deux années et les
 #' paramètres `year_1` et `year_2` doivent être définis.
+#' @param double_bar Booléen indiquant si dans le cas où `stack = TRUE`, les
+#' deux barres doivent êtres représentées, ou bien si une seule année doit être
+#' représentée sous forme de barre et la deuxième sous forme de point sur la
+#' barre. 
 #' @param var_t Variable temporelle à utiliser pour la comparaison des années.
 #' @param year_1 Année 1 à comparer.
 #' @param year_2 Année 2 à comparer.
@@ -47,6 +52,11 @@
 #' @param palette_fill Palette de couleur à utiliser pour le remplissage des
 #' barres.
 #' @param manual_fill Les couleurs à utliser définies manuellement.
+#' @param shape Numéros correspond à la formevoulue dans le cas où
+#' `stack = TRUE` et `double_bar = FALSE`
+#' @param size_shape = la taille de la forme utilisée.
+#' @param fill_shape = la couleur de la forme à utiliser. Couleur indentique
+#' pour toutes les formes. 
 #' @param na.rm Booléen indiquant si les valeurs manquantes doivent être
 #' retirée.
 #' @param x_title Titre de l'axe des X.
@@ -68,12 +78,15 @@
 #' @export
 #'
 #' @examples # Pas d'exemples.
-graph_bar_comp_year <- function(baci, x, y, stack = TRUE, var_t = NULL,
+# Fonction graph_bar_comp_year ---------------------------------------------
+## Définition de la fonction -----------------------------------------------
+graph_bar_comp_year <- function(baci, x, y, stack = TRUE, double_bar = FALSE,
+                                var_t = NULL,
                                 year_1 = NULL, year_2 = NULL, color_1 = FALSE,
                                 color_2 = FALSE, alpha = 0.7,
                                 var_fill = NULL, palette_fill = NULL,
-                                manual_fill = NULL,
-                                na.rm = TRUE,
+                                manual_fill = NULL, shape = 22, size_shape = 5,
+                                fill_shape = "black", na.rm = TRUE,
                                 x_title = "", y_title = "", title = "",
                                 subtitle = "", caption = "", fill_legend = "",
                                 type_theme = "bw",
@@ -145,35 +158,65 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, var_t = NULL,
       df_baci |>
       dplyr::filter(!!dplyr::sym(var_t) == year_2)
 
-
-    # Définir le graph
-    graph <-
-      graph +
-      # Première barre "foncée" avec les données de l'année 1
-      ggplot2::geom_bar(
-        ggplot2::aes(
-          x = !!dplyr::sym(x),
-          y = !!dplyr::sym(y)
-        ),
-        na.rm = na.rm,
-        stat = "identity",
-        position = "dodge",
-        color = color_1,
-        data = df_baci_year_1
-      ) +
-      # Deuxième barre "claire" avec les données de l'année 2
-      ggplot2::geom_bar(
-        ggplot2::aes(
-          x = !!dplyr::sym(x),
-          y = !!dplyr::sym(y)
-        ),
-        na.rm = na.rm,
-        stat = "identity",
-        position = "dodge",
-        color = color_2,
-        alpha = alpha,
-        data = df_baci_year_2
-      )
+    if (double_bar == TRUE){
+      # Définir le graph
+      graph <-
+        graph +
+        # Première barre "foncée" avec les données de l'année 1
+        ggplot2::geom_bar(
+          ggplot2::aes(
+            x = !!dplyr::sym(x),
+            y = !!dplyr::sym(y)
+          ),
+          na.rm = na.rm,
+          stat = "identity",
+          position = "dodge",
+          color = color_1,
+          data = df_baci_year_1
+        ) +
+        # Deuxième barre "claire" avec les données de l'année 2
+        ggplot2::geom_bar(
+          ggplot2::aes(
+            x = !!dplyr::sym(x),
+            y = !!dplyr::sym(y)
+          ),
+          na.rm = na.rm,
+          stat = "identity",
+          position = "dodge",
+          color = color_2,
+          alpha = alpha,
+          data = df_baci_year_2
+        )
+    } else if (double_bar == FALSE){
+      # Définir le graph
+      graph <-
+        graph +
+        # Barre représentant la première année
+        ggplot2::geom_bar(
+          ggplot2::aes(
+            x = !!dplyr::sym(x),
+            y = !!dplyr::sym(y)
+          ),
+          na.rm = na.rm,
+          stat = "identity",
+          position = "dodge",
+          color = color_1,
+          data = df_baci_year_1
+        ) +
+        # Point représentant la deuxième année
+        ggplot2::geom_point(
+          ggplot2::aes(
+            x = !!dplyr::sym(x),
+            y = !!dplyr::sym(y)
+          ),
+          na.rm = na.rm,
+          shape = shape,
+          size = size_shape,
+          fill = fill_shape,
+          data = df_baci_year_2
+        )
+    }
+    
   }
 
 
