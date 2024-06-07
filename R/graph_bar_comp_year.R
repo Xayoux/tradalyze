@@ -73,7 +73,10 @@
 #' @param height Hauteur du graphique.
 #' @param print Booléen indiquant si le graphique doit être affiché.
 #' @param return_output Booléen indiquant si le graphique doit être retourné.
-#'
+#' @param var_fill_shape Variable sous forme de chaîne de caractère, servant
+#' à donner la couleurs aux points si `double_bar = TRUE`. Si ce paramètre est
+#' `FALSE`, alors la couleur sera la même pour tous
+#' 
 #' @return Un graphique en barre comparant deux années.
 #' @export
 #'
@@ -86,6 +89,7 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, double_bar = FALSE,
                                 color_2 = FALSE, alpha = 0.7,
                                 var_fill = NULL, palette_fill = NULL,
                                 manual_fill = NULL, shape = 22, size_shape = 5,
+                                var_fill_shape = NULL,
                                 fill_shape = "black", na.rm = TRUE,
                                 x_title = "", y_title = "", title = "",
                                 subtitle = "", caption = "", fill_legend = "",
@@ -188,6 +192,11 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, double_bar = FALSE,
           data = df_baci_year_2
         )
     } else if (double_bar == FALSE){
+
+
+
+
+
       # Définir le graph
       graph <-
         graph +
@@ -202,21 +211,43 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, double_bar = FALSE,
           position = "dodge",
           color = color_1,
           data = df_baci_year_1
-        ) +
-        # Point représentant la deuxième année
-        ggplot2::geom_point(
-          ggplot2::aes(
-            x = !!dplyr::sym(x),
-            y = !!dplyr::sym(y)
-          ),
-          na.rm = na.rm,
-          shape = shape,
-          size = size_shape,
-          fill = fill_shape,
-          data = df_baci_year_2
         )
+
+      # Points de la même couleur que les barres
+      if (!is.null(var_fill_shape)){
+        # Point représentant la deuxième année
+        graph <-
+          graph +
+          ggplot2::geom_point(
+            ggplot2::aes(
+              x = !!dplyr::sym(x),
+              y = !!dplyr::sym(y),
+              fill = !!dplyr::sym(var_fill_shape)
+            ),
+            alpha = alpha,
+            na.rm = na.rm,
+            shape = shape,
+            size = size_shape,
+            data = df_baci_year_2,
+            color = "black"
+          )
+      } else{
+        # Point représentant la deuxième année de couleur unique
+        graph <-
+          graph +
+          ggplot2::geom_point(
+            ggplot2::aes(
+              x = !!dplyr::sym(x),
+              y = !!dplyr::sym(y)
+            ),
+            na.rm = na.rm,
+            shape = shape,
+            size = size_shape,
+            fill = fill_shape,
+            data = df_baci_year_2
+          )
+      } 
     }
-    
   }
 
 

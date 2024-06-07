@@ -21,6 +21,7 @@ graph_bar_comp_year(
   manual_fill = NULL,
   shape = 22,
   size_shape = 5,
+  var_fill_shape = NULL,
   fill_shape = "black",
   na.rm = TRUE,
   x_title = "",
@@ -83,6 +84,10 @@ barres.}
 \code{stack = TRUE} et \code{double_bar = FALSE}}
 
 \item{size_shape}{= la taille de la forme utilisée.}
+
+\item{var_fill_shape}{Variable sous forme de chaîne de caractère, servant
+à donner la couleurs aux points si \code{double_bar = TRUE}. Si ce paramètre est
+\code{FALSE}, alors la couleur sera la même pour tous}
 
 \item{fill_shape}{= la couleur de la forme à utiliser. Couleur indentique
 pour toutes les formes.}
