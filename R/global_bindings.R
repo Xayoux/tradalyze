@@ -15,4 +15,5 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "uv_100_exporter_ref", "iso3_o", "iso3_d", "HS6",
                          "sigma", "exporter", "p", "epsilon", "quality",
                          "quality_ref_year", "quality_100",
-                         "quality_exporter_ref"))
+                         "quality_exporter_ref", "quality_year_ref",
+                         "quality_100_exporter_ref"))
