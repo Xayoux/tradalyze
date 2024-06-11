@@ -217,16 +217,6 @@ uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
 
 
   ## Exportation des résultats --------------------------------------------
-  # Retourner le résultat
-  if (return_output == TRUE){
-    if (return_pq == TRUE){
-      df_uv <-
-        df_uv |>
-        arrow::arrow_table()
-    }
-    return(df_uv |> dplyr::collect())
-  }
-
   # Enregistrer le résultat
   if (!is.null(path_output)){
     if (tools::file_ext(path_output) == "csv"){
@@ -237,5 +227,15 @@ uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
       df_uv |>
         arrow::write_parquet(path_output)
     }
+  }
+  
+  # Retourner le résultat
+  if (return_output == TRUE){
+    if (return_pq == TRUE){
+      df_uv <-
+        df_uv |>
+        arrow::arrow_table()
+    }
+    return(df_uv |> dplyr::collect())
   }
 }

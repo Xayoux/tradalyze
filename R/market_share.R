@@ -212,7 +212,7 @@ market_share <- function(baci, summarize_k = "k",
       openxlsx::write.xlsx(df_baci, path_output, row.names = FALSE)
     }
     else if(tools::file_ext(path_output) == "csv"){
-      arrow::write_dataset(df_baci, path_output, format = "csv")
+      readr::write_csv(df_baci, path_output)
     }
     else if(tools::file_ext(path_output) == "parquet"){
       arrow::write_dataset(df_baci, path_output, format = "parquet")

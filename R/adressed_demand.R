@@ -196,17 +196,6 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
 
 
   ## Exportation des résultats -----------------------------------------------
-  # Retourner le résultat
- if (return_output == TRUE){
-   if (return_pq == TRUE){
-     df_da <-
-       df_da |>
-       arrow::arrow_table()
-   }
-
-   return(df_da |>  dplyr::collect())
- }
-
   # Enregistrer le résultat
   if (!is.null(path_output)){
     if (tools::file_ext(path_output) == "csv"){
@@ -219,5 +208,16 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     }
   }
 
+  
+  # Retourner le résultat
+ if (return_output == TRUE){
+   if (return_pq == TRUE){
+     df_da <-
+       df_da |>
+       arrow::arrow_table()
+   }
+
+   return(df_da |>  dplyr::collect())
+ }
 
 }
