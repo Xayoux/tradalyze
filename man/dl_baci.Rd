@@ -44,6 +44,10 @@ suivantes :
 Fonction qui permet de télécharger BACI dans la nomenclature voulue
 (uniquement dernière version disponible).
 Les données sont ensuite transformées en fichiers parquet (1 par année).
+
+Si la fonction est lancée dans une session interactive, alors il sera
+demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
+Sinon le téélchargement s'effectuera automatiquement.
 }
 \examples{
 # Pas d'exemple.

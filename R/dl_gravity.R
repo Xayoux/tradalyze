@@ -7,6 +7,10 @@
 #' dernière version disponible puis la transforme en format parquet avec un
 #' fichier par année.
 #'
+#' Si la fonction est lancée dans une session interactive, alors il sera
+#' demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
+#' Sinon le téélchargement s'effectuera automatiquement. 
+#'
 #' @param dl_folder Chemin d'accès au dossier où seront stockés les fichiers
 #' csv de Gravity. Ils seront stockés dans un dossier nommé
 #' "Gravity_csv_V(version)". Ainsi si la version change un nouveau sous-dossier
@@ -35,13 +39,77 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
     rvest::html_text() |>
     stringr::str_extract("\\d{6}")
 
+  if (interactive()){
+    # Demander à l'utilisateur s'il souhaite dl cette version de gravity
+    question <- stringr::str_glue("Voulez-vous t\uE9l\uE9charger Gravity {version} ? (Y/n) : ")
+    reponse <- readline(prompt = question)
 
-  # Demander à l'utilisateur s'il souhaite dl cette version de gravity
-  question <- stringr::str_glue("Voulez-vous t\uE9l\uE9charger Gravity {version} ? (Y/n) : ")
-  reponse <- readline(prompt = question)
+    if (toupper(reponse) == "Y"){
+      # Récupérer le lien de téléchargement du fichier zip de Gravity
+      dl_link <-
+        html_gravity |>
+        rvest::html_nodes("a") |>
+        rvest::html_attr("href") |>
+        (\(links) grep("csv", links, value = TRUE, ignore.case = TRUE))() |>
+                                                                      (\(link) grep(version, link, value = TRUE))()
 
-  if (toupper(reponse) == "Y"){
-    # Récupérer le lien de téléchargement du fichier zip de Gravity
+
+      # Chemin d'accès au dossier contenant la dernière version de Gravity
+      gravity_folder <-
+        here::here(
+          dl_folder,
+          stringr::str_glue("Gravity_csv_V{version}")
+        )
+
+      # Chemin d'accès au fichier zip de Gravity dans sa dernière version
+      gravity_zip <-
+        here::here(
+          gravity_folder,
+          stringr::str_glue("Gravity_csv_V{version}.zip")
+        )
+
+
+      # Créer le dossier où sera mis le zip téléchargé, s'il n'existe pas déjà
+      if (!dir.exists(here::here(dl_folder))) {
+        dir.create(gravity_folder, recursive = TRUE)
+      }
+
+
+      # Télécharger le fichier zip de Gravity
+      if (dl_zip == TRUE) { # Si TRUE télécharger dans tous les cas
+        curl::multi_download(
+          dl_link,
+          gravity_zip
+        )
+      }
+      else { # Si Faux télécharger le zip que s'il n'existe pas
+        if (!file.exists(gravity_zip)) {
+          # Si le fichier zip n'existe pas, télécharger BACI
+          curl::multi_download(
+            dl_link,
+            gravity_zip
+          )
+        }
+      }
+
+      # Décompresser le fichier zip au même endroit
+      print("Extraction des fichiers de Gravity")
+      gravity_zip |>
+        utils::unzip(exdir = gravity_folder)
+
+      # Créer les formats parquet de Gravity
+      print("Cr\uE9ation des fichiers parquet")
+      analyse.competitivite::transfo_gravity_pq(
+        csv_folder = gravity_folder,
+        path_output = gravity_folder,
+        version = version
+      )
+
+      print("Donn\uE9es de Gravity t\uE9l\uE9charg\uE9es")
+    } else {
+      print(stringr::str_glue("Refus de t\uE9l\uE9charger Gravity {version}"))
+    } 
+  } else {
     dl_link <-
       html_gravity |>
       rvest::html_nodes("a") |>
@@ -102,9 +170,8 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
     )
 
     print("Donn\uE9es de Gravity t\uE9l\uE9charg\uE9es")
-  } else {
-    print(stringr::str_glue("Refus de t\uE9l\uE9charger Gravity {version}"))
-  } 
+  }
+  
 }
 
 

@@ -7,6 +7,10 @@
 #' (uniquement dernière version disponible).
 #' Les données sont ensuite transformées en fichiers parquet (1 par année).
 #'
+#' Si la fonction est lancée dans une session interactive, alors il sera
+#' demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
+#' Sinon le téélchargement s'effectuera automatiquement. 
+#'
 #' @param revision Une chaîne de caractères qui indique la nomenclature voulue
 #' (HS92 par défaut). Valeurs possibles : HS92, HS96, HS02, HS07, HS12, HS17,
 #' HS22.
@@ -75,11 +79,61 @@ dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE,
     rvest::html_elements("em") |>
     rvest::html_text()
 
-  # Demander si l'utilisateur veut télécharger cette version de baci
-  question_dl <- stringr::str_glue("Voulez-vous t\uE9l\uE9charger BACI {version} ? (Y/n) : ")
-  rep_dl_baci <- readline(prompt = question_dl)
+  # Demander si l'utilisateur veut télécharger cette version de baci : version interactove seulement
+  if (interactive()){
+    question_dl <- stringr::str_glue("Voulez-vous t\uE9l\uE9charger BACI {version} ? (Y/n) : ")
+    rep_dl_baci <- readline(prompt = question_dl)
 
-  if (toupper(rep_dl_baci) == "Y"){
+    if (toupper(rep_dl_baci) == "Y"){
+      # Créer le lien pour télécharger la dernière version de BACI
+      dl_link <- stringr::str_glue("http://www.cepii.fr/DATA_DOWNLOAD/baci/data/BACI_{revision}_V{version}.zip")
+
+      # # Tester si le fichier zip de BACI existe déjà
+
+      # Si dl_zip == TRUE, télécharger le fichier zip
+      # Télécharge le zip même s'il existe
+      if (dl_zip == TRUE) {
+        curl::multi_download(
+          dl_link,
+          here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip"))
+        )
+      }
+      # Si dl_zip == FALSE, vérifier si le fichier zip existe.
+      # S'il existe alors, on ne télécharge pas. Sinon, on télécharge.
+      else {
+        if (!file.exists(here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")))) {
+          # Si le fichier zip n'existe pas, télécharger BACI
+          curl::multi_download(
+            dl_link,
+            here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip"))
+          )
+        }
+      }
+
+      # Décompresser le fichier zip au même endroit
+      print("Extraction des fichier csv")
+      here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")) |>
+        utils::unzip(exdir = dl_folder)
+
+      # Créer les formats parquet pour BACI
+      print("Cr\uE9ation des fichiers parquet")
+      analyse.competitivite::transfo_baci_pq(
+        csv_folder = dl_folder,
+        path_output = dl_folder,
+        version = version
+      )
+
+      # Supprimer les fichiers csv de BACI pour gain de place si rm_csv == TRUE
+      if (rm_csv == TRUE) {
+        dl_folder |>
+          list.files(full.names = TRUE, pattern = "^BACI.*csv") |>
+          purrr::walk(file.remove)
+      }
+      print("Donn\uE9es de BACI t\uE9l\uE9charg\uE9es !")
+    } else {
+      print(stringr::str_glue("Refus de t\uE9l\uE9charger BACI {version}"))
+    }
+  } else {
     # Créer le lien pour télécharger la dernière version de BACI
     dl_link <- stringr::str_glue("http://www.cepii.fr/DATA_DOWNLOAD/baci/data/BACI_{revision}_V{version}.zip")
 
@@ -124,10 +178,8 @@ dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE,
         list.files(full.names = TRUE, pattern = "^BACI.*csv") |>
         purrr::walk(file.remove)
     }
-    print("Donn\uE9es de BACI t\uE9l\uE9charg\uE9es !")
-  } else {
-    print(stringr::str_glue("Refus de t\uE9l\uE9charger BACI {version}"))
   }
+  
 }
 
 

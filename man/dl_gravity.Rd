@@ -27,6 +27,10 @@ Les fichiers parquet et csv de Gravity.
 Télécharge la base de données Gravity depuis le site du CEPII dans sa
 dernière version disponible puis la transforme en format parquet avec un
 fichier par année.
+
+Si la fonction est lancée dans une session interactive, alors il sera
+demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
+Sinon le téélchargement s'effectuera automatiquement.
 }
 \examples{
 # Pas d'exemple
