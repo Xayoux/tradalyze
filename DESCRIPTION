@@ -31,6 +31,7 @@ Imports:
     scales,
     stats,
     stringr,
+    svDialogs,
     tidyr,
     utils
 Depends: 
