@@ -197,7 +197,7 @@ uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
       df_uv_exporter_ref <-
         df_uv |>
         dplyr::filter(!!dplyr::sym(var_exporter) == exporter_ref) |>
-        dplyr::select(-{{var_exporter}}) |>
+        dplyr::select(-{{var_exporter}}, t, {{var_k}}, {{uv_100}}) |>
         dplyr::rename(uv_100_exporter_ref = uv_100)
 
       df_uv <-
