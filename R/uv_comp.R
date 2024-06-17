@@ -189,8 +189,7 @@ uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
       ) |>
       dplyr::mutate(
         uv_100 = uv / uv_year_ref * 100
-      ) |>
-      dplyr::select(-c(uv_year_ref, uv))
+      )
 
 
   ## Comparaison avec un pays ---------- ----------------------------------
@@ -210,8 +209,7 @@ uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
         ) |>
         dplyr::mutate(
           uv_100_diff = uv_100 / uv_100_exporter_ref
-        ) |>
-        dplyr::select(-c(uv_100_exporter_ref, uv_100))
+        )
     }
   }
 
