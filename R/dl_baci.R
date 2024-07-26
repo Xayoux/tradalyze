@@ -1,3 +1,5 @@
+# ATENTION : si nouvelle version de correction(202401b par exemple), le b n'est pas
+# compris dna sl'élément em donc on continue de télécharger la version non corrigée.
 # Documentation -------------------------------------------------------------
 #' @title
 #' Télécharger BACI et la transformer en parquet
