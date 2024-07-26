@@ -70,7 +70,7 @@ dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE,
 
   ## Information sur BACI ----------------------------------------------------
   # Lien vers la page BACI du cepii
-  html_baci <- rvest::read_html("http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37")
+  html_baci <- rvest::read_html("http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=37")
 
   # Récupérer l'information sur la dernière version de BACI
   version <-
