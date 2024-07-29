@@ -150,3 +150,25 @@ devtools::install_github("insongkim/concordance")
   valeur et de quantités dans les données de BACI. Cette fonction
   utilise la fonction `clean_uv_outliers`. Pour plus d’informations :
   `?eval_outliers`.
+
+# Fonctions (provisoire):
+- `add_chelem_classification` : ajoute la classification chelem aux données de BACI
+- `adressed_deman` : calcule la demande adressée
+- `clean_uv_outliers` : gérer les outliers
+- `create_quality_df` : créer les données pour faire l'équation de khandelwal
+- `df_baci` : télécharger les données de BACI (pb ne fonctionne pas bien actuellement)
+- `df_gravity` : télécharger la base Gravity
+- `eval_outliers_dist` : regarde la distribution des outliers
+- `eval_outliers_share` : regarde ce que représente les outliers dans les données
+- `extract_product` : extraire les codes produits souhaités
+- `gamme_ijkt_gaulier_2006` : calcule les gamme selon la dite méthode
+- `gamme_ijkt_berthou_2011` : calcule les gamme selon la dite méthode
+- `gamme_ijkt_fontagne_1997` : calcule les gamme selon la dite méthode
+- `gamme_ijkt_fontagne_2007` : calcule les gamme selon la dite méthode
+- `graph_bar_comp_year` : graphiques barres de comparaison entre deux années
+- `graph_lines_comparison` : graphique lignes
+- `graph_market_share` : graph pour représenter parts de marchés
+- `khandelwal_quality_eq` : estimer la régression de khandelwal
+- `market_share` : calculer les parts de marché
+- `quality_aggregate` : claculer la mesure agrégée de la qualité (après estimation de la régression)
+- `uv_comp` : calculer et agréger les valeurs unitaires
