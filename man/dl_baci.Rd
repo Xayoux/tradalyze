@@ -2,54 +2,41 @@
 % Please edit documentation in R/dl_baci.R
 \name{dl_baci}
 \alias{dl_baci}
-\title{Télécharger BACI et la transformer en parquet}
+\title{Download the BACI Database}
 \source{
-Base \href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
-du \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII}.
+\href{http://www.cepii.fr/CEPII/fr/publications/wp/abstract.asp?NoDoc=2726}{Gaulier, G. et Zignago, S. (2010) BACI: International Trade Database at the Product-Level. The 1994-2007 Version. CEPII Working Paper, N°2010-23.}
 }
 \usage{
-dl_baci(revision = "HS92", dl_folder, rm_csv = TRUE, dl_zip = FALSE)
+dl_baci(version = NULL, revision = "HS92", dl_folder)
 }
 \arguments{
-\item{revision}{Une chaîne de caractères qui indique la nomenclature voulue
-(HS92 par défaut). Valeurs possibles : HS92, HS96, HS02, HS07, HS12, HS17,
-HS22.}
+\item{version}{A string indicating the version of BACI you wish to download.
+By default it is set to NULL, which means that the latest available version
+will be used.}
 
-\item{dl_folder}{Un chemin d'accès vers le dossier où les données seront
-téléchargées.}
+\item{revision}{A string indicating the revision of the Harmonised System in
+which you want BACI. It must start with "HS" followed by a two digit number.
+The default is "HS92", the oldest revision available.}
 
-\item{rm_csv}{Un booléen qui indique si les fichiers csv de BACI doivent
-être supprimés après la transformation en parquet (TRUE par défaut).}
-
-\item{dl_zip}{Un booléen qui indique si le fichier zip de BACI doit être
-téléchargé (FALSE par défaut). Si TRUE, alors le zip sera forcément
-téléchargé, si FALSE il ne sera téléchargé que s'il n'existe pas dans le
-répertoire de téléchargement.}
+\item{dl_folder}{A string that specifies the folder in which you would like
+to download the zip file of BACI.}
 }
 \value{
-Un dossier parquet par année. Les variables de BACI sont les
-suivantes :
-\describe{
-\item{i}{Code iso numérique de l'importateur}
-\item{j}{Code iso numérique de l'exportateur}
-\item{k}{Code HS6 du produit (en chaîne de caractère)}
-\item{t}{Année}
-\item{v}{Valeur totale du flux en milliers de dollars courants}
-\item{q}{Quantité du flux en tonne métrique}
-\item{exporter}{Code iso3 de l'exportateur}
-\item{importer}{Code iso3 de l'importateur}
-}
+The BACI database in a zip file in the folder of your choice.
 }
 \description{
-Fonction qui permet de télécharger BACI dans la nomenclature voulue
-(uniquement dernière version disponible).
-Les données sont ensuite transformées en fichiers parquet (1 par année).
-
-Si la fonction est lancée dans une session interactive, alors il sera
-demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
-Sinon le téélchargement s'effectuera automatiquement.
+dl_baci' allows you to download the
+\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
+produced by the \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII}. You can
+select the revision and version of the BACI you require. The zip file will
+be downloaded and saved to the location of your choice using the 'dl_folder'
+parameter.
 }
 \examples{
-# Pas d'exemple.
+# Download the latest version of the revision 1992 in your current directory
+# dl_baci(dl_folder = here::here())
+
+# Download the 202401 version of BACI for the 2007 revision
+# dl_baci(version = "202401", revision = "HS07", dl_folder = here::here())
 
 }
