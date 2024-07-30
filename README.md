@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# analyse.competitivite
+# tradalyze
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -13,11 +13,11 @@ donné.
 ## Installation
 
 Vous pouvez installer le package depuis
-[GitHub](https://github.com/Xayoux/analyse.competitivite.git) avec :
+[GitHub](https://github.com/Xayoux/tradalyze.git) avec :
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Xayoux/analyse.competitivite")
+devtools::install_github("Xayoux/tradalyze")
 ```
 
 ## Prérequis

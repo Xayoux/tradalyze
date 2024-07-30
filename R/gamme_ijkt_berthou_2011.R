@@ -193,7 +193,7 @@ gamme_ijkt_berthou_2011 <- function(baci, years = NULL,
       # Permet d'éviter des valeurs infinies dans le calcul de la moyenne géométrique pondérée
       v_share = v / sum(v, na.rm = TRUE),
       # Calcul de la moyenne géométrique pondérée
-      geom_mean_weighted = analyse.competitivite::weighted_geomean(uv, v_share, na.rm = TRUE)
+      geom_mean_weighted = tradalyze::weighted_geomean(uv, v_share, na.rm = TRUE)
     ) |>
     # Passage en format arrow
     arrow::arrow_table() |>

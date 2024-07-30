@@ -118,7 +118,7 @@ dl_baci <- function(revision = "HS92", dl_folder, rm_csv = TRUE,
 
     # Créer les formats parquet pour BACI
     print("Cr\uE9ation des fichiers parquet")
-    analyse.competitivite::transfo_baci_pq(
+    tradalyze::transfo_baci_pq(
       csv_folder = dl_folder,
       path_output = dl_folder,
       version = version

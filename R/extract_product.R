@@ -77,37 +77,37 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
 
   # Si revision_origin = "HS22", utiliser la base de donnée product_codes_HS22_V202401.rda du package
   if (revision_origin == "HS22"){
-    df_product_code <- analyse.competitivite::product_codes_HS22_V202401
+    df_product_code <- tradalyze::product_codes_HS22_V202401
   }
 
   # Sinon si revision_origin = "HS92", utiliser la base de donnée product_codes_HS92_V202401.rda du package
   else if (revision_origin == "HS92"){
-    df_product_code <- analyse.competitivite::product_codes_HS92_V202401
+    df_product_code <- tradalyze::product_codes_HS92_V202401
   }
 
   # Sinon si revision_origin = "HS96", utiliser la base de donnée product_codes_HS96_V202401.rda du package
   else if (revision_origin == "HS96"){
-    df_product_code <- analyse.competitivite::product_codes_HS96_V202401
+    df_product_code <- tradalyze::product_codes_HS96_V202401
   }
 
   # Sinon si revision_origin = "HS02", utiliser la base de donnée product_codes_HS02_V202401.rda du package
   else if (revision_origin == "HS02"){
-    df_product_code <- analyse.competitivite::product_codes_HS02_V202401
+    df_product_code <- tradalyze::product_codes_HS02_V202401
   }
 
   # Sinon si revision_origin = "HS07", utiliser la base de donnée product_codes_HS07_V202401.rda du package
   else if (revision_origin == "HS07"){
-    df_product_code <- analyse.competitivite::product_codes_HS07_V202401
+    df_product_code <- tradalyze::product_codes_HS07_V202401
   }
 
   # Sinon si revision_origin = "HS12", utiliser la base de donnée product_codes_HS12_V202401.rda du package
   else if (revision_origin == "HS12"){
-    df_product_code <- analyse.competitivite::product_codes_HS12_V202401
+    df_product_code <- tradalyze::product_codes_HS12_V202401
   }
 
   # Sinon si revision_origin = "HS17", utiliser la base de donnée product_codes_HS17_V202401.rda du package
   else if (revision_origin == "HS17"){
-    df_product_code <- analyse.competitivite::product_codes_HS17_V202401
+    df_product_code <- tradalyze::product_codes_HS17_V202401
   }
 
 
@@ -136,31 +136,31 @@ extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
   if(correspondance == TRUE){
     # sélectionner la db de codes hs à utiliser pour les description des codes de destination
     if (revision_destination == "HS22"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS22_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS22_V202401
     }
 
     else if (revision_destination == "HS92"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS92_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS92_V202401
     }
 
     else if (revision_destination == "HS96"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS96_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS96_V202401
     }
 
     else if (revision_destination == "HS02"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS02_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS02_V202401
     }
 
     else if (revision_destination == "HS07"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS07_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS07_V202401
     }
 
     else if (revision_destination == "HS12"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS12_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS12_V202401
     }
 
     else if (revision_destination == "HS17"){
-      df_product_code_destination <- analyse.competitivite::product_codes_HS17_V202401
+      df_product_code_destination <- tradalyze::product_codes_HS17_V202401
     }
 
     # créer la variable destination_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions

@@ -199,7 +199,7 @@ create_quality_df <- function(baci, gravity, years = NULL, codes = NULL,
 
     # Garder uniquement les élasticités des codes sélectionnés
     df_ptle <-
-      analyse.competitivite::ptle |>
+      tradalyze::ptle |>
       dplyr::filter(HS6 %in% codes) |>
       dplyr::select(HS6, sigma)
   }

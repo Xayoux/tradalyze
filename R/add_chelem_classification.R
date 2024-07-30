@@ -125,7 +125,7 @@ add_chelem_classification <- function(baci, years = NULL, codes = NULL,
     df_baci |>
     # Associer chaque exportateur à sa région
     dplyr::left_join(
-      analyse.competitivite::chelem_classification,
+      tradalyze::chelem_classification,
       by = c("exporter" = "iso_country")
     ) |>
     # Si aucune région n'est associée -> mettre en reste du monde
@@ -140,7 +140,7 @@ add_chelem_classification <- function(baci, years = NULL, codes = NULL,
     ) |>
     # Associer chaque importateur à sa région
     dplyr::left_join(
-      analyse.competitivite::chelem_classification,
+      tradalyze::chelem_classification,
       by = c("importer" = "iso_country")
     ) |>
     # Si aucune région n'est associée -> mettre en reste du monde

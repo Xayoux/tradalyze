@@ -99,7 +99,7 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
 
     # Créer les formats parquet de Gravity
     print("Cr\uE9ation des fichiers parquet")
-    analyse.competitivite::transfo_gravity_pq(
+    tradalyze::transfo_gravity_pq(
       csv_folder = gravity_folder,
       path_output = gravity_folder,
       version = version
