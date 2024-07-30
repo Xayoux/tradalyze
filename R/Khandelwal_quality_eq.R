@@ -95,7 +95,6 @@
 #' @source [Khandelwal, A. K., Schott, P. K., & Wei, S. J. (2013). Trade liberalization and embedded institutional reform: Evidence from Chinese exporters. American Economic Review, 103(6), 2169-2195.](https://www.aeaweb.org/articles?id=10.1257/aer.103.6.2169)
 #' @source [Bas, M., Fontagné, L., Martin, P., & Mayer, T. (2015). À la recherche des parts de marché perdues (Research Report No. 2015–23). Conseil d’Analyse Economique.](https://www.cairn.info/revue-notes-du-conseil-d-analyse-economique-2015-4-page-1.htm)
 #'
-#' @importFrom data.table :=
 khandelwal_quality_eq <- function(data_reg, reg_formula = NULL, y_var = NULL,
                                   x_var = NULL, fe_var = NULL,
                                   path_latex_output = NULL, title_latex = NULL,
