@@ -1,10 +1,10 @@
 Package: tradalyze
-Title: Carry out a commercial competitiveness analysis.
+Title: Carry Out a Commercial Competitiveness Analysis
 Version: 0.0.0.9000
 Authors@R: 
-    person("Romain", "Capliez", , "romain.capliez01@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Carry out a commercial competitiveness analysis.
+    person("Romain", "Capliez", , "romain.capliez01@gmail.com", role = c("aut", "cre"))
+Description: Facilitate the analysis of trade competitiveness
+    based on aggregated trade data.  
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
