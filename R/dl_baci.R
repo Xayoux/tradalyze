@@ -16,7 +16,25 @@
 #' which you want BACI. It must start with "HS" followed by a two digit number.
 #' The default is "HS92", the oldest revision available.
 #' @param dl_folder A string that specifies the folder in which you would like
-#' to download the zip file of BACI. 
+#' to download the zip file of BACI.
+#' @param download A logical that indicates whether the zip file must be
+#' downloaded even if it already exist. If FALSE, the zip file will only be
+#' downloaded if it does not exist.
+#' @param unzip A logical indicating whether the zip file must be unpacked even
+#' if csv or parquet files already exist. If FALSE, the zip file will only be
+#' unpacked if there is not a single csv and parquet file with the same
+#' revision and version you want in the csv and parquet folder.
+#' @param to_parquet A logical indicating whether the csv files must be
+#' transform into parquet files even if parquet files already exist. If FALSE,
+#' the csv files will only be transformed into parquet files if there is not a
+#' single one parquet file with the same revision and version you want in the
+#' parquet folder.
+#' @param rm_zip A logical indicating whether or not the zip file must be
+#' deleted at the end of the process. The default is to delete the zip file.
+#' @param rm_csv A logical specifying whether the csv folder and all its files
+#' should be deleted at the end of the process. The csv folder is deleted
+#' by default. 
+#' 
 #' @return The BACI database in a zip file in the folder of your choice.
 #' 
 #' @examples
@@ -33,7 +51,8 @@
 
 # Fonction dl_baci ----------------------------------------------------------
 dl_baci <- function(version = NULL, revision = "HS92",
-                    dl_folder){
+                    dl_folder, download = TRUE, unzip = TRUE, to_parquet = TRUE,
+                    rm_zip = FALSE, rm_csv = TRUE){
 
   ## Checking validity of parameters ----------------------------------------
   # Check whether rvest and svDialogs are installed (mandatory for this fonction)
@@ -62,7 +81,7 @@ dl_baci <- function(version = NULL, revision = "HS92",
   # Create the dl_folder if it doesn't exist already
   if (!file.exists(dl_folder)) {
     dir.create(dl_folder, showWarnings = FALSE, recursive = TRUE)
-    message(glue::glue("The folder : \"{dl_folder}\" has been created."))
+    message(stringr::str_glue("The folder : \"{dl_folder}\" has been created."))
 }
   
 
@@ -104,7 +123,7 @@ dl_baci <- function(version = NULL, revision = "HS92",
   # If a version is supply keep the good link
   else { 
     # Define a regex to find the link with the good revision and version
-    regex_version_revision <- glue::glue("({revision}.*V{version}.zip)") 
+    regex_version_revision <- stringr::str_glue("({revision}.*V{version}.zip)") 
     
     dl_zip_link <-
       vector_dl_zip_links  %>%
@@ -116,99 +135,214 @@ dl_baci <- function(version = NULL, revision = "HS92",
     }
   }
 
-  # Ask wheter the user whish to dl this version and revision of BACI
-  question_dl <- glue::glue("Do you want to download the revision {revision} of BACI V{version} ?")
-  response_dl <- svDialogs::dlg_message(question_dl, "yesnocancel")$res
+  # Name of the zip file 
+  zip_name <- stringr::str_glue("BACI_{revision}_V{version}.zip")
 
-  
-  if (response_dl == "yes"){
-    curl::multi_download(
-      dl_zip_link,
-      here::here(dl_folder, glue::glue("BACI_{revision}_V{version}.zip"))
+  # Path to the zip file
+  path_zip_file <-
+    here::here(
+      dl_folder,
+      zip_name
     )
-  } else {
-    message(glue::glue("The user don't want to download the revision {revision} of BACI V{version}"))
+
+  ## Download process -------------------------------------------------------
+
+  # If parameter download is set to FALSE : check if the zip file already exist
+  if (download == FALSE){
+    # If it exists, leave the download set to FALSE : the DL is not going to happen.
+    download <- dplyr::if_else(file.exists(path_zip_file), FALSE, TRUE)
   }
-} 
+
+  # If download is set to TRUE (by the user of if the zip file doesn't exist)
+  # Then download the zip file
+  if (download == TRUE){
+    # Ask wheter the user whish to dl this version and revision of BACI
+    question_dl <- stringr::str_glue("Do you want to download the revision {revision} of BACI V{version} ?")
+    response_dl <- svDialogs::dlg_message(question_dl, "yesnocancel")$res
+
+    # If the answer of the user is yes, then download the zip file, else just message
+    if (response_dl == "yes"){
+      curl::multi_download(
+        dl_zip_link,
+        path_zip_file
+      )
+    }
+    # The user don't want to DL the zip file
+    else {
+      # Tell the user that he doesn't want to download BACI
+      message(stringr::str_glue("The user don't want to download the revision {revision} of BACI V{version}"))
+
+      # If tje zip file does not exist and there is no DL : stop the process
+      if (!file.exists(path_zip_file)){
+        stop_message <-
+          stringr::str_glue("The file \"{path_zip_file}\" does not exist and the user does not wish to download it.\nEnd of process.\n")
+        return(message(stop_message))
+      }
+    }
+  }
+  # If the file already exist and the user prefer to not Dl it if it exist
+  else {
+    # Tell the user that there is no need to dl BACI because the zip file already exists
+    message(stringr::str_glue("\"{path_zip_file}\" already exists. There is no download to perform.\n"))
+  }
+
+  ## Unzip process ----------------------------------------------------------
+  path_baci_csv_folder <-
+    here::here(
+      dl_folder,
+      stringr::str_glue("BACI_{revision}_V{version}-csv")
+    )
+  
+  path_baci_parquet_folder <-
+    here::here(
+      dl_folder,
+      stringr::str_glue("BACI_{revision}_V{version}-parquet")
+    )
+  
+  # Regex to check if csv files exist for this version and revision of BACI
+  regex_csv_files <- as.character(stringr::str_glue("BACI_{revision}_Y\\d{{4}}_V{version}\\.csv"))
+  nb_csv_files <- length(list.files(path_baci_csv_folder, pattern = regex_csv_files))
+  nb_parquet_files <- length(list.files(path_baci_parquet_folder))
+
+
+  # If unzip is TRUE always unzip. If not unzip only if there is not a single csv file
+  if (unzip == TRUE){
+    message("Extract process")
+    path_zip_file  |>
+      utils::unzip(exdir = path_baci_csv_folder)
+  }
+  # Il there is not a single csv file and parquet file : unzip
+  else if (nb_csv_files == 0 & nb_parquet_files == 0){
+    message(stringr::str_glue("There is no csv files for the revision {revision} of BACI version {version}.\nExtract process\n"))
+
+    path_zip_file  |>
+      utils::unzip(exdir = path_baci_csv_folder)
+  }
+  # If there is at least one csv file or parquet file : dont unzip 
+  else {
+    message(stringr::str_glue("There is already some csv or parquet files for the revision {revision} of BACI version {version}.\nThere is no extract process\n"))
+  }
+
+  ## Transform csv into parquet files --------------------------------------
+  vector_path_csv_files <-
+    path_baci_csv_folder |>
+    list.files(pattern = regex_csv_files, full.names = TRUE)
+
+  # D2finir un schéma d'importation pour les données BACI
+  schema_baci <-
+    arrow::schema(
+      arrow::Field$create("t", type = arrow::string()),
+      arrow::Field$create("i", type = arrow::string()),
+      arrow::Field$create("j", type = arrow::string()),
+      arrow::Field$create("k", type = arrow::string()), # Evite la disparition de 0
+      arrow::Field$create("v", type = arrow::string()), # être sur qu'il n'y a pas de pb
+      arrow::Field$create("q", type = arrow::string()) # être sur qu'il n'y a pas de pb
+    )
+
+  # Créer le dossier BACI-parquet s'il n'existe pas  
+  if (!dir.exists(path_baci_parquet_folder)) {
+    dir.create(path_baci_parquet_folder, recursive = TRUE)
+  }
+
+  if (to_parquet == TRUE){
+    unlink(path_baci_parquet_folder, recursive = TRUE)
+    
+    df_country_codes <-
+      here::here(path_baci_csv_folder, stringr::str_glue("country_codes_V{version}.csv")) |>
+      readr::read_csv(show_col_types = FALSE) |>
+      dplyr::select(country_code, country_iso3)|>
+      dplyr::mutate(country_code = as.character(country_code))
+    
+    # Ecrire la base BACI en parquet : un par année : gain de place + efficacité
+    vector_path_csv_files |>
+      # Ouvrir BACI : pas en mémoire
+      arrow::open_dataset(format = "csv", schema = schema_baci) |>
+      ## dplyr::filter(t != "t") |>
+      dplyr::left_join(
+        df_country_codes,
+        by = c("i" = "country_code")
+      ) |>
+      dplyr::rename(exporter = country_iso3) |>
+      dplyr::left_join(
+        df_country_codes,
+        by = c("j" = "country_code")
+      ) |>
+      dplyr::rename(importer = country_iso3) |>
+      dplyr::mutate(
+        t = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(t), "^[0-9.]+$"), NA, stringr::str_trim(t))),
+        i = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(i), "^[0-9.]+$"), NA, stringr::str_trim(i))),
+        j = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(j), "^[0-9.]+$"), NA, stringr::str_trim(j))),
+        q = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(q), "^[0-9.]+$"), NA, stringr::str_trim(q))),
+        v = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(v), "^[0-9.]+$"), NA, stringr::str_trim(v)))
+      ) |>
+      # Grouper par année (un fichier parquet par année)
+      dplyr::group_by(t) |>
+      # Ecrire cette base en parquet
+      arrow::write_dataset(
+        path = path_baci_parquet_folder,
+        format = "parquet"
+      )
+    
+  } else if(length(list.files(path_baci_parquet_folder)) == 0){
+    message(stringr::str_glue("There is no parquet files for the revision {revision} of BACI version {version}.\nConvert process\n"))
+
+    df_country_codes <-
+      here::here(path_baci_csv_folder, stringr::str_glue("country_codes_V{version}.csv")) |>
+      readr::read_csv(show_col_types = FALSE) |>
+      dplyr::select(country_code, country_iso3)|>
+      dplyr::mutate(country_code = as.character(country_code))
+
+    
+    vector_path_csv_files |>
+      # Ouvrir BACI : pas en mémoire
+      arrow::open_dataset(format = "csv", schema = schema_baci) |>
+      dplyr::filter(t != "t") |>
+      dplyr::left_join(
+        df_country_codes,
+        by = c("i" = "country_code")
+      ) |>
+      dplyr::rename(exporter = country_iso3) |>
+      dplyr::left_join(
+        df_country_codes,
+        by = c("j" = "country_code")
+      ) |>
+      dplyr::rename(importer = country_iso3) |>
+      dplyr::mutate(
+        t = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(t), "^[0-9.]+$"), NA, stringr::str_trim(t))),
+        i = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(i), "^[0-9.]+$"), NA, stringr::str_trim(i))),
+        j = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(j), "^[0-9.]+$"), NA, stringr::str_trim(j))),
+        q = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(q), "^[0-9.]+$"), NA, stringr::str_trim(q))),
+        v = as.numeric(dplyr::if_else(!stringr::str_detect(stringr::str_trim(v), "^[0-9.]+$"), NA, stringr::str_trim(v)))
+      ) |>
+      # Grouper par année (un fichier parquet par année)
+      dplyr::group_by(t) |>
+      # Ecrire cette base en parquet
+      arrow::write_dataset(
+        path = path_baci_parquet_folder,
+        format = "parquet"
+      )
+
+  } else {
+     message(stringr::str_glue("There is already some parquet files for the revision {revision} of BACI version {version}.\nThere is no convert process\n"))
+  }
+
+  ## Cleaning -------------------------------------------------------------
+  if (rm_csv == TRUE){
+    unlink(path_baci_csv_folder, recursive = TRUE)
+    message(stringr::str_glue("\"{path_baci_csv_folder}\" and its files had been removed"))
+  }
+
+  if (rm_zip == TRUE){
+    unlink(path_zip_file, recursive = TRUE)
+     message(stringr::str_glue("\"{path_zip_file}\" and its files had been removed"))
+  }
+  
+}
 
 
 
-##   if (reponse_dl == "yes"){
-##     # Créer le lien pour télécharger la dernière version de BACI
-##     dl_link <- stringr::str_glue("http://www.cepii.fr/DATA_DOWNLOAD/baci/data/BACI_{revision}_V{version}.zip")
-
-##     # # Tester si le fichier zip de BACI existe déjà
-
-##     # Si dl_zip == TRUE, télécharger le fichier zip
-##     # Télécharge le zip même s'il existe
-##     if (dl_zip == TRUE) {
-##       curl::multi_download(
-##         dl_link,
-##         here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip"))
-##       )
-##     }
-##     # Si dl_zip == FALSE, vérifier si le fichier zip existe.
-##     # S'il existe alors, on ne télécharge pas. Sinon, on télécharge.
-##     else {
-##       if (!file.exists(here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")))) {
-##         # Si le fichier zip n'existe pas, télécharger BACI
-##         curl::multi_download(
-##           dl_link,
-##           here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip"))
-##         )
-##       }
-##     }
-
-##     # Décompresser le fichier zip au même endroit
-##     print("Extraction des fichier csv")
-##     here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}.zip")) |>
-##       utils::unzip(exdir = dl_folder)
-
-##     # Créer les formats parquet pour BACI
-##     print("Cr\uE9ation des fichiers parquet")
-##     tradalyze::transfo_baci_pq(
-##       csv_folder = dl_folder,
-##       path_output = dl_folder,
-##       version = version
-##     )
-
-##     # Supprimer les fichiers csv de BACI pour gain de place si rm_csv == TRUE
-##     if (rm_csv == TRUE) {
-##       dl_folder |>
-##         list.files(full.names = TRUE, pattern = "^BACI.*csv") |>
-##         purrr::walk(file.remove)
-##     }
-##     print("Donn\u00E9es de BACI t\u00E9l\uE900charg\u00E9es !")
-##   } else {
-##     print(stringr::str_glue("Refus de t\u00E9l\u00E9charger BACI {version}"))
-##   }
-
-
-
-## # Fonction pour transformer un dossier baci en format parquet
-## #' Transforme des fichiers csv de BACI en format parquet
-## #'
-## #' @param csv_folder Chemin d'accès au dossier contenant les fichiers csv de BACI
-## #' @param path_output Chemin d'accès au dossier où seront stockés les fichiers parquet de BACI (par défaut, le même que csv_folder).
-## #' Ils seront stockés dans un dossier nommé "BACI-parquet".
-## #' @param version Version des fichiers BACI. Trouvable sur la page [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
-## #'
-## #' @return Les fichiers parquet de BACI.
-## #' @export
-## #'
-## #' @examples # Pas d'exemple.
-## transfo_baci_pq <- function(csv_folder, path_output = csv_folder, version){
-
-##   # Définition des messages d'erreur ----------------------------------------
-##   # Message d'erreur si path_baci_parquet n'est pas une chaine de caractère
-##   if(!is.character(csv_folder)){
-##     stop("csv_folder doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
-##   }
-
-##   # Message d'erreur si path_output n'est pas une chaine de caractère
-##   if(!is.character(path_output)){
-##     stop("path_output doit \uEAtre un chemin d'acc\uE8s sous forme de cha\uEEne de caract\uE8res.")
-##   }
+## here::here("..", "BACI_HS92_V202401b-parquet") |>
+##   arrow::open_dataset()
 
 ##   baci_path_vector <-
 ##     csv_folder |>
@@ -229,7 +363,7 @@ dl_baci <- function(version = NULL, revision = "HS92",
 ##     here::here(csv_folder, stringr::str_glue("country_codes_V{version}.csv")) |>
 ##     readr::read_csv() |>
 ##     dplyr::select(country_code, country_iso3) |>
-##     dplyr::mutate(country_code = as.character(country_code))
+##     dplyr::mutate(country_code = as.character(counatry_code))
 
 ##   # Créer le dossier BACI-parquet s'il n'existe pas
 ##   if (!dir.exists(here::here(path_output, "BACI-parquet"))) {

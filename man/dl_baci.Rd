@@ -7,7 +7,16 @@
 \href{http://www.cepii.fr/CEPII/fr/publications/wp/abstract.asp?NoDoc=2726}{Gaulier, G. et Zignago, S. (2010) BACI: International Trade Database at the Product-Level. The 1994-2007 Version. CEPII Working Paper, N°2010-23.}
 }
 \usage{
-dl_baci(version = NULL, revision = "HS92", dl_folder)
+dl_baci(
+  version = NULL,
+  revision = "HS92",
+  dl_folder,
+  download = TRUE,
+  unzip = TRUE,
+  to_parquet = TRUE,
+  rm_zip = FALSE,
+  rm_csv = TRUE
+)
 }
 \arguments{
 \item{version}{A string indicating the version of BACI you wish to download.
@@ -20,6 +29,28 @@ The default is "HS92", the oldest revision available.}
 
 \item{dl_folder}{A string that specifies the folder in which you would like
 to download the zip file of BACI.}
+
+\item{download}{A logical that indicates whether the zip file must be
+downloaded even if it already exist. If FALSE, the zip file will only be
+downloaded if it does not exist.}
+
+\item{unzip}{A logical indicating whether the zip file must be unpacked even
+if csv or parquet files already exist. If FALSE, the zip file will only be
+unpacked if there is not a single csv and parquet file with the same
+revision and version you want in the csv and parquet folder.}
+
+\item{to_parquet}{A logical indicating whether the csv files must be
+transform into parquet files even if parquet files already exist. If FALSE,
+the csv files will only be transformed into parquet files if there is not a
+single one parquet file with the same revision and version you want in the
+parquet folder.}
+
+\item{rm_zip}{A logical indicating whether or not the zip file must be
+deleted at the end of the process. The default is to delete the zip file.}
+
+\item{rm_csv}{A logical specifying whether the csv folder and all its files
+should be deleted at the end of the process. The csv folder is deleted
+by default.}
 }
 \value{
 The BACI database in a zip file in the folder of your choice.
