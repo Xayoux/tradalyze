@@ -42,4 +42,6 @@ LazyData: true
 Suggests: 
     curl (>= 5.0.0),
     rvest (>= 1.0.0),
-    svDialogs (>= 1.1.0)
+    svDialogs (>= 1.1.0),
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
