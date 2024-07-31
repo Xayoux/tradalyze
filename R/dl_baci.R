@@ -45,8 +45,12 @@ dl_baci <- function(version = NULL, revision = "HS92",
     stop("version must be NULL or a string.")
   }
 
-  # Check if revision is a string beginning by "HS"
-  if (is.character(revision) == FALSE && startsWith(revision, "HS") == FALSE){
+  # Check if revision is a character
+  if (is.character(revision) == FALSE){
+    stop("revision is not a string. Keep in mind that it must be starting with \"HS\" followed by a two digit number such as \"HS92\".")
+  }
+  # If it's a character, check if it's beggin with 'HS'
+  else if (startsWith(revision, "HS") == FALSE) {
     stop("revision must be a string starting with \"HS\" followed by a two digit number such as \"HS92\".")
   }
   
