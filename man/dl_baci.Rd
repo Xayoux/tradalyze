@@ -53,15 +53,18 @@ should be deleted at the end of the process. The csv folder is deleted
 by default.}
 }
 \value{
-The BACI database in a zip file in the folder of your choice.
+The BACI database in parquet files. A folder containing the BACI
+csv files (can be deleted to save space). A folder containing the
+information files (country and product codes and a README). The zip file
+(which can be deleted).
 }
 \description{
-dl_baci' allows you to download the
+\code{dl_baci} allows you to download the
 \href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
-produced by the \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII}. You can
-select the revision and version of the BACI you require. The zip file will
-be downloaded and saved to the location of your choice using the 'dl_folder'
-parameter.
+database produced by the \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII}.
+You can select the revision and version of the BACI you require. The zip
+file will be downloaded and saved to the location of your choice using
+the \code{dl_folder} parameter.
 }
 \examples{
 # Download the latest version of the revision 1992 in your current directory

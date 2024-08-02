@@ -18,4 +18,29 @@ test_that("Validity of parameters works", {
     dl_baci(dl_folder = 92),
     "dl_folder must be a string specifying the path to a folder."
   )
+
+  expect_error(
+    dl_baci(dl_folder = here::here(), download = "TRUE"),
+    "download must be a logical."
+  )
+
+  expect_error(
+    dl_baci(dl_folder = here::here(), unzip = "TRUE"),
+    "unzip must be a logical."
+  )
+
+  expect_error(
+    dl_baci(dl_folder = here::here(), to_parquet = "TRUE"),
+    "to_parquet must be a logical."
+  )
+
+  expect_error(
+    dl_baci(dl_folder = here::here(), rm_zip = "TRUE"),
+    "rm_zip must be a logical."
+  )
+
+  expect_error(
+    dl_baci(dl_folder = here::here(), rm_csv = "TRUE"),
+    "rm_csv must be a logical."
+  )
 })
