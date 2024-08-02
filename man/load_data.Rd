@@ -19,3 +19,16 @@ Take data and load itin arrow format. Data can be a path to
 a csv or an excel file. It can also be a path to a folder containing
 parquet files. Dataframe and ArrowObject are also accepted.
 }
+\examples{
+# Load data of a folder containing parquet files
+# load_data(here::here("folder-parquet-files"))
+
+# Load data of an ArrowObject
+# here::here("folder-parquet-files")  |>
+#   arrow::open_dataset() |>
+#   load_data()
+
+# Load data of a csv file
+# load_data(here::here("csv-file.csv"))
+
+}
