@@ -66,11 +66,24 @@ You can select the revision and version of the BACI you require. The zip
 file will be downloaded and saved to the location of your choice using
 the \code{dl_folder} parameter.
 }
+\details{
+Variables in the BACI database are the following :
+\itemize{
+\item \strong{t} : Numeric. Year of the trade flow.
+\item \strong{i} : Numeric. Code iso numeric of the exporter.
+\item \strong{j} : Numeric. Code iso numeric of the importer.
+\item \strong{exporter} : Character. Code iso3 character of the exporter
+\item \strong{importer} : Character. Code iso3 character of the importer.
+\item \strong{k} : Character. Product code HS6.
+\item \strong{v} : Numeric. Value of the trade flow in thousand current dollars.
+\item \strong{q} : Numeric. Quantity in metric tons.
+}
+}
 \examples{
 # Download the latest version of the revision 1992 in your current directory
-# dl_baci(dl_folder = here::here())
+# dl_baci(dl_folder = "folder-of-the-download")
 
 # Download the 202401 version of BACI for the 2007 revision
-# dl_baci(version = "202401", revision = "HS07", dl_folder = here::here())
+# dl_baci(version = "202401", revision = "HS07", dl_folder = "folder-of-the-download")
 
 }

@@ -9,6 +9,16 @@
 #' file will be downloaded and saved to the location of your choice using
 #' the `dl_folder` parameter.
 #'
+#' @details Variables in the BACI database are the following :
+#' - \strong{t} : Numeric. Year of the trade flow.
+#' - \strong{i} : Numeric. Code iso numeric of the exporter.
+#' - \strong{j} : Numeric. Code iso numeric of the importer.
+#' - \strong{exporter} : Character. Code iso3 character of the exporter
+#' - \strong{importer} : Character. Code iso3 character of the importer.
+#' - \strong{k} : Character. Product code HS6.
+#' - \strong{v} : Numeric. Value of the trade flow in thousand current dollars.
+#' - \strong{q} : Numeric. Quantity in metric tons. 
+#'
 #' @param version A string indicating the version of BACI you wish to download.
 #' By default it is set to NULL, which means that the latest available version
 #' will be used.
@@ -43,10 +53,10 @@
 #' 
 #' @examples
 #' # Download the latest version of the revision 1992 in your current directory
-#' # dl_baci(dl_folder = here::here())
+#' # dl_baci(dl_folder = "folder-of-the-download")
 #'
 #' # Download the 202401 version of BACI for the 2007 revision
-#' # dl_baci(version = "202401", revision = "HS07", dl_folder = here::here())
+#' # dl_baci(version = "202401", revision = "HS07", dl_folder = "folder-of-the-download")
 #'
 #' @source [Gaulier, G. et Zignago, S. (2010) BACI: International Trade Database at the Product-Level. The 1994-2007 Version. CEPII Working Paper, N°2010-23.](http://www.cepii.fr/CEPII/fr/publications/wp/abstract.asp?NoDoc=2726)
 #'
