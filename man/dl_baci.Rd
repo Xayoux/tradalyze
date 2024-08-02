@@ -15,7 +15,7 @@ dl_baci(
   unzip = TRUE,
   to_parquet = TRUE,
   rm_zip = FALSE,
-  rm_csv = TRUE
+  rm_csv = FALSE
 )
 }
 \arguments{

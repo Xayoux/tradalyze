@@ -56,7 +56,7 @@
 # Fonction dl_baci ----------------------------------------------------------
 dl_baci <- function(version = NULL, revision = "HS92",
                     dl_folder, download = TRUE, unzip = TRUE, to_parquet = TRUE,
-                    rm_zip = FALSE, rm_csv = TRUE){
+                    rm_zip = FALSE, rm_csv = FALSE){
 
   ## Checking validity of parameters ----------------------------------------
   # Check whether rvest and svDialogs are installed (mandatory for this fonction)
@@ -80,12 +80,6 @@ dl_baci <- function(version = NULL, revision = "HS92",
   # Check if dl_folder is a string
   if (!is.character(dl_folder)){
     stop("dl_folder must be a string specifying the path to a folder.")
-  }
-
-  # Create the dl_folder if it doesn't exist already
-  if (!file.exists(dl_folder)) {
-    dir.create(dl_folder, showWarnings = FALSE, recursive = TRUE)
-    message(stringr::str_glue("The folder : \"{dl_folder}\" has been created."))
   }
 
   # Check if download is a logical
@@ -382,11 +376,6 @@ dl_baci <- function(version = NULL, revision = "HS92",
       readr::read_csv(show_col_types = FALSE) |>
       dplyr::select(country_code, country_iso3)|>
       dplyr::mutate(country_code = as.character(country_code))
-
-    # Create the folder for parquet files if it does not exist
-    if (!dir.exists(path_baci_parquet_folder)) {
-      dir.create(path_baci_parquet_folder, recursive = TRUE)
-    }
 
     # Load, mutate and write baci database
     vector_path_csv_files |>
