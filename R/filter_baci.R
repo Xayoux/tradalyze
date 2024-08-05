@@ -1,3 +1,4 @@
+# Documentation -------------------------------------------------------------
 #' @title Filter the BACI Database
 #'
 #' @description Keep only wanted data in the BACI database. You can filter by
@@ -52,10 +53,12 @@
 #' # filter_baci(baci = "folder_parquet_files", export_countries = c(251, 380))
 #'
 #' @export
+# Fonction ------------------------------------------------------------------
+## Definition ---------------------------------------------------------------
 filter_baci <- function(baci, years = NULL, codes = NULL,
                         export_countries = NULL, import_countries = NULL){
 
-  ## Error messages
+  ## Error messages ---------------------------------------------------------
   # Years must be a numeric
   if (!is.numeric(years)){
     years_type <- class(years)
@@ -80,7 +83,7 @@ filter_baci <- function(baci, years = NULL, codes = NULL,
     stop(stringr::str_glue("\nimport_countries must be a character or a numeric, not a {import_countries_type}"))
   }
 
-
+  ## Filter data ------------------------------------------------------------
   # Load the data : loaded in format arrow
   df_baci <- tradalyze::load_data(baci)
 
