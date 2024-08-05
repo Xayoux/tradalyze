@@ -156,8 +156,8 @@ devtools::install_github("insongkim/concordance")
 - `adressed_deman` : calcule la demande adressée
 - `clean_uv_outliers` : gérer les outliers
 - `create_quality_df` : créer les données pour faire l'équation de khandelwal
-- `df_baci` : télécharger les données de BACI (pb ne fonctionne pas bien actuellement)
-- `df_gravity` : télécharger la base Gravity
+- `dl_baci` : télécharger les données de BACI (pb ne fonctionne pas bien actuellement)
+- `dl_gravity` : télécharger la base Gravity
 - `eval_outliers_dist` : regarde la distribution des outliers
 - `eval_outliers_share` : regarde ce que représente les outliers dans les données
 - `extract_product` : extraire les codes produits souhaités
