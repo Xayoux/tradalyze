@@ -2,9 +2,10 @@
 % Please edit documentation in R/add_chelem_classification.R
 \name{add_chelem_classification}
 \alias{add_chelem_classification}
-\title{Ajoute la classification des régions du monde de CHELEM aux données de BACI}
+\title{Add CHELEM World Region Classificiation to BACI Data}
 \source{
-\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{Classification Chelem du CEPII}. Voir :
+\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM classification of the CEPII}.
+See :
 \href{http://www.cepii.fr/cepii/fr/publications/wp/abstract.asp?nodoc=1081}{de Saint Vaulry, A. (2008), “Base de données CHELEM - Commerce international du CEPII”,  Document de travail du CEPII, N°2008-09}
 }
 \usage{
@@ -12,56 +13,81 @@ add_chelem_classification(
   baci,
   years = NULL,
   codes = NULL,
+  export_countries = NULL,
+  import_countries = NULL,
   path_output = NULL,
   return_output = FALSE,
-  return_pq = FALSE
+  return_arrow = FALSE
 )
 }
 \arguments{
-\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
-les données de BACI au format parquet. Peut également être un dataframe ou
-bien des données au format arrow (requête ou non) permettant ainsi de chaîner
-les opérations entre elles. ce paramètre est obligatoire.}
+\item{baci}{Data to be loaded. Can be a path to a csv or an excel file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted.}
 
-\item{years}{Années à conserver. Par défaut, toutes les années sont
-conservées.}
+\item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
-\item{codes}{Codes à conserver. Par défaut, tous les codes sont conservés.}
+\item{codes}{Character vector indicating the product codes to be kept in the
+variable \code{k}.}
 
-\item{path_output}{Chemin d'accès vers le dossier où sauvegarder les données
-fusionnées en format parquet. Par défaut, les données ne sont pas s
-auvegardées.}
+\item{export_countries}{Character or numeric vector indicating the
+exporter countries to be kept in the variable \code{exporter} or \code{i}.}
 
-\item{return_output}{Retourner les données fusionnées. Par défaut, les données ne
-sont pas retournées.}
+\item{import_countries}{Character or numeric vector indicating the importer
+countries to be kept in the variable \code{importer} or \code{j}.}
 
-\item{return_pq}{Retourner les données fusionnées au format parquet. Par
-défaut, les données sont retournées au format tibble.}
+\item{path_output}{Path to save the final data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
+
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are not returned after this function.}
+
+\item{return_arrow}{Logical indicating whether data must be return in an
+arrow format (TRUE) or not if \code{return_output = TRUE}. By default data are
+returned to a tibble format.}
 }
 \value{
-Les données de BACI fusionnées avec la classification de CHELEM.
+BACI data with the CHELEM classification. The following variables are
+added :
+\describe{
+\item{exporter_iso_region}{Str : Character iso code 3 of the region for the exporter country}
+\item{exporter_name_region}{Str : Name of the region for the exporter country}
+\item{importer_iso_region}{Str : Character iso code 3 of the region for the importer country}
+\item{importer_name_region}{Str : Name of the region for the importer country}
+}
 }
 \description{
-Ajoute la classification des régions du monde de CHELEM aux données de BACI.
-Chaque exportateur et chaque importateurs se voient attribuer dans une région
-géographique du monde à partir de la classification géographique utilisée par
-la base de données \href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM}
-du \href{http://www.cepii.fr/CEPII/fr/welcome.asp}{CEPII}.
+Merge the database
+\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
+with the world region classification of the database
+\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM}.
+Each exporter and importer is assigned to a geographical region. The merge is
+made with the \link{chelem_classification} dataframe present in this package.
+The filtering of the data (if wanted is made with the \link{filter_baci}
+function of this package.)
 }
 \details{
-Les données de la base de données \href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
-sont exprimées au niveau des pays importateurs et exportateurs. Cependant,
-il peut être souhaitable de regrouper les pays dans des zones géographiques
-plus larges pour des analyses et résultats plus globaux.
+\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
+data are expressed at the exporter-importer level. However, it may be relevant
+to aggregate countries into geographical regions.
 
-Les données de BACI sont fusionnées avec la classification de CHELEM. Les
-régions définies sont les suivantes :
+The fusion with
+\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM}
+is made with the variables \code{exporter} and \code{importer} which are the character
+iso code 3 of the countries. To be sure to have these variables, it is
+recommended to download the database
+\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
+with the \link{dl_baci} function from this package.
+
+The regions used are the following :
 \itemize{
 \item North America
 \item South America, central America and Caribbean
-\item European Union -> supposée à 26 de manière constante (grande-Bretgane non
-comprise).
-\item CIS -> Commonwealth of Independent States
+\item European Union : supposed to be 26 everytime (Great-Britain not comprise)
+\item CIS : Commonwealth of Independent States
 \item Others in Europe
 \item North Africa
 \item Sub-Sahara Africa
@@ -70,11 +96,36 @@ comprise).
 \item South-East Asia
 \item South Asia and Pacific
 \item Australia and New Zealand
+\item RoW : Rest of the World
 }
 
-Les pays qui ne sont pas dans la classification de CHELEM sont attribués à la
-région "rdm" pour "reste du monde".
+Countries not included in the CHELEM classification are included in the RoW
+(Rest of the World) classification. See \link{chelem_classification}
 }
 \examples{
-# Pas d'exemple
+# Add classification and return the data
+## add_chelem_classification(
+##   baci = "path-to-baci-parquet-folder",
+##   return_output = TRUE
+## )
+
+# Add classification, save the data to parquet format and return arrow format data
+## add_chelem_classification(
+##   baci = "path-to-baci-parquet-folder",
+##   path_output = "path-to-baci-classification-parquet-folder"
+##   return_output = TRUE,
+##   return_arrow = TRUE
+## )
+
+# Filter to keep years between 2015 and 2020,aAdd classification,
+# save the data to csv format and return a tibble
+## add_chelem_classification(
+##   baci = "path-to-baci-parquet-folder",
+##   years = 2015:2020,
+##   path_output = "path-to-baci-classificiation-csv-file.csv",
+##   return_output = TRUE,
+##   return_arrow = FALSE
+## )
+
+
 }

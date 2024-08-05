@@ -1,27 +1,35 @@
+# Documentation -----------------------------------------------------------_-
 #' @title
-#' Ajoute la classification des régions du monde de CHELEM aux données de BACI
+#' Add CHELEM World Region Classificiation to BACI Data
 #'
 #' @description
-#' Ajoute la classification des régions du monde de CHELEM aux données de BACI.
-#' Chaque exportateur et chaque importateurs se voient attribuer dans une région
-#' géographique du monde à partir de la classification géographique utilisée par
-#' la base de données [CHELEM](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17)
-#' du [CEPII](http://www.cepii.fr/CEPII/fr/welcome.asp).
+#' Merge the database
+#' [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
+#' with the world region classification of the database
+#' [CHELEM](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17).
+#' Each exporter and importer is assigned to a geographical region. The merge is
+#' made with the \link{chelem_classification} dataframe present in this package.
+#' The filtering of the data (if wanted is made with the \link{filter_baci}
+#' function of this package.)
 #'
 #' @details
-#' Les données de la base de données [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
-#' sont exprimées au niveau des pays importateurs et exportateurs. Cependant,
-#' il peut être souhaitable de regrouper les pays dans des zones géographiques
-#' plus larges pour des analyses et résultats plus globaux.
+#' [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
+#' data are expressed at the exporter-importer level. However, it may be relevant
+#' to aggregate countries into geographical regions.
 #'
-#' Les données de BACI sont fusionnées avec la classification de CHELEM. Les
-#' régions définies sont les suivantes :
+#' The fusion with
+#' [CHELEM](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17)
+#' is made with the variables `exporter` and `importer` which are the character
+#' iso code 3 of the countries. To be sure to have these variables, it is
+#' recommended to download the database
+#' [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
+#' with the \link{dl_baci} function from this package.
 #'
+#' The regions used are the following :
 #' - North America
 #' - South America, central America and Caribbean
-#' - European Union -> supposée à 26 de manière constante (grande-Bretgane non
-#' comprise).
-#' - CIS -> Commonwealth of Independent States
+#' - European Union : supposed to be 26 everytime (Great-Britain not comprise)
+#' - CIS : Commonwealth of Independent States
 #' - Others in Europe
 #' - North Africa
 #' - Sub-Sahara Africa
@@ -30,148 +38,177 @@
 #' - South-East Asia
 #' - South Asia and Pacific
 #' - Australia and New Zealand
+#' - RoW : Rest of the World
 #'
-#' Les pays qui ne sont pas dans la classification de CHELEM sont attribués à la
-#' région "rdm" pour "reste du monde".
+#' Countries not included in the CHELEM classification are included in the RoW
+#' (Rest of the World) classification. See \link{chelem_classification}
+#' 
 #'
+#' @inheritParams filter_baci
+#' @param path_output Path to save the final data. If NULL (default), the data
+#' will not be saved. If `path_output` ends with a '.csv' extension, the data
+#' will be saved in csv format. If no extension is given, the data will be
+#' saved in a dataset parquet format in the specified folder. See the
+#' \link[arrow]{arrow} package. 
+#' @param return_output Logical indicating whether data must be returned or not.
+#' By default data are not returned after this function. 
+#' @param return_arrow Logical indicating whether data must be return in an
+#' arrow format (TRUE) or not if `return_output = TRUE`. By default data are
+#' returned to a tibble format.
+#' 
+#' @return BACI data with the CHELEM classification. The following variables are
+#' added :
+#' \describe{
+#'   \item{exporter_iso_region}{Str : Character iso code 3 of the region for the exporter country}
+#'   \item{exporter_name_region}{Str : Name of the region for the exporter country}
+#'   \item{importer_iso_region}{Str : Character iso code 3 of the region for the importer country}
+#'   \item{importer_name_region}{Str : Name of the region for the importer country}
+#' }
 #'
-#' @param baci Peut être un  chemin d'accès vers le dossier contenant
-#' les données de BACI au format parquet. Peut également être un dataframe ou
-#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
-#' les opérations entre elles. ce paramètre est obligatoire.
-#' @param years Années à conserver. Par défaut, toutes les années sont
-#' conservées.
-#' @param codes Codes à conserver. Par défaut, tous les codes sont conservés.
-#' @param path_output Chemin d'accès vers le dossier où sauvegarder les données
-#' fusionnées en format parquet. Par défaut, les données ne sont pas s
-#' auvegardées.
-#' @param return_output Retourner les données fusionnées. Par défaut, les données ne
-#' sont pas retournées.
-#' @param return_pq Retourner les données fusionnées au format parquet. Par
-#' défaut, les données sont retournées au format tibble.
+#' @examples
+#' # Add classification and return the data
+#' ## add_chelem_classification(
+#' ##   baci = "path-to-baci-parquet-folder",
+#' ##   return_output = TRUE
+#' ## )
 #'
-#' @return Les données de BACI fusionnées avec la classification de CHELEM.
-#' @export
+#' # Add classification, save the data to parquet format and return arrow format data
+#' ## add_chelem_classification(
+#' ##   baci = "path-to-baci-parquet-folder",
+#' ##   path_output = "path-to-baci-classification-parquet-folder"
+#' ##   return_output = TRUE,
+#' ##   return_arrow = TRUE
+#' ## )
 #'
-#' @examples # Pas d'exemple
-#' @source [Classification Chelem du CEPII](<http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17>). Voir :
+#' # Filter to keep years between 2015 and 2020,aAdd classification,
+#' # save the data to csv format and return a tibble
+#' ## add_chelem_classification(
+#' ##   baci = "path-to-baci-parquet-folder",
+#' ##   years = 2015:2020,
+#' ##   path_output = "path-to-baci-classificiation-csv-file.csv",
+#' ##   return_output = TRUE,
+#' ##   return_arrow = FALSE
+#' ## )
+#' 
+#' 
+#' @source [CHELEM classification of the CEPII](<http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17>).
+#' See :
 #' [de Saint Vaulry, A. (2008), “Base de données CHELEM - Commerce international du CEPII”,  Document de travail du CEPII, N°2008-09](http://www.cepii.fr/cepii/fr/publications/wp/abstract.asp?nodoc=1081)
 #'
+#' @export
+
+# Fonction ------------------------------------------------------------------
+## Definition ---------------------------------------------------------------
 add_chelem_classification <- function(baci, years = NULL, codes = NULL,
+                                      export_countries = NULL, import_countries = NULL,
                                       path_output = NULL, return_output = FALSE,
-                                      return_pq = FALSE){
+                                      return_arrow = FALSE){
 
-  # Messages d'erreur -------------------------------------------------------
-  # Message d'erreur si years n'est pas NULL ou numérique
-  if (!is.null(years) & !is.numeric(years)){
-    stop("years doit \uEAtre NULL ou un vecteur num\uE9rique.")
-  }
-
-  # Message d'erreur si codes n'est pas NULL ou chaîne de caractère
-  if (!is.null(codes) & !is.character(codes)){
-    stop("codes doit \uEAtre NULL ou un vecteur de cha\uEEne de caract\uE8re.")
-  }
-
-  # Message d'erreur si path_output n'est pas NULL ou chaîne de caractère
+  ## Error messages ----------------------------------------------------------
+  # Stop if `path_output` is not null or a character
   if (!is.null(path_output) & !is.character(path_output)){
-    stop("path_output doit \uEAtre NULL ou une cha\uEEne de caract\uE8re.")
+    class_path_output <- class(path_output)
+    stop(stringr::str_glue("path_output must be NULL or a character. Not a {class_path_output}."))
   }
 
-  # Message d'erreur si return_output n'est pas un booléen
+  # Stop if the extension of `path_output` is != of "" or "csv"
+  if (!tools::file_ext(path_output) %in% c("", "csv")){
+    extension_path_output <- tools::file_ext(path_output)
+    stop(stringr::str_glue("The extension of path output (if provided) must be \"csv\" not {extension_path_output}."))
+  }
+
+  # Stop if `return_output` is not a logical
   if (!is.logical(return_output)){
-    stop("return_output doit \uEAtre un bool\uE9en.")
+    class_return_output <- class(return_output)
+    stop(stringr::str_glue("return_output must be a logical not a {class_return_output}."))
   }
 
-  # Message d'erreur si return_pq n'est pas un booléen
-  if (!is.logical(return_pq)){
-    stop("return_pq doit \uEAtre un bool\uE9en.")
+  # Stop if `return_arrow` is not a logical
+  if (!is.logical(return_arrow)){
+    class_return_arrow <- class(return_arrow)
+    stop(stringr::str_glue("return_arrow must be a logical not a {class_return_arrow}."))
   }
 
+  ## Add chelem classification to the data -----------------------------------
+  # Load the data
+  df_baci <- tradalyze::load_data(baci)
 
-  # Exécution de la fonction ------------------------------------------------
-  # Ouvrir les données de BACI
-  if (is.character(baci) == TRUE){
-    # Ouvrir les données depuis un dossier parquet
-    df_baci <-
-      baci |>
-      arrow::open_dataset()
-  }
-  else if (is.data.frame(baci) == TRUE){
-    # Ouvrir les données depuis un dataframe : passage en format arrow
-    df_baci <-
-      baci |>
-      arrow::arrow_table()
-  }
-  else{
-    # Ouvrir les données depuis format arrow : rien à faire
-    df_baci <- baci
-  }
+  
+  # Filter the data
+  df_baci <-
+    tradalyze::filter_baci(
+      baci = df_baci,
+      years = years,
+      codes = codes,
+      export_countries = export_countries,
+      import_countries = import_countries
+    )
 
 
-  # Filtrer par les années souhaitées
-  if (!is.null(years)){
-    df_baci <- df_baci |>
-      dplyr::filter(t %in% years)
-  }
-
-  # Filtrer par les produits souhaités
-  if (!is.null(codes)){
-    df_baci <- df_baci |>
-      dplyr::filter(k %in% codes)
-  }
-
-  # Ajouter les classifications régions de CHELEM
+  # Add the CHELEM classification to addd geographic regions
   df_baci <-
     df_baci |>
-    # Associer chaque exportateur à sa région
+    # Associate each exporter to his region
     dplyr::left_join(
       tradalyze::chelem_classification,
       by = c("exporter" = "iso_country")
     ) |>
-    # Si aucune région n'est associée -> mettre en reste du monde
+    # If the exporter is not present in the CHELEM classification
+    # Or if there is a matching problem -> goes to the rest of the world (row)
     dplyr::mutate(
-      iso_region = dplyr::if_else(is.na(iso_region), "rdm", iso_region),
-      name_region = dplyr::if_else(is.na(name_region), "rdm", name_region)
+      iso_region = dplyr::if_else(is.na(iso_region), "RoW", iso_region),
+      name_region = dplyr::if_else(is.na(name_region), "RoW", name_region)
     ) |>
-    # Renommer les variables régions pour indiquer la dimmension importateur
+    # Rename regions variables to integrate the exporter dimmension
     dplyr::rename(
       exporter_iso_region = iso_region,
       exporter_name_region = name_region
     ) |>
-    # Associer chaque importateur à sa région
+    # Associate each importer to his region
     dplyr::left_join(
       tradalyze::chelem_classification,
       by = c("importer" = "iso_country")
     ) |>
-    # Si aucune région n'est associée -> mettre en reste du monde
+    # If the importer is not present in the CHELEM classification
+    # Or if there is a matching problem -> goes to the rest of the world (row)
     dplyr::mutate(
-      iso_region = dplyr::if_else(is.na(iso_region), "rdm", iso_region),
-      name_region = dplyr::if_else(is.na(name_region), "rdm", name_region)
+      iso_region = dplyr::if_else(is.na(iso_region), "RoW", iso_region),
+      name_region = dplyr::if_else(is.na(name_region), "RoW", name_region)
     ) |>
-    # Renommer les variables régions pour indiquer la dimmension importateur
+    # Rename regions variables to integrate the importer dimmension
     dplyr::rename(
       importer_iso_region = iso_region,
       importer_name_region = name_region
     )
+  
 
-  # Sauvegarder les données fusionnées en format parquet
+  # Save data in parquet format if wanted
   if (!is.null(path_output)){
-    df_baci |>
-      dplyr::group_by(t) |>
-      arrow::write_dataset(path_output)
+    # If there is a csv extension to the path save to csv
+    if (tools::file_ext(path_output) == "csv"){
+      df_baci |>
+        dplyr::collect() |>
+        readr::write_csv(path_output)
+    }
+    # Otherwise save to parquet format by years
+    else {
+      df_baci |>
+        dplyr::group_by(t) |>
+        arrow::write_dataset(path_output)
+    }   
   }
+  
 
-  # Retourner les données fusionnées
+  # Return data if wanted
   if (return_output == TRUE){
-    if (return_pq == TRUE){
-      # Retourner en format parquet
+    # Return in arrow format
+    if (return_arrow == TRUE){
       return(df_baci)
     }
+    # Return in R dataframe format
     else {
-      # Retourner en dataframe
       return(df_baci |>  dplyr::collect())
     }
   }
-
 }
 
