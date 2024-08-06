@@ -308,6 +308,9 @@ dl_baci <- function(version = NULL, revision = "HS92",
     # Avoid any confusion between old and new files
     message(stringr::str_glue("\nThe folder \"{path_baci_parquet_folder}\" has been deleted to avoid confusion between older and newer files.\n"))
 
+    # Check if readr is installed to read the country-code csv
+    rlang::check_installed("readr", reason = "\n\nNecessary to read the csv of the country codes.")
+
     # Message indicating the beginning of the convert process
     message("\nBeginning of the convert process :\n")
     
@@ -377,6 +380,9 @@ dl_baci <- function(version = NULL, revision = "HS92",
   }
   # If to_parquet = FALSE and there is not a single one parquet file for this version and revision : 
   else if(length(list.files(path_baci_parquet_folder)) == 0){
+    # Check if readr is installed to read the country-code csv
+    rlang::check_installed("readr", reason = "\n\nNecessary to read the csv of the country codes.")
+    
     # Message indicating the beginning of the convert process
     message(stringr::str_glue("\nThere is no parquet files for the revision {revision} of BACI version {version}.\nConvert process begin :\n"))
 

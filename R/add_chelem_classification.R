@@ -186,6 +186,8 @@ add_chelem_classification <- function(baci, years = NULL, codes = NULL,
   if (!is.null(path_output)){
     # If there is a csv extension to the path save to csv
     if (tools::file_ext(path_output) == "csv"){
+      # Check if readr is installed to read the country-code csv
+      rlang::check_installed("readr", reason = "\n\nNecessary to write in csv format.")
       df_baci |>
         dplyr::collect() |>
         readr::write_csv(path_output)

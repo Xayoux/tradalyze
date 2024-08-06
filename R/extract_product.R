@@ -251,6 +251,7 @@ extract_product <- function(codes_vector, path_output = NULL,
 
     # Save the dataframe to csv format
     if (path_output_ext == "csv"){
+      rlang::check_installed("readr", reason = "\n\Necessary to write the output in csv format.")
       readr::write_csv(
         df_products,
         path_output
@@ -258,6 +259,7 @@ extract_product <- function(codes_vector, path_output = NULL,
     }
     # Save the dataframe to xlsx format
     else if (path_output_ext == "xlsx"){
+      rlang::check_installed("writexl", reason = "\n\Necessary to write the output in xlsx format.")
       writexl::write_xlsx(
         df_products,
         path_output
