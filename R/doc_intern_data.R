@@ -1,6 +1,6 @@
 # chelem_classification ---------------------------------------------------
 #' Geographic classification used by the database
-#' [CHELEM] (<http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17>).
+#' [CHELEM](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17).
 #'
 #' @format ## `classification_chelem`
 #' A dataframe with 196 rows and 3 columns :
@@ -9,7 +9,7 @@
 #'   \item{name_region}{Str : The name of the region.}
 #'   \item{iso_country}{Str : Character iso code 3 use for the country}
 #' }
-#' @source [CHELEM classificiation](<http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17>). See :
+#' @source [CHELEM classificiation](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17). See :
 #' [de Saint Vaulry, A. (2008), “Base de données CHELEM - Commerce international du CEPII”,  Document de travail du CEPII, N°2008-09](http://www.cepii.fr/cepii/fr/publications/wp/abstract.asp?nodoc=1081)
 "chelem_classification"
 

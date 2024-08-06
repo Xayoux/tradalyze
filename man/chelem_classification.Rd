@@ -4,7 +4,7 @@
 \name{chelem_classification}
 \alias{chelem_classification}
 \title{Geographic classification used by the database
-\link{CHELEM} (\url{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}).}
+\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM}.}
 \format{
 \subsection{\code{classification_chelem}}{
 
@@ -25,6 +25,6 @@ chelem_classification
 }
 \description{
 Geographic classification used by the database
-\link{CHELEM} (\url{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}).
+\href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM}.
 }
 \keyword{datasets}
