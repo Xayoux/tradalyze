@@ -1,283 +1,274 @@
-#' Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.
+#' @title Create a Dataframe with the HS Codes Wanted and their Description.
 #'
-#' @param codes_vector Un vecteur contenant les codes ou numéros de chapitres que l'on souhaite extraire.
-#' @param path_output Chemin d'accès au fichier de sortie. Doit être un fichier .xlsx ou .csv.
-#' @param revision_origin Un caractère indiquant la révision des codes HS d'origine. Par défaut, revision_origin = "HS22".
-#' Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
-#' @param revision_destination Un caractère indiquant la révision des codes HS de destination.
-#' Par defaut, revision_destination = NULL. Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
-#' Si NULL alors, il n'y a pas de conversion des codes dans une autre révision.
-#' @param export Un booléen indiquant si l'on souhaite exporter le fichier. Par défaut, export = TRUE.
-#' @param return_df Un booléen indiquant si l'on souhaite retourner le dataframe. Par défaut, return_df = TRUE.
-#' @param correspondance Un booléen qui indique si l'on souhaite convertir les codes HS6 données
-#' en des codes HS6 d'une autre révision. Par defaut, correspondance = FALSE. Si TRUE alors, revision_destination ne
-#' doit pas être NULL (et inversement).
+#' @description Take a vector of HS codes, sections or chapters and return a
+#' data frame with all the corresponding 6-digit HS codes and their description.
+#' These codes can be in any revision. It is also possible to make a
+#' correspondence between the codes of the original revision and another
+#' revision. This is useful for the
+#' [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37)
+#' database because, depending on the revision of BACI chosen, the codes must
+#' be in the good revision (1992 revision if you want the oldest data). The
+#' concordance between revisions is done with the \link[concordance]{concord_hs}
+#' function of the \link{concordance} package. The list of codes
+#' is also taken from that package.
 #'
-#' @return Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaités ainsi que leur description.
+#' @details To use the latest revision ("HS6" for the 2022 revision) you must
+#' have a version greater or equal to 2.1.0 of the \link{concordance}
+#' package. This version is not available on CRAN. To download it, please
+#' uninstall the concordance package and run the following code :
+#' `devtools::install_github("insongkim/concordance", dependencies=TRUE)`.
+#' Make sure that you also have devtools. See the
+#' [github page](https://github.com/insongkim/concordance) of the concordance
+#' package.
+#' 
+#' 
+#' @param codes_vector A vector of characters containing, 6-digit codes,
+#' sections, or chapter of the HS classification. 
+#' @param path_output Path to save the output. If NULL (the default), output
+#' will not be saved. Saving is possible in "csv" or "xlsx" format.
+#' @param revision_origin A character indicating the HS revision of the
+#' codes given in the `codes_vector parameters`. By default this is the revision
+#' "HS0" (1988/1992). The value can be : "HS1" (1996), "HS2" (2022), "HS3" (2007),
+#' "HS4" (2012) or "HS5" (2017). If the version of the
+#' \link{concordance} package is greater than 2.1.0 you can also
+#' choose "HS6" (2022). 
+#' @param revision_destination Character. If "none" (the default), no
+#' concordance is made between the given codes and codes from another revision.
+#' If a revision number is supplied, concordance will be made.  The values for
+#' the revision number are: "HS0" (1988/1992), "HS1" (1996), "HS2" (2022),
+#' "HS3" (2007), "HS4" (2012) or "HS5" (2017). If the version of the
+#' \link{concordance} package is greater than 2.1.0, you can also
+#' select "HS6" (2022). `revision_destination` can't be the same as
+#' `revision_origin`.
+#' @param return_output Logical indicating whether output must be returned
+#' or not. By default output is returned. 
+#'
+#' @return A dataframe containing the 6-digits codes and their description
+#' for the wanted original revision (`revision_origin`).
 #' \describe{
-#'   \item{HS...}{codes HS6 de la nomenclature ...}
-#'   \item{description_HS...}{description des codes HS6 de la nomenclature ...}
+#'   \item{HS_revision_origin}{6-digit codes for the `revision_origin`}
+#'   \item{desc_revision_origin.}{Description of the code for the `revision_origin`}
 #'  }
-#' @export
 #'
-#' @examples # Pas d'exemple disponible.
+#' If a `revision_destination` is supplied. Two others columns are made :
+#' \describe{
+#'   \item{HS_revision_destination}{6-digit codes for the `revision_destination`}
+#'   \item{desc_revision_destination.}{Description of the code for the `revision_destination`}
+#'  }
+#'
+#' The output can also be a csv or xlsx file.
+#'
+#' @examples # Obtain the codes and the descriptions for the chapter 71,
+#' # the section 0105 and the code 020120 for the "HS5" revision.
+#' extract_product(
+#'   codes_vector = c("71", "0105", "020120"),
+#'   path_output = NULL,
+#'   revision_origin = "HS5",
+#'   revision_destination = "none",
+#'   return_output = TRUE
+#' )
+#'
+#' 
+#' # Make a concordance between the codes of the HS5 revision and the HS0 revision
+#' extract_product(
+#'   codes_vector = c("71", "0105", "020120"),
+#'   path_output = NULL,
+#'   revision_origin = "HS5",
+#'   revision_destination = "HS0",
+#'   return_output = TRUE
+#' )
+#'
+#' 
 #' @source [Steven Liao, In Song Kim, Sayumi Miyano, Hao Zhang (2020). concordance: Product Concordance. R package version 2.0.0. https://CRAN.R-project.org/package=concordance](https://github.com/insongkim/concordance)
-extract_product <- function(codes_vector, path_output, revision_origin = "HS22",
-                            revision_destination = NULL,
-                            export = TRUE, return_df = TRUE, correspondance = FALSE){
+#'
+#' @export
+# Fonction ------------------------------------------------------------------
+## Definition ---------------------------------------------------------------
+extract_product <- function(codes_vector, path_output = NULL,
+                            revision_origin = c("HS0", "HS1", "HS2", "HS3", "HS4", "HS5", "HS6"),
+                            revision_destination = c("none", "HS0", "HS1", "HS2", "HS3", "HS4", "HS5", "HS6"),
+                            return_output = TRUE){
+  ## Error messages ---------------------------------------------------------
+  # Check if revision_origin and revision_destination are allowed
+  revision_origin = match.arg(revision_origin)
+  revision_destination = match.arg(revision_destination)
 
-
-# Générer des erreurs si les paramètres sont mal remplis ------------------
-
-    # Genere une erreur si path_output n'est pas un fichier .csv ou .xlsx
-  if (!stringr::str_detect(path_output, ".xlsx$|.csv$")) {
-    stop("path_output doit \uEAtre un fichier .xlsx ou .csv")
+  # Check if `codes_vector` is a character
+  if (!is.character(codes_vector)){
+    class_codes_vector <- class(codes_vector)
+    stop(stringr::str_glue("codes_vector must be a character, not a {class_codes_vector}"))
   }
 
-  # Genere une erreur si path_output n'est pas une chaine de caractere
-  if (!is.character(path_output)) {
-    stop("path_output doit \uEAtre une cha\uEEne de caract\uE8re")
+  # Message if there is other caracters than number in `codes_vector`
+  codes_not_number <- codes_vector[grepl("\\D", codes_vector)]
+  if (length(codes_not_number) != 0){
+    message(stringr::str_glue("Be carefull, the following codes are not number and therefore will not be treated :\n\n{codes_not_number}"))
   }
 
-  # Génère une erreur si revision_origin n'est pas un caractère
-  if (!is.character(revision_origin)){
-    stop("revision_origine doit \uEAtre un caract\uE8re.")
+  # Check if `path_output` is null or a character
+  if (!is.null(path_output) & !is.character(path_output)){
+    class_path_output <- class(path_output)
+    stop(stringr::str_glue("path_output must be NULL or a character, not a {class_path_output}."))
   }
 
-  # génère une erreur si revision_origin n'est pas un des caractères suivants
-  if (!revision_origin %in% c("HS22", "HS92", "HS96", "HS02", "HS07", "HS12", "HS17")){
-    stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS22', 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'.")
-  }
-
-  # génère une erreur si revision_destination n'est pas un caractère ou NULL
-  if (!is.character(revision_destination) & !is.null(revision_destination)){
-    stop("revision_destination doit \uEAtre un caract\uE8re ou NULL.")
-  }
-
-  # Génère une erreur si revision_destination n'est pas un des caractères suivants s'il s'agit d'un caractère
-    if (!is.null(revision_destination)){
-    if (!revision_destination %in% c("HS92", "HS96", "HS02", "HS07", "HS12", "HS17") & is.character(revision_destination)){
-      stop("hs_revision doit \uEAtre un des caract\uE8res suivants : 'HS92', 'HS96', 'HS02', 'HS07', 'HS12', 'HS17'. Ou bien doit \uEAtre NULL")
+  # Check if the extension of `path_output` is csv or xlsx if not null
+  if (is.character(path_output)){
+    if (!tools::file_ext(path_output) %in% c("csv", "xlsx")){
+      ext_path_output <- tools::file_ext(path_output)
+      stop(stringr::str_glue("The extension of path_output (if a path is provided) must be \"csv\" or \"xlsx\", not \"{ext_path_output}\"."))
     }
   }
 
-  # Génère une erreur si correspondance = TRUE et revision_destination n'est pas un des caractères suivants
-  if (correspondance == TRUE & is.null(revision_destination)){
-    stop("Si correspondance = TRUE, revision_destination ne peut pas \uEAtre NULL.")
+  # Check if `return_output` is a logical
+  if (!is.logical(return_output)){
+    class_return_output <- class(return_output)
+    stop(stringr::str_glue("return_output must be a logicial, not a {class_return_output}."))
   }
 
-  # Génère un avertissement si correspondance = FALSE et revision_destination n'est pas NULL
-  if (correspondance == FALSE & !is.null(revision_destination)){
-    warning("Si correspondance = FALSE, revision_destination doit \uEAtre NULL.")
+  # Check if the version of the concordance package support HS6 revision
+  if (revision_origin == "HS6" | revision_destination == "HS6"){
+    version_concordance <- utils::packageVersion("concordance")
+    if (version_concordance < package_version("2.1.0")){
+      stop(stringr::str_glue("To use the \"HS6\" revision you must have a version greater or equal to 2.1.0 of the concordance package. You currently have the {version_concordance} of this package.\n\nPlease delete your current version of the package and download the newest version with this code : devtools::install_github(\"insongkim/concordance\", dependencies=TRUE)"))
+    }
   }
 
+  ## Extract the product list -----------------------------------------------
+  # list containing HS tables taken from the concordance package
+  list_df_hs <-
+    list(
+      "HS0" = concordance::hs0_desc,
+      "HS1" = concordance::hs1_desc,
+      "HS2" = concordance::hs2_desc,
+      "HS3" = concordance::hs3_desc,
+      "HS4" = concordance::hs4_desc,
+      "HS5" = concordance::hs5_desc
+    )
 
-
-# Sélectionner la db de codes HS à utiliser pour la sélection de codes--------
-
-  # Si revision_origin = "HS22", utiliser la base de donnée product_codes_HS22_V202401.rda du package
-  if (revision_origin == "HS22"){
-    df_product_code <- tradalyze::product_codes_HS22_V202401
+  # If the version of the concordance package is >= 2.1.0 :
+  # Add the revision for 2022 (not available otherwise)
+  if (utils::packageVersion("concordance") >= package_version("2.1.0")){
+    list_df_hs[["HS6"]] <- concordance::hs6_desc
   }
 
-  # Sinon si revision_origin = "HS92", utiliser la base de donnée product_codes_HS92_V202401.rda du package
-  else if (revision_origin == "HS92"){
-    df_product_code <- tradalyze::product_codes_HS92_V202401
-  }
-
-  # Sinon si revision_origin = "HS96", utiliser la base de donnée product_codes_HS96_V202401.rda du package
-  else if (revision_origin == "HS96"){
-    df_product_code <- tradalyze::product_codes_HS96_V202401
-  }
-
-  # Sinon si revision_origin = "HS02", utiliser la base de donnée product_codes_HS02_V202401.rda du package
-  else if (revision_origin == "HS02"){
-    df_product_code <- tradalyze::product_codes_HS02_V202401
-  }
-
-  # Sinon si revision_origin = "HS07", utiliser la base de donnée product_codes_HS07_V202401.rda du package
-  else if (revision_origin == "HS07"){
-    df_product_code <- tradalyze::product_codes_HS07_V202401
-  }
-
-  # Sinon si revision_origin = "HS12", utiliser la base de donnée product_codes_HS12_V202401.rda du package
-  else if (revision_origin == "HS12"){
-    df_product_code <- tradalyze::product_codes_HS12_V202401
-  }
-
-  # Sinon si revision_origin = "HS17", utiliser la base de donnée product_codes_HS17_V202401.rda du package
-  else if (revision_origin == "HS17"){
-    df_product_code <- tradalyze::product_codes_HS17_V202401
-  }
-
-
-
-# Création du fichier contenant les codes ---------------------------------
-
-  # Creer une expression reguliere pour ne garder que les codes HS6 voulus
+  # Create the regular expression to match all products starting with the given codes.
+  # You can also specify chapter codes and obtain 6-digit product codes.
   regex_codes <-
-    # Prendre le vecteur de codes/chapitres que l'on souhaite avoir
+    # Take the vector of the codes/chapter we want
     codes_vector |>
-    # Ajouter '^' devant chaque code pour indiquer qu'on souhaite tous les codes qui commencent par ces chiffres
-    # Permet de trier par chapitres et pas uniquement par code precis
+    # Add '^' before each code : indicate that we want all codes beginning by this number.
+    # ^62 : all the codes of the chapter 62. 
     purrr::map(~glue::glue("^{.}")) |>
-    # Créer une seule chaine de caractère où chaque code est séparé par '|' indiquant ainsi un 'ou' exclusif
+    # Create only one string where each code is separated by '|' : indicating 'or'.
     stringr::str_c(collapse = "|")
 
 
-  # Créer le dataframe qui va contenir les codes voulus et leur description
-  df_product_code <-
-    df_product_code |>
-    # Filtre le dataframe pour ne garder que les codes HS6 voulus
-    dplyr::filter(stringr::str_detect(code, regex_codes))
+  # Create the products dataframe containing all the wanted codes and their description
+  df_products <-
+    # Take the HS table from the origin revision (revision of the code_vector provided)
+    list_df_hs[[revision_origin]]  |>
+    # Filter to keep wanted codes
+    dplyr::filter(
+      # Keep only 6 digits codes
+      nchar(code) == 6,
+      # Keep only wanted codes with the regex
+      stringr::str_detect(code, regex_codes)
+    ) |>
+    dplyr::mutate(
+      # Create a variable containing the revision of the codes provided
+      # Allow to add it to the name of the variables later
+      revision = revision_origin,
+      # Create an id for each code : allow to macth if a concordance is made.
+      id = dplyr::row_number()
+    )
+    
 
-
-  # Si correspondance = TRUE : faire la correspondance entre les deux révisions voulues
-  if(correspondance == TRUE){
-    # sélectionner la db de codes hs à utiliser pour les description des codes de destination
-    if (revision_destination == "HS22"){
-      df_product_code_destination <- tradalyze::product_codes_HS22_V202401
-    }
-
-    else if (revision_destination == "HS92"){
-      df_product_code_destination <- tradalyze::product_codes_HS92_V202401
-    }
-
-    else if (revision_destination == "HS96"){
-      df_product_code_destination <- tradalyze::product_codes_HS96_V202401
-    }
-
-    else if (revision_destination == "HS02"){
-      df_product_code_destination <- tradalyze::product_codes_HS02_V202401
-    }
-
-    else if (revision_destination == "HS07"){
-      df_product_code_destination <- tradalyze::product_codes_HS07_V202401
-    }
-
-    else if (revision_destination == "HS12"){
-      df_product_code_destination <- tradalyze::product_codes_HS12_V202401
-    }
-
-    else if (revision_destination == "HS17"){
-      df_product_code_destination <- tradalyze::product_codes_HS17_V202401
-    }
-
-    # créer la variable destination_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
-    if (revision_destination == "HS22"){ # Uniquement si version du package de github
-      destination_concordance <- "HS6"
-    }
-
-    if (revision_destination == "HS17"){
-      destination_concordance <- "HS5"
-    }
-
-    else if (revision_destination == "HS12"){
-      destination_concordance <- "HS4"
-    }
-
-    else if (revision_destination == "HS07"){
-      destination_concordance <- "HS3"
-    }
-
-    else if (revision_destination == "HS02"){
-      destination_concordance <- "HS2"
-    }
-
-    else if (revision_destination == "HS96"){
-      destination_concordance <- "HS1"
-    }
-
-    else if (revision_destination == "HS92"){
-      destination_concordance <- "HS0"
-    }
-
-    # Créer la variable origin_concordance pour utiliser la fonction concord_hs : différence dans la façon de noter les révisions
-    if (revision_origin == "HS22"){ # uniquement si version du package de github
-      origin_concordance <- "HS6"
-    }
-
-    if (revision_origin == "HS17"){
-      origin_concordance <- "HS5"
-    }
-
-    else if (revision_origin == "HS12"){
-      origin_concordance <- "HS4"
-    }
-
-    else if (revision_origin == "HS07"){
-      origin_concordance <- "HS3"
-    }
-
-    else if (revision_origin == "HS02"){
-      origin_concordance <- "HS2"
-    }
-
-    else if (revision_origin == "HS96"){
-      origin_concordance <- "HS1"
-    }
-
-    else if (revision_origin == "HS92"){
-      origin_concordance <- "HS0"
-    }
-
-    # Créer le dataframe qui va contenir les codes voulus, leur correspondance avec la révision voulue et leur description
-    df_product_code <-
-      df_product_code |>
-      # Utilise la fonction concord_hs pour trouver la correspondance entre les codes HS6 voulus et la révision voulue
+  # If a concordance between two revision is wanted
+  # 'Translate' the codes in the good revision, add their description
+  # Add it to the products dataframe
+  if (revision_destination != "none"){
+    # Create the products dataframe for the new revision
+    df_products_revision_destination <-
+      # Take the products dataframe and keep only the codes of the first revision
+      # And the ID to allow matching between first and second revision
+      df_products |>
+      dplyr::select(code, id) |>
       dplyr::mutate(
-        code_destination = concordance::concord_hs(
+        # 'Translate' the codes of the origin revision to the destination revision
+        code = concordance::concord_hs(
           sourcevar = code,
-          origin = origin_concordance,
-          destination = destination_concordance,
+          origin = revision_origin,
+          destination = revision_destination,
           dest.digit = 6
-        )
+        ),
+        # Get the description of theses codes 
+        desc = concordance::get_desc(sourcevar = code, origin = revision_destination),
+        # Add a variable indicating what is the revision destination
+        # Allow to indicate it in the names of variables
+        revision = revision_destination
+      )  |>
+      # Pivot wider the df to have the names indicating what is the destination revision
+      # code_HS0 ; desc_HS0 for example
+      tidyr::pivot_wider(
+        names_from = revision,
+        values_from = c(code, desc),
+        names_sep = "_"
+      )
+
+    # Pivot the first dataframe and join it the second dataframe
+    # To have the correspondance between origin and destination codes
+    df_products <-
+      # Pivot wider the df to have the names indicating what is the destination revision
+      # code_HS6 ; desc_HS6 for example
+      df_products |>
+      tidyr::pivot_wider(
+        names_from = revision,
+        values_from = c(code, desc),
+        names_sep = "_"
       ) |>
-      # Ajoute la description des codes de destination
-      dplyr::left_join(df_product_code_destination, by = c("code_destination" = "code"))
-
-
-
-    # Renommer la colonne code par la valeur de la variable revision_origin
-    colnames(df_product_code)[colnames(df_product_code) == "code"] <- revision_origin
-
-    # Renommer la colonne code_destination par la valeur de la variable revision_destination
-    colnames(df_product_code)[colnames(df_product_code) == "code_destination"] <- revision_destination
-
-    # Renommer la colonne description par la valeur de la variable revision_origin
-    colnames(df_product_code)[colnames(df_product_code) == "description.x"] <- glue::glue("description_{revision_origin}")
-
-    # Renommer la colonne description par la valeur de la variable revision_destination
-    colnames(df_product_code)[colnames(df_product_code) == "description.y"] <- glue::glue("description_{revision_destination}")
+      # Join the df by id's
+      dplyr::full_join(
+        df_products_revision_destination,
+        dplyr::join_by(id)
+      )
+  }
+  # If no concordance with an other revision is wanted
+  # Just pivot the products dataframe
+  else {
+    df_products <-
+      df_products  |>  
+      tidyr::pivot_wider(
+        names_from = revision,
+        values_from = c(code, desc),
+        names_sep = "_"
+      )
   }
 
-  # Si correspondance = FALSE : juste renommer les deux variables pour inclure la révision
-  else{
-    # Renommer la colonne code par la valeur de la variable revision_origin
-    colnames(df_product_code)[colnames(df_product_code) == "code"] <- revision_origin
+  
+  # If a `path_output` is provided  : save the dataframe
+  if (!is.null(path_output)){
+    path_output_ext <- tools::file_ext(path_output)
 
-    # Renommer la colonne description par la valeur de la variable revision_origin
-    colnames(df_product_code)[colnames(df_product_code) == "description"] <- glue::glue("description_{revision_origin}")
-  }
-
-
-  # Exporte le dataframe si export = TRUE
-  if (export == TRUE){
-    # Exporte le dataframe dans le format souhaite
-    if (stringr::str_detect(path_output, ".xlsx$")){
-      df_product_code |>
-        openxlsx::write.xlsx(path_output, rowNames = FALSE)
+    # Save the dataframe to csv format
+    if (path_output_ext == "csv"){
+      readr::write_csv(
+        df_products,
+        path_output
+      )
     }
-
-    else if (stringr::str_detect(path_output, ".csv$")) {
-      df_product_code |>
-        readr::write_csv(path_output)
+    # Save the dataframe to xlsx format
+    else if (path_output_ext == "xlsx"){
+      writexl::write_xlsx(
+        df_products,
+        path_output
+      )
     }
   }
 
-
-  # Retourne le dataframe si return_df = TRUE
-  if (return_df == TRUE){
-    return(df_product_code)
+  # Return the dataframe if wanted
+  if (return_output == TRUE){
+    return(df_products)
   }
 }
+
+utils::globalVariables(c("id", "revision", "desc"))
