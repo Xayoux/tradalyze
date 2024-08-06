@@ -69,10 +69,6 @@ dl_baci <- function(version = NULL, revision = "HS92",
                     rm_zip = FALSE, rm_csv = FALSE){
 
   ## Checking validity of parameters ----------------------------------------
-  # Check whether rvest and svDialogs are installed (mandatory for this fonction)
-  rlang::check_installed("rvest", reason = "Mandatory to obtain the download link")
-  rlang::check_installed("svDialogs", reason = "Mandatory to ask the confirmation of the download")
-
   # Check if version is NULL or a string
   if (!is.null(version) & !is.character(version)){
     stop("version must be NULL or a string.")
@@ -120,6 +116,9 @@ dl_baci <- function(version = NULL, revision = "HS92",
  
   
   ## Download BACI ----------------------------------------------------------
+  # Check whether rvest is installed (mandatory for this part of the function)
+  rlang::check_installed("rvest", reason = "Mandatory to obtain the download link")
+  
   # Load the HTML code of the BACI webpage
   html_baci <-
     rvest::read_html(
@@ -190,6 +189,8 @@ dl_baci <- function(version = NULL, revision = "HS92",
   # If download is set to TRUE (by the user or if the zip file doesn't exist)
   # Then download the zip file
   if (download == TRUE){
+    # Check whether svDialogs is installed (mandatory for this part of the function)
+    rlang::check_installed("svDialogs", reason = "Mandatory to ask the confirmation of the download")
     # Ask wheter the user whish to dl this version and revision of BACI
     question_dl <- stringr::str_glue("Do you want to download the revision {revision} of BACI V{version} ?")
     response_dl <- svDialogs::dlg_message(question_dl, "yesnocancel")$res
