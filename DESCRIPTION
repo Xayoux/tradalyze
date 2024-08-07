@@ -39,11 +39,14 @@ Depends:
     R (>= 2.10)
 LazyData: true
 Suggests: 
-    concordance (>= 2.0.0),
+    concordance (>= 2.1.0),
     curl (>= 5.0.0),
+    devtools (>= 2.4.0),
     readr (>= 2.1.0),
     rvest (>= 1.0.0),
     svDialogs (>= 1.1.0),
     testthat (>= 3.0.0),
     writexl (>= 1.5.0)
 Config/testthat/edition: 3
+Remotes: 
+    insongkim/concordance
