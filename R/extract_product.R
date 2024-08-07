@@ -1,3 +1,80 @@
+# Utilitary functions ------------------------------------------------------
+#' @title Ensure Devtools Installed
+#' @description Checks if devtools is installed and installs it if not.
+# This function should not be exported.
+ensure_devtools_installed <- function(){
+  if (!rlang::is_installed("devtools")){
+    utils::install.packages("devtools")
+  }
+}
+
+#' @title Install Concordance from GitHub
+#' @description Installs the concordance package from GitHub.
+# This function should not be exported.
+install_concordance_github <- function(){
+  ensure_devtools_installed()
+
+  if (rlang::is_installed("concordance")){
+    utils::remove.packages("concordance")
+  }
+  
+  devtools::install_github("insongkim/concordance")
+}
+
+#' @title Ask to Install Concordance
+#' @description Prompts the user to install the appropriate version of the concordance package.
+#' @param current_version The version of the concordance package. If NULL the
+#' package is not installed.
+# This function should not be exported.
+ask_install_concordance <- function(current_version = NULL){
+  # If a version is provided : the package concordance is already installed
+  # But the version is < 2.1.0
+  if (!is.null(current_version)){
+    message(glue::glue("Your version of the concordance package is {current_version}."))
+    message(glue::glue("To use the latest revision (HS6), you must have a version equal or greater than 2.1.0."))
+    message(glue::glue("This version is not available on CRAN and must be downloaded from GitHub."))
+
+    question_message <- "Do you want to download the latest version of concordance from GitHub and the packages needed for that (like devtools)?"
+
+    prompt <- "Y/N/cancel"
+  }
+  # If there is no version provided the package concordance is not installed
+  else {
+    question_message <- "You don't have the concordance package installed. Do you want the GitHub version to access the latest revision (HS6), or do you prefer the CRAN version?"
+
+    prompt <- "GitHub/CRAN/cancel"
+  }
+
+  # Ask the question to download from github or cran
+  # The question depends whether the package concordance is already installed
+  # Convert the answer is character for the next step
+  response_question <-
+    as.character(
+      utils::askYesNo(
+        msg = question_message,
+        prompts = prompt
+      )
+    )
+
+  # Download concordance from github if wanted
+  # Or download from CRAN
+  # Or do nothing / cancel the function
+  switch(
+    response_question,
+    "TRUE" = install_concordance_github(),
+    "FALSE" = {
+      if (is.null(current_version)){
+        utils::install.packages("concordance")
+      } else {
+        message(glue::glue("You are staying with the version {current_version} of the concordance package. The revision HS6 will not be available."))
+      }
+    },
+    "NA" = stop("You chose to cancel. No changes were made.")
+  )
+}
+
+
+# Documentation of extract_product -----------------------------------------
 #' @title Create a Dataframe with the HS Codes Wanted and their Description.
 #'
 #' @description Take a vector of HS codes, sections or chapters and return a
@@ -19,7 +96,8 @@
 #' `devtools::install_github("insongkim/concordance", dependencies=TRUE)`.
 #' Make sure that you also have devtools. See the
 #' [github page](https://github.com/insongkim/concordance) of the concordance
-#' package.
+#' package. If you use the function without the correct version of the
+#' concordance, you will be asked if the function can download it for you.
 #' 
 #' 
 #' @param codes_vector A vector of characters containing, 6-digit codes,
@@ -60,23 +138,23 @@
 #'
 #' @examples # Obtain the codes and the descriptions for the chapter 71,
 #' # the section 0105 and the code 020120 for the "HS5" revision.
-#' extract_product(
-#'   codes_vector = c("71", "0105", "020120"),
-#'   path_output = NULL,
-#'   revision_origin = "HS5",
-#'   revision_destination = "none",
-#'   return_output = TRUE
-#' )
+#' ## extract_product(
+#' ##   codes_vector = c("71", "0105", "020120"),
+#' ##   path_output = NULL,
+#' ##   revision_origin = "HS5",
+#' ##   revision_destination = "none",
+#' ##   return_output = TRUE
+#' ## )
 #'
 #' 
 #' # Make a concordance between the codes of the HS5 revision and the HS0 revision
-#' extract_product(
-#'   codes_vector = c("71", "0105", "020120"),
-#'   path_output = NULL,
-#'   revision_origin = "HS5",
-#'   revision_destination = "HS0",
-#'   return_output = TRUE
-#' )
+#' ## extract_product(
+#' ##   codes_vector = c("71", "0105", "020120"),
+#' ##   path_output = NULL,
+#' ##   revision_origin = "HS5",
+#' ##   revision_destination = "HS0",
+#' ##   return_output = TRUE
+#' ## )
 #'
 #' 
 #' @source [Steven Liao, In Song Kim, Sayumi Miyano, Hao Zhang (2020). concordance: Product Concordance. R package version 2.0.0. https://CRAN.R-project.org/package=concordance](https://github.com/insongkim/concordance)
@@ -92,6 +170,31 @@ extract_product <- function(codes_vector, path_output = NULL,
   # Check if revision_origin and revision_destination are allowed
   revision_origin = match.arg(revision_origin)
   revision_destination = match.arg(revision_destination)
+  
+  # Check the version of concordance
+  # If concordance is installed check the version
+  if (rlang::is_installed("concordance")){
+    version_concordance <- utils::packageVersion("concordance")
+    # If the version if < 2.1.0 : ask if concordance must be update
+    if (version_concordance < package_version("2.1.0")){
+      if (revision_origin == "HS6" || revision_destination == "HS6"){
+        ask_install_concordance(version_concordance)
+      }
+    } # If the version is >= 2.1.0 do nothing
+  }
+  # If concordance is not installed : ask for the installation
+  else {
+    ask_install_concordance()
+  }
+
+  # Last check of the version of concorance
+  # In case the user has downloaded from CRAN and want to use the HS6 revision
+  version_concordance <- utils::packageVersion("concordance")
+  if (version_concordance < package_version("2.1.0")){
+    if (revision_origin == "HS6" || revision_destination == "HS6"){
+      stop(glue::glue("Your version of the concordance package is {version_concordance}. If you want to use the HS6 revision, please restart this function and select Download from GitHub to get the 2.1.0 version. Otherwise select a revision other than HS6."))
+    }
+  }
 
   # Check if `codes_vector` is a character
   if (!is.character(codes_vector)){
@@ -125,31 +228,22 @@ extract_product <- function(codes_vector, path_output = NULL,
     stop(stringr::str_glue("return_output must be a logicial, not a {class_return_output}."))
   }
 
-  # Check if the version of the concordance package support HS6 revision
-  if (revision_origin == "HS6" | revision_destination == "HS6"){
-    version_concordance <- utils::packageVersion("concordance")
-    if (version_concordance < package_version("2.1.0")){
-      stop(stringr::str_glue("To use the \"HS6\" revision you must have a version greater or equal to 2.1.0 of the concordance package. You currently have the {version_concordance} of this package.\n\nPlease delete your current version of the package and download the newest version with this code : devtools::install_github(\"insongkim/concordance\", dependencies=TRUE)"))
-    }
-  }
+  
 
   ## Extract the product list -----------------------------------------------
-  # list containing HS tables taken from the concordance package
-  list_df_hs <-
-    list(
+  # Dataframe containing all the codes for the revision origin
+  df_hs_origin <-
+    switch(
+      revision_origin,
       "HS0" = concordance::hs0_desc,
       "HS1" = concordance::hs1_desc,
       "HS2" = concordance::hs2_desc,
       "HS3" = concordance::hs3_desc,
       "HS4" = concordance::hs4_desc,
-      "HS5" = concordance::hs5_desc
+      "HS5" = concordance::hs5_desc,
+      "HS6" = concordance::hs6_desc
     )
-
-  # If the version of the concordance package is >= 2.1.0 :
-  # Add the revision for 2022 (not available otherwise)
-  if (utils::packageVersion("concordance") >= package_version("2.1.0")){
-    list_df_hs[["HS6"]] <- concordance::hs6_desc
-  }
+  
 
   # Create the regular expression to match all products starting with the given codes.
   # You can also specify chapter codes and obtain 6-digit product codes.
@@ -166,7 +260,7 @@ extract_product <- function(codes_vector, path_output = NULL,
   # Create the products dataframe containing all the wanted codes and their description
   df_products <-
     # Take the HS table from the origin revision (revision of the code_vector provided)
-    list_df_hs[[revision_origin]]  |>
+    df_hs_origin  |>
     # Filter to keep wanted codes
     dplyr::filter(
       # Keep only 6 digits codes
@@ -251,7 +345,7 @@ extract_product <- function(codes_vector, path_output = NULL,
 
     # Save the dataframe to csv format
     if (path_output_ext == "csv"){
-      rlang::check_installed("readr", reason = "\n\Necessary to write the output in csv format.")
+      rlang::check_installed("readr", reason = "\n\nNecessary to write the output in csv format.")
       readr::write_csv(
         df_products,
         path_output
@@ -259,7 +353,7 @@ extract_product <- function(codes_vector, path_output = NULL,
     }
     # Save the dataframe to xlsx format
     else if (path_output_ext == "xlsx"){
-      rlang::check_installed("writexl", reason = "\n\Necessary to write the output in xlsx format.")
+      rlang::check_installed("writexl", reason = "\n\nNecessary to write the output in xlsx format.")
       writexl::write_xlsx(
         df_products,
         path_output

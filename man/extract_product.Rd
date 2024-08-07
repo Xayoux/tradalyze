@@ -78,28 +78,29 @@ uninstall the concordance package and run the following code :
 \code{devtools::install_github("insongkim/concordance", dependencies=TRUE)}.
 Make sure that you also have devtools. See the
 \href{https://github.com/insongkim/concordance}{github page} of the concordance
-package.
+package. If you use the function without the correct version of the
+concordance, you will be asked if the function can download it for you.
 }
 \examples{
 # Obtain the codes and the descriptions for the chapter 71,
 # the section 0105 and the code 020120 for the "HS5" revision.
-extract_product(
-  codes_vector = c("71", "0105", "020120"),
-  path_output = NULL,
-  revision_origin = "HS5",
-  revision_destination = "none",
-  return_output = TRUE
-)
+## extract_product(
+##   codes_vector = c("71", "0105", "020120"),
+##   path_output = NULL,
+##   revision_origin = "HS5",
+##   revision_destination = "none",
+##   return_output = TRUE
+## )
 
 
 # Make a concordance between the codes of the HS5 revision and the HS0 revision
-extract_product(
-  codes_vector = c("71", "0105", "020120"),
-  path_output = NULL,
-  revision_origin = "HS5",
-  revision_destination = "HS0",
-  return_output = TRUE
-)
+## extract_product(
+##   codes_vector = c("71", "0105", "020120"),
+##   path_output = NULL,
+##   revision_origin = "HS5",
+##   revision_destination = "HS0",
+##   return_output = TRUE
+## )
 
 
 }
