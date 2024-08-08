@@ -60,27 +60,27 @@ filter_baci <- function(baci, years = NULL, codes = NULL,
 
   ## Error messages ---------------------------------------------------------
   # Years must be a numeric
-  if (!is.numeric(years)){
+  if (!is.null(years) & !is.numeric(years)){
     years_type <- class(years)
-    stop(stringr::str_glue("\nyears must be a numeric not a {years_type}.\n"))
+    stop(stringr::str_glue("\nyears must be NULL or a numeric not a {years_type}.\n"))
   }
 
   # codes must be a numeric
-  if (!is.character(codes)){
+  if (!is.null(codes) & !is.character(codes)){
     codes_type <- class(codes)
-    stop(stringr::str_glue("\ncodes must be a character not a {codes_type}.\n"))
+    stop(stringr::str_glue("\ncodes must be NULL or a character not a {codes_type}.\n"))
   }
 
   # export_countries must be a numeric or a character
-  if (!is.character(export_countries) & !is.numeric(export_countries)){
+  if (!is.null(export_countries) & !is.character(export_countries) & !is.numeric(export_countries)){
     export_countries_type <- class(export_countries)
-    stop(stringr::str_glue("\nexport_countries must be a character or a numeric, not a {export_countries_type}"))
+    stop(stringr::str_glue("\nexport_countries must be NULL or a character or a numeric, not a {export_countries_type}"))
   }
 
   # import_countries must be a numeric or a character
-  if (!is.character(import_countries) & !is.numeric(import_countries)){
+  if (!is.null(import_countries) & !is.character(import_countries) & !is.numeric(import_countries)){
     import_countries_type <- class(import_countries)
-    stop(stringr::str_glue("\nimport_countries must be a character or a numeric, not a {import_countries_type}"))
+    stop(stringr::str_glue("\nimport_countries must be NULL or a character or a numeric, not a {import_countries_type}"))
   }
 
   ## Filter data ------------------------------------------------------------
