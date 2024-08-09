@@ -64,13 +64,6 @@ classification_fontagne_1997 <- function(df_baci, alpha_H, alpha_L,
     stop(glue::glue("The variable {var_weighting} must be present in df_baci."))
   }
 
-  # Check if `var_weighting` is a numerical variable if `df_baci`
-  if (!is.numeric(df_baci[,"var_weighting"])){
-    class_column_var_weighting <- class(df_baci[,"var_weighting"])
-    stop(glue::glue("The column {var_weighting} in df_baci must be a numeric, not a {class_column_var_weighting}"))
-  }
-
-  
   # Check if columns `v`, `q`, `t`, `k` are present in `df_baci`
   columns <- c("v", "q", "t", "k")
   is_column_present <- rlang::has_name(df_baci, columns)
@@ -93,7 +86,6 @@ classification_fontagne_1997 <- function(df_baci, alpha_H, alpha_L,
       .by = c(t, k),
       med_ref_t_k = matrixStats::weightedMedian(uv, w = !!dplyr::sym(var_weighting), na.rm = na.rm)
     )  |>
-    arrow::arrow_table() |>
     dplyr::mutate(
       fontagne_1997 =
         dplyr::case_when(
@@ -151,12 +143,6 @@ classification_gaulier_2006 <- function(df_baci, weight, var_weighting = NULL,
     stop(glue::glue("The column {var_weighting} must be present in df_baci."))
   }
 
-  # Check if `var_weighting` is a numerical variable if `df_baci`
-  if (!is.numeric(df_baci[,"var_weighting"])){
-    class_column_var_weighting <- class(df_baci[,"var_weighting"])
-    stop(glue::glue("The column {var_weighting} in df_baci must be a numeric, not a {class_column_var_weighting}"))
-  }
-
   # Check if na.rm is logical
   if (!is.logical(na.rm)){
     class_na.rm <- class(na.rm)
@@ -199,7 +185,6 @@ classification_gaulier_2006 <- function(df_baci, weight, var_weighting = NULL,
         ),
       var_weighting = dplyr::if_else(weight == FALSE, NA, var_weighting)
     ) |>
-    arrow::arrow_table() |>
     dplyr::mutate(
       gaulier_2006 =
         dplyr::case_when(
@@ -260,12 +245,6 @@ classification_fontagne_2007 <- function(df_baci, alpha, var_weighting, na.rm){
     stop(glue::glue("The column {var_weighting} must be present in df_baci."))
   }
 
-  # Check if `var_weighting` is a numerical variable if `df_baci`
-  if (!is.numeric(df_baci[,"var_weighting"])){
-    class_column_var_weighting <- class(df_baci[,"var_weighting"])
-    stop(glue::glue("The column {var_weighting} in df_baci must be a numeric, not a {class_column_var_weighting}"))
-  }
-
   # Check if na.rm is logical
   if (!is.logical(na.rm)){
     class_na.rm <- class(na.rm)
@@ -293,7 +272,6 @@ classification_fontagne_2007 <- function(df_baci, alpha, var_weighting, na.rm){
       .by = c(t, k),
       med_ref_t_k = matrixStats::weightedMedian(uv, w = !!dplyr::sym(var_weighting), na.rm = na.rm)
     )  |>
-    arrow::arrow_table() |>
     # Find th share of each flow that belong to each variety
     # If 0 : This flow has no share in this variety
     dplyr::mutate(
@@ -362,12 +340,6 @@ classification_berthou_2011 <- function(df_baci, var_weighting, na.rm){
     stop(glue::glue("The column {var_weighting} must be present in df_baci."))
   }
 
-  # Check if `var_weighting` is a numerical variable if `df_baci`
-  if (!is.numeric(df_baci[,"var_weighting"])){
-    class_column_var_weighting <- class(df_baci[,"var_weighting"])
-    stop(glue::glue("The column {var_weighting} in df_baci must be a numeric, not a {class_column_var_weighting}"))
-  }
-
   # Check if na.rm is logical
   if (!is.logical(na.rm)){
     class_na.rm <- class(na.rm)
@@ -393,7 +365,6 @@ classification_berthou_2011 <- function(df_baci, var_weighting, na.rm){
       weight_share = .data[[var_weighting]] / sum(.data[[var_weighting]], na.rm = na.rm),
       geomean_ref_t_k_j = weighted_geomean(uv, weight_share, na.rm = na.rm)
     ) |>
-    arrow::arrow_table() |>
     dplyr::mutate(
       berthou_2011 =
         dplyr::case_when(
@@ -824,25 +795,7 @@ flow_classification <- function(baci, years = NULL, codes = NULL,
           var_weighting = var_weighting,
           na.rm = na.rm
         )
-    )
-
-  # A logical indicating whether a collect must be made in order to return or save in csv
-  # A collect must be made when the file must be saved in csv file
-  # Or when the function must return an R object
-  must_collect <- 
-    dplyr::case_when(
-      !is.null(path_output) && tools::file_ext(path_output) == "csv" ~ "TRUE",
-      return_output == TRUE && return_arrow == FALSE ~ "TRUE",
-      .default = "FALSE"
-    )
-
-  # Collect df_baci if needed -> only collect one time
-  df_baci <-
-    switch(
-      must_collect,
-      "TRUE" = df_baci  |> dplyr::collect(),
-      "FALSE" = df_baci
-    )
+    ) # Output is in R dataframe format
 
   # Save output if needed in the right format
   if (!is.null(path_output)){
@@ -864,7 +817,7 @@ flow_classification <- function(baci, years = NULL, codes = NULL,
   # Return output if needed
   if (return_output == TRUE){
     # If return an arrow object and df_baci has been collect : go to arrow format
-    if (return_arrow == TRUE && must_collect == 1){
+    if (return_arrow == TRUE){
       return(df_baci |> arrow::arrow_table()) 
     }
     # Else return df_baci collected or not
@@ -880,7 +833,4 @@ utils::globalVariables(c("alpha_H", "alpha_L", "med_ref_t_k", "v", "q", "uv",
                          "r", "share_L", "share_M", "share_H", "v_L", "v_M",
                          "v_H", "weight_share", "geomean_ref_t_k_j",
                          "berthou_2001"))
-
-
-
 
