@@ -15,15 +15,17 @@ add_chelem_classification(
   codes = NULL,
   export_countries = NULL,
   import_countries = NULL,
-  path_output = NULL,
-  return_output = FALSE,
-  return_arrow = FALSE
+  return_output = TRUE,
+  return_arrow = TRUE,
+  path_output = NULL
 )
 }
 \arguments{
-\item{baci}{Data to be loaded. Can be a path to a csv or an excel file.
+\item{baci}{BACI data. Can be a path to a csv file.
 It can also be a path to a folder containing
-parquet files. Dataframe and ArrowObject are also accepted.}
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
 \item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
@@ -36,18 +38,18 @@ exporter countries to be kept in the variable \code{exporter} or \code{i}.}
 \item{import_countries}{Character or numeric vector indicating the importer
 countries to be kept in the variable \code{importer} or \code{j}.}
 
-\item{path_output}{Path to save the final data. If NULL (default), the data
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
+
+\item{return_arrow}{Logical indicating whether data must be return in an
+arrow format (TRUE the default) or not if \code{return_output = TRUE}.
+By default data are returned to arrow format.}
+
+\item{path_output}{Path to save the data. If NULL (default), the data
 will not be saved. If \code{path_output} ends with a '.csv' extension, the data
 will be saved in csv format. If no extension is given, the data will be
 saved in a dataset parquet format in the specified folder. See the
 \link[arrow]{arrow} package.}
-
-\item{return_output}{Logical indicating whether data must be returned or not.
-By default data are not returned after this function.}
-
-\item{return_arrow}{Logical indicating whether data must be return in an
-arrow format (TRUE) or not if \code{return_output = TRUE}. By default data are
-returned to a tibble format.}
 }
 \value{
 BACI data with the CHELEM classification. The following variables are
@@ -66,7 +68,7 @@ with the world region classification of the database
 \href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17}{CHELEM}.
 Each exporter and importer is assigned to a geographical region. The merge is
 made with the \link{chelem_classification} dataframe present in this package.
-The filtering of the data (if wanted is made with the \link{filter_baci}
+The filtering of the data (if wanted is made with the \link{.filter_baci}
 function of this package.)
 }
 \details{
@@ -127,5 +129,9 @@ Countries not included in the CHELEM classification are included in the RoW
 ##   return_arrow = FALSE
 ## )
 
-
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} for more informations concerning the loading of data
+\code{\link[=.filter_baci]{.filter_baci()}} for more informations concerning the filtering of data.
+\code{\link[=.export_data]{.export_data()}} for more informations concerning the export of data.
 }

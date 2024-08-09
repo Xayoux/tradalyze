@@ -9,7 +9,7 @@
 #' [CHELEM](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17).
 #' Each exporter and importer is assigned to a geographical region. The merge is
 #' made with the \link{chelem_classification} dataframe present in this package.
-#' The filtering of the data (if wanted is made with the \link{filter_baci}
+#' The filtering of the data (if wanted is made with the \link{.filter_baci}
 #' function of this package.)
 #'
 #' @details
@@ -42,19 +42,14 @@
 #'
 #' Countries not included in the CHELEM classification are included in the RoW
 #' (Rest of the World) classification. See \link{chelem_classification}
-#' 
 #'
-#' @inheritParams filter_baci
-#' @param path_output Path to save the final data. If NULL (default), the data
-#' will not be saved. If `path_output` ends with a '.csv' extension, the data
-#' will be saved in csv format. If no extension is given, the data will be
-#' saved in a dataset parquet format in the specified folder. See the
-#' \link[arrow]{arrow} package. 
-#' @param return_output Logical indicating whether data must be returned or not.
-#' By default data are not returned after this function. 
-#' @param return_arrow Logical indicating whether data must be return in an
-#' arrow format (TRUE) or not if `return_output = TRUE`. By default data are
-#' returned to a tibble format.
+#' @param baci BACI data. Can be a path to a csv file.
+#' It can also be a path to a folder containing
+#' parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+#' also accepted, but absolutely not recommended because BACI data are too large
+#' and data must be in the first sheet.
+#' @inheritParams .filter_baci
+#' @inheritParams .export_data
 #' 
 #' @return BACI data with the CHELEM classification. The following variables are
 #' added :
@@ -89,7 +84,11 @@
 #' ##   return_output = TRUE,
 #' ##   return_arrow = FALSE
 #' ## )
-#' 
+#'
+#' @seealso
+#' [.load_data()] for more informations concerning the loading of data
+#' [.filter_baci()] for more informations concerning the filtering of data.
+#' [.export_data()] for more informations concerning the export of data.
 #' 
 #' @source [CHELEM classification of the CEPII](<http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=17>).
 #' See :
@@ -101,43 +100,29 @@
 ## Definition ---------------------------------------------------------------
 add_chelem_classification <- function(baci, years = NULL, codes = NULL,
                                       export_countries = NULL, import_countries = NULL,
-                                      path_output = NULL, return_output = FALSE,
-                                      return_arrow = FALSE){
+                                      return_output = TRUE, return_arrow = TRUE,
+                                      path_output = NULL){
 
   ## Error messages ----------------------------------------------------------
-  # Stop if `path_output` is not null or a character
-  if (!is.null(path_output) & !is.character(path_output)){
-    class_path_output <- class(path_output)
-    stop(stringr::str_glue("path_output must be NULL or a character. Not a {class_path_output}."))
-  }
-
-  # Stop if the extension of `path_output` is != of "" or "csv"
-  if (!tools::file_ext(path_output) %in% c("", "csv")){
-    extension_path_output <- tools::file_ext(path_output)
-    stop(stringr::str_glue("The extension of path output (if provided) must be \"csv\" not {extension_path_output}."))
-  }
-
-  # Stop if `return_output` is not a logical
-  if (!is.logical(return_output)){
-    class_return_output <- class(return_output)
-    stop(stringr::str_glue("return_output must be a logical not a {class_return_output}."))
-  }
-
-  # Stop if `return_arrow` is not a logical
-  if (!is.logical(return_arrow)){
-    class_return_arrow <- class(return_arrow)
-    stop(stringr::str_glue("return_arrow must be a logical not a {class_return_arrow}."))
-  }
+  # Check validity of export parameters
+  tradalyze::.export_data(
+    data = NULL,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = FALSE,
+    collect = NULL
+  )
 
   ## Add chelem classification to the data -----------------------------------
   # Load the data
-  df_baci <- tradalyze::load_data(baci)
+  df_baci <- tradalyze::.load_data(baci)
 
   
   # Filter the data
   df_baci <-
-    tradalyze::filter_baci(
-      baci = df_baci,
+    tradalyze::.filter_baci(
+      df_baci = df_baci,
       years = years,
       codes = codes,
       export_countries = export_countries,
@@ -180,37 +165,17 @@ add_chelem_classification <- function(baci, years = NULL, codes = NULL,
       importer_iso_region = iso_region,
       importer_name_region = name_region
     )
-  
 
-  # Save data in parquet format if wanted
-  if (!is.null(path_output)){
-    # If there is a csv extension to the path save to csv
-    if (tools::file_ext(path_output) == "csv"){
-      # Check if readr is installed to read the country-code csv
-      rlang::check_installed("readr", reason = "\n\nNecessary to write in csv format.")
-      df_baci |>
-        dplyr::collect() |>
-        readr::write_csv(path_output)
-    }
-    # Otherwise save to parquet format by years
-    else {
-      df_baci |>
-        dplyr::group_by(t) |>
-        arrow::write_dataset(path_output)
-    }   
-  }
-  
-
-  # Return data if wanted
-  if (return_output == TRUE){
-    # Return in arrow format
-    if (return_arrow == TRUE){
-      return(df_baci)
-    }
-    # Return in R dataframe format
-    else {
-      return(df_baci |>  dplyr::collect())
-    }
-  }
+  # Export the data
+  tradalyze::.export_data(
+    data = df_baci,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = TRUE,
+    collect = FALSE
+  )
 }
+
+
 
