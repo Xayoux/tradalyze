@@ -1,7 +1,7 @@
 # Documentation ------------------------------------------------------------
 #' @title Load the Data in Arrow Format
 #'
-#' @description Take data and load itin arrow format. Data can be a path to
+#' @description Take data and load it in arrow format. Data can be a path to
 #' a csv or an excel file. It can also be a path to a folder containing
 #' parquet files. Dataframe and ArrowObject are also accepted.
 #' 
@@ -13,19 +13,19 @@
 #'
 #' @examples
 #' # Load data of a folder containing parquet files
-#' # load_data(here::here("folder-parquet-files"))
+#' # .load_data(here::here("folder-parquet-files"))
 #'
 #' # Load data of an ArrowObject
 #' # here::here("folder-parquet-files")  |>
 #' #   arrow::open_dataset() |>
-#' #   load_data()
+#' #   .load_data()
 #'
 #' # Load data of a csv file
-#' # load_data(here::here("csv-file.csv"))
+#' # .load_data(here::here("csv-file.csv"))
 #'
 #' @export
 # Function -----------------------------------------------------------------
-load_data <- function(data){
+.load_data <- function(data){
   data_class <- class(data)
   # Test if data is a path or a dataframe or an arrow object
   if (!is.character(data) & !is.data.frame(data) & !"ArrowObject" %in% data_class){

@@ -24,11 +24,13 @@
 #' - \strong{j} : Numeric type. Used with `import_countries` with numeric inputs.
 #' - \strong{importer} : Character type. Used with `import_countries` with character inputs.
 #'
-#' Data are loaded in ArrowObject with the function \code{\link[=load_data]{load_data}}.
+#' Data are loaded in ArrowObject with the function \code{\link{.load_data}}.
 #' 
-#' @param baci Data to be loaded. Can be a path to a csv or an excel file.
+#' @param df_baci BACI data. Can be a path to a csv file.
 #' It can also be a path to a folder containing
-#' parquet files. Dataframe and ArrowObject are also accepted.
+#' parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+#' also accepted, but absolutely not recommended because BACI data are too large
+#' and data must be in the first sheet.
 #' @param years Numeric vector indicating the years to be kept in the variable `t`.
 #' @param codes Character vector indicating the product codes to be kept in the
 #' variable `k`.
@@ -55,7 +57,7 @@
 #' @export
 # Fonction ------------------------------------------------------------------
 ## Definition ---------------------------------------------------------------
-filter_baci <- function(baci, years = NULL, codes = NULL,
+.filter_baci <- function(df_baci, years = NULL, codes = NULL,
                         export_countries = NULL, import_countries = NULL){
 
   ## Error messages ---------------------------------------------------------
@@ -85,7 +87,7 @@ filter_baci <- function(baci, years = NULL, codes = NULL,
 
   ## Filter data ------------------------------------------------------------
   # Load the data : loaded in format arrow
-  df_baci <- tradalyze::load_data(baci)
+  ## df_baci <- tradalyze::load_data(baci)
 
   # Filter the years : variable t
   if (!is.null(years)){
