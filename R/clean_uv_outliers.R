@@ -1,398 +1,996 @@
-# Fonction ----------------------------------------------------------------
-#' @title
-#' Déterminer et filtrer les outliers des valeurs unitaires dans BACI
+#' @title Method Classic for Detecting Outliers
 #'
-#' @description
-#' Détermine les outliers dans la distribution des valeurs unitaires de BACI
-#' et peut les retirer du jeu de données afin d'essayer d'éviter des biais
-#' dans les mesures.
+#' @param df_baci BACI dataframe
+#' @param alpha_H Threshold for high outliers
+#' @param alpha_L Threshold for low outliers
+#' @param na.rm Exclude NA or not
+#' @return BACI df with outliers Highlighted (R dataframe format)
+method_classic <- function(df_baci, alpha_H, alpha_L, na.rm){  
+  # Check if alpha_H is numeric
+  if (!is.numeric(alpha_H)){
+    clas_alpha_H <- class(alpha_H)
+    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
+  }
+
+  # Check if alpha_H is length 1
+  length_alpha_H <- length(alpha_H)
+  if (length_alpha_H != 1){
+    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
+  }
+
+  # Check if alpha_H is >= 0 and <= 1
+  if (alpha_H < 0 | alpha_H > 1){
+    stop(glue::glue("alpha_H must be between [0,1], not {alpha_H}."))
+  }
+  
+  # Check if alpha_L is numeric
+  if (!is.numeric(alpha_L)){
+    clas_alpha_L <- class(alpha_L)
+    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
+  }
+
+  # Check if alpha_L is length 1
+  length_alpha_L <- length(alpha_L)
+  if (length_alpha_L != 1){
+    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
+  }
+
+  # Check if alpha_L is >= 0 and <= 1
+  if (alpha_L < 0 | alpha_L > 1){
+    stop(glue::glue("alpha_L must be between [0,1], not {alpha_L}."))
+  }
+
+  # Check if alpha_H > alpha_L
+  if (alpha_H < alpha_L){
+    stop("alpha_H ({alpha_H}) must be greater than alpha_L ({alpha_L}).")
+  }
+
+  # Check if na.rm is logical
+  if (!is.logical(na.rm)){
+    class_na.rm <- class(na.rm)
+    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
+  }
+
+  # Check if na.rm is length 1
+  length_na.rm <- length(na.rm)
+  if (length_na.rm != 1){
+    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
+  }
+
+  # Check if columns `t`, `k` are present in `df_baci`
+  columns <- c("t", "k")
+  is_column_present <- rlang::has_name(df_baci, columns)
+  if (FALSE %in% is_column_present){
+    columns_absent <- columns[which(columns == FALSE)]
+    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
+  }
+
+  # Compute outliers
+  df_baci <-
+    df_baci  |>
+    dplyr::mutate(
+      # Check if uv is in the upper distribution of group t-k
+      .by = c(t, k),
+      outlier =
+        dplyr::case_when(
+          uv >= stats::quantile(uv, alpha_H, na.rm = na.rm) ~ 1,
+          uv <= stats::quantile(uv, alpha_L, na.rm = na.rm) ~ -1,
+          .default = 0
+        )
+    )
+
+  return(df_baci)
+}
+
+#' @title Method fh13 for Detecting Outliers
 #'
-#' @details
-#' Les valeurs unitaires calculées à partir de BACI peuvent contenir des
-#' outliers assez importants. En effet, les valeurs unitaire sont calculées
-#' en divisant la valeur des exportations par la quantité exportée. Ces
-#' dernières peuvent être sujettes à un certain nombre d'erreurs et leur
-#' fiabilité n'est pas toujours garantie.
-#'
-#' Pour éviter que ces valeurs ne biaisent les analyses, il peut être recommandé
-#' de supprimer les outliers de la distribution des valeurs unitaires. Cette
-#' fonction permet de déterminer les outliers selon quatre méthodes différentes:
-#'
-#' - La méthode 'classic' détermine les outliers en fonction des quantiles de
-#' la distribution des valuers unitaires par année-produit. Si la valeur
-#' unitaire est supérieure au quantile déterminé par `seuil_H` ou inférieure
-#' au quantile déterminé par `seuil_L`, alors elle est considérée comme un
-#' outlier.
-#'
-#' - La méthode 'fh13' qui provient de l'article de
-#' [Fontagné & Hatte (2013)](https://pse.hal.science/hal-00959394/) détermine
-#' les outliers en fonction de la différence entre la valeur unitaire et la
-#' moyenne des valeurs unitaires par produit (de toute la période). Si la
-#' différence est supérieure au quantile déterminé par `seuil_H` ou inférieure
-#' au quantile déterminé par `seuil_L`, alors elle est considérée comme un
-#' outlier. La distribution des différences peut être celle de toutes les
-#' valeurs unitaires ou celle des valeurs unitaires par produit selon le
-#' paramètre `whole`.
-#'
-#' - La méthode 'h06' qui provient de l'article de
-#' [Hallak (2006)](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
-#' détermine les outliers en fonction de la moyenne des valeurs unitaires par
-#' produit, exportateur et année. Si la valeur unitaire est supérieure à la
-#' moyenne multipliée par `seuil_H` ou inférieure à la moyenne divisée par
-#' `seuil_L`, alors elle est considérée comme un outlier.
-#'
-#' - la méthode 'sd' détermine les outliers comme étant les flux dont la
-#' différence entre la valeur unitaire et la moyenne produit-année est
-#' supérieure à un certain nombre de fois l'écart-type de cette différence, ou
-#' inférieure un nombre de fois à l'opposé de l'écart-type de cette différence.
-#'
-#' - La méthode 'be11' qui provient de l'article de
-#' [Berthou & Emlinger (2011)](http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf)
-#' détermine les outliers en fonction de la médiane des
-#' valeurs unitaires par produit-année. Si la valeur unitaire est supérieure à
-#' la médiane multipliée par `seuil_H` ou inférieure à la médiane divisée par
-#' `seuil_L`, alors elle est considérée comme un outlier. De plus, si la valeur
-#' unitaire est supérieure à la valeur unitaire précédente ou suivante
-#' multipliée par 1000, alors elle est considérée comme un outlier.
-#'
-#' La fonction permet de garder ou non les outliers dans les données.
-#'
-#'
-#'
-#' @param baci Peut être un  chemin d'accès vers le dossier contenant
-#' les données de BACI au format parquet. Peut également être un dataframe ou
-#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
-#' les opérations entre elles. ce paramètre est obligatoire.
-#' @param years Années à garder dans les données. Si NULL, toutes les années
-#' sont gardées.
-#' @param codes Codes à garder dans les données. Si NULL, tous les codes sont
-#' gardés.
-#' @param method Méthode de détermination des outliers. Peut être 'classic',
-#' 'fh13', 'h06', 'sd', ou 'be11'.
-#' @param seuil_H Seuil supérieur pour la détermination des outliers. Doit
-#' être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.
-#' @param seuil_L Seuil inférieur pour la détermination des outliers. Doit
-#' être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.
-#' @param visualisation Booléen pour déterminer si les données exportées
-#' doivent contenir les outliers ainsi que les variables pour les déterminer
-#' ou non.
-#' @param path_output Chemin vers le dossier où exporter les données en format
-#' parquet. Si NULL, les données ne sont pas exportées.
-#' @param return_output Booléen pour déterminer si les données doivent être
-#' retournées.
-#' @param return_pq Booléen pour indiquer si les données doivent être retournées
-#' en format arrow si TRUE. Par défaut : FALSE.
-#'
-#'
-#' @return Un dataframe arrow contenant les données nettoyées des outliers.
-#' @export
-#'
-#' @examples # Pas d'exemples.
-#' @source [Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.](https://pse.hal.science/hal-00959394/)
-#' @source [Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
-#' @source [Antoine Berthou & Charlotte Emlinger , 2011. "The Trade Unit Values Database," CEPII Working Paper 2011- 10 , April 2011 , CEPII.](http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf)
-
-clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
-                              method = "classic", seuil_H, seuil_L,
-                              visualisation = FALSE, path_output = NULL,
-                              return_output = FALSE, return_pq = FALSE) {
-
-  # Messages d'erreurs si mauvais paramètres --------------------------------
-  # Message d'erreur si years n'est pas NULL ou un vecteur de numériques
-  if (!is.null(years) & !is.numeric(years)) {
-    stop("years doit \uEAtre NULL ou un vecteur de num\uE9riques")
+#' @param df_baci BACI dataframe
+#' @param alpha_H Threshold for high outliers
+#' @param alpha_L Threshold for low outliers
+#' @param na.rm Exclude NA or not
+#' @param rm_temp_var Remove temporary variables or not
+#' @return BACI df with outliers Highlighted (R dataframe format)
+method_fh13 <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
+  # Check if alpha_H is numeric
+  if (!is.numeric(alpha_H)){
+    clas_alpha_H <- class(alpha_H)
+    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
   }
 
-  # Message d'erreur si codes n'est pas NULL ou un vecteur de chaînes de caractères
-  if (!is.null(codes) & !is.character(codes)) {
-    stop("codes doit \uEAtre NULL ou un vecteur de cha\uEEnes de caract\uE8res")
+  # Check if alpha_H is length 1
+  length_alpha_H <- length(alpha_H)
+  if (length_alpha_H != 1){
+    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
   }
 
-  # Message d'erreur si method n'est pas un des trois choix possibles
-  if (!method %in% c("classic", "fh13", "h06", "sd", "be11")) {
-    stop("'method' doit \uEAtre 'classic', 'fh13', 'h06', 'sd' ou 'be11'")
+  # Check if alpha_H is >= 0 and <= 1
+  if (alpha_H < 0 | alpha_H > 1){
+    stop(glue::glue("alpha_H must be between [0,1], not {alpha_H}."))
+  }
+  
+  # Check if alpha_L is numeric
+  if (!is.numeric(alpha_L)){
+    clas_alpha_L <- class(alpha_L)
+    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
   }
 
-  # Message d'erreur si seuil_H n'est pas un numérique
-  if (!is.numeric(seuil_H)) {
-    stop("seuil_H doit \uEAtre un num\uE9rique")
+  # Check if alpha_L is length 1
+  length_alpha_L <- length(alpha_L)
+  if (length_alpha_L != 1){
+    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
   }
 
-  # Message d'erreur si seuil_L n'est pas un numérique
-  if (!is.numeric(seuil_L)) {
-    stop("seuil_L doit \uEAtre un num\uE9rique")
+  # Check if alpha_L is >= 0 and <= 1
+  if (alpha_L < 0 | alpha_L > 1){
+    stop(glue::glue("alpha_L must be between [0,1], not {alpha_L}."))
   }
 
-  # Message d'erreur si seuil_H est inférieur à seuil_L pour tout sauf 'sd'
-  if (method != "sd" & seuil_H < seuil_L) {
-    stop("seuil_H doit \uEAtre sup\uE9rieur \uE0 seuil_L")
+  # Check if alpha_H > alpha_L
+  if (alpha_H < alpha_L){
+    stop("alpha_H ({alpha_H}) must be greater than alpha_L ({alpha_L}).")
   }
 
-  # Message d'erreur si seuil_H est négatif
-  if (seuil_H < 0) {
-    stop("seuil_H doit \uEAtre positif")
+  # Check if na.rm is logical
+  if (!is.logical(na.rm)){
+    class_na.rm <- class(na.rm)
+    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
   }
 
-  # Message d'erreur si seuil_L est négatif
-  if (seuil_L < 0) {
-    stop("seuil_L doit \uEAtre positif")
+  # Check if na.rm is length 1
+  length_na.rm <- length(na.rm)
+  if (length_na.rm != 1){
+    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
   }
 
-  # Message d'erreur si Seuil_H n'est pas compris entre 0 et 1 si method != "h06", "sd", "be11"
-  if (!method %in% c("h06", "sd", "be11") & (seuil_H < 0 | seuil_H > 1)) {
-    stop("seuil_H doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
+  # Check if rm_temp_var is logical
+  if (!is.logical(rm_temp_var)){
+    class_rm_temp_var <- length(rm_temp_var)
+    stop(glue::glue("rm_temp_var must be a logical, not a {class_rm_temp_var}."))
   }
 
-  # Message d'erreur si Seuil_L n'est pas compris entre 0 et 1 si method != "h06"
-  if (!method %in% c("h06", "sd", "be11") & (seuil_L < 0 | seuil_L > 1)) {
-    stop("seuil_L doit \uEAtre compris entre 0 et 1 pour l'utilisation des m\uE9thodes 'classic' et 'fh13'")
+  # Check if rm_temp_var is length 1
+  length_rm_temp_var <- length(rm_temp_var)
+  if (length_rm_temp_var != 1){
+    stop(glue::glue("rm_temp_var must be length 1, not length {length_rm_temp_var}."))
   }
 
-  # Message d'erreur si visualisation n'est pas un booléen
-  if (!is.logical(visualisation)) {
-    stop("visualisation doit \uEAtre un bool\uE9en")
-  }
-
-  # Message d'erreur si path_output n'est pas une chaîne de caractère
-  if (!is.null(path_output) & !is.character(path_output)) {
-    stop("path_output doit \uEAtre NULL ou une cha\uEEne de caract\uE8re")
-  }
-
-  # Message d'erreur si return_output n'est pas un booléen
-  if (!is.logical(return_output)) {
-    stop("return_output doit \uEAtre un bool\uE9en")
-  }
-
-  # Message d'erreur si return_pq n'est pas un booléen
-  if (!is.logical(return_pq)) {
-    stop("return_pq doit \uEAtre un bool\uE9en")
-  }
-
-  # Message d'avertissement si return_output = FALSE et return_pq = TRUE
-  if (return_output == FALSE & return_pq == TRUE){
-    message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
+  # Check if column `k` is present in `df_baci`
+  columns <- c("k")
+  is_column_present <- rlang::has_name(df_baci, columns)
+  if (FALSE %in% is_column_present){
+    columns_absent <- columns[which(columns == FALSE)]
+    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
   }
 
 
-  # Préparation des données -------------------------------------------------
-  # Ouvrir les données de BACI
-  if (is.character(baci) == TRUE){
-    # Ouvrir les données depuis un dossier parquet
-    df_baci <-
-      baci |>
-      arrow::open_dataset()
-  }
-  else if (is.data.frame(baci) == TRUE){
-    # Ouvrir les données depuis un dataframe : passage en format arrow
-    df_baci <-
-      baci |>
-      arrow::arrow_table()
-  }
-  else{
-    # Ouvrir les données depuis format arrow : rien à faire
-    df_baci <- baci
-  }
+  # Compute outliers
+  df_baci <-
+    df_baci |>
+    # Compute the diff between the uv and the mean of group k
+    dplyr::mutate(
+      .by = k,
+      mean_diff_k = uv - mean(uv, na.rm = na.rm)
+    ) |>
+    dplyr::mutate(
+      # Check if mean diff is in the upper of lower distribution of the mean diff
+      outlier =
+        dplyr::case_when(
+          mean_diff_k >= stats::quantile(mean_diff, alpha_H, na.rm = na.rm) ~ 1,
+          mean_diff_k <= stats::quantile(mean_diff, alpha_L, na.rm = na.rm) ~ -1,
+          .default = 0
+        )
+    )
 
-  # Ne garder que les années sélectionnées (s'il y a une sélection)
-  if (!is.null(years)) {
+  # Remove temporary variable if wanted
+  if (rm_temp_var == TRUE){
     df_baci <-
       df_baci |>
-      dplyr::filter(t %in% years)
+      dplyr::select(!mean_diff_k)
   }
 
-  # Ne garder que les codes sélectionnés (s'il y a une sélection)
-  if (!is.null(codes)) {
-    df_baci <-
-      df_baci |>
-      dplyr::filter(k %in% codes)
+  return(df_baci)
+}
+
+
+#' @title Method h06 for Detecting Outliers
+#'
+#' @param df_baci BACI dataframe
+#' @param alpha_H Threshold for high outliers
+#' @param alpha_L Threshold for low outliers
+#' @param na.rm Exclude NA or not
+#' @return BACI df with outliers Highlighted (R dataframe format)
+method_h06 <- function(df_baci, alpha_H, alpha_L, na.rm){
+    # Check if alpha_H is numeric
+  if (!is.numeric(alpha_H)){
+    clas_alpha_H <- class(alpha_H)
+    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
   }
 
-  # Caluler les valeurs unitaires pour chaque flux
+  # Check if alpha_H is length 1
+  length_alpha_H <- length(alpha_H)
+  if (length_alpha_H != 1){
+    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
+  }
+
+  # Check if alpha_H is > 0
+  if (alpha_H >= 0){
+    stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
+  }
+  
+  # Check if alpha_L is numeric
+  if (!is.numeric(alpha_L)){
+    clas_alpha_L <- class(alpha_L)
+    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
+  }
+
+  # Check if alpha_L is length 1
+  length_alpha_L <- length(alpha_L)
+  if (length_alpha_L != 1){
+    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
+  }
+
+  # Check if alpha_L is > 0
+  if (alpha_L >= 0){
+    stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
+  }
+
+  # Check if na.rm is logical
+  if (!is.logical(na.rm)){
+    class_na.rm <- class(na.rm)
+    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
+  }
+
+  # Check if na.rm is length 1
+  length_na.rm <- length(na.rm)
+  if (length_na.rm != 1){
+    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
+  }
+
+  # Check if column `k`, `i`, `t` is present in `df_baci`
+  columns <- c("k", "i", "t")
+  is_column_present <- rlang::has_name(df_baci, columns)
+  if (FALSE %in% is_column_present){
+    columns_absent <- columns[which(columns == FALSE)]
+    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
+  }
+
+  # Compute outliers
+  df_baci <-
+    df_baci  |>
+    dplyr::mutate(
+      .by = c(k, i, t),
+      outlier =
+        dplyr::case_when(
+          uv > mean(uv, na.rm = na.rm) * alpha_H ~ 1,
+          uv < mean(uv, na.rm = na.rm) / alpha_L ~ -1,
+          .default = 0
+        )
+    ) 
+
+  return(df_baci)
+}
+
+
+#' @title Method sd for Detecting Outliers
+#'
+#' @param df_baci BACI dataframe
+#' @param alpha_H Threshold for high outliers
+#' @param alpha_L Threshold for low outliers
+#' @param na.rm Exclude NA or not
+#' @param rm_temp_var Remove temporary variables or not
+#' @return BACI df with outliers Highlighted (R dataframe format)
+method_sd <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
+    # Check if alpha_H is numeric
+  if (!is.numeric(alpha_H)){
+    clas_alpha_H <- class(alpha_H)
+    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
+  }
+
+  # Check if alpha_H is length 1
+  length_alpha_H <- length(alpha_H)
+  if (length_alpha_H != 1){
+    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
+  }
+
+    # Check if alpha_H is > 0
+  if (alpha_H >= 0){
+    stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
+  }
+  
+  # Check if alpha_L is numeric
+  if (!is.numeric(alpha_L)){
+    clas_alpha_L <- class(alpha_L)
+    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
+  }
+
+  # Check if alpha_L is length 1
+  length_alpha_L <- length(alpha_L)
+  if (length_alpha_L != 1){
+    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
+  }
+
+    # Check if alpha_L is > 0
+  if (alpha_L >= 0){
+    stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
+  }
+
+  # Check if na.rm is logical
+  if (!is.logical(na.rm)){
+    class_na.rm <- class(na.rm)
+    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
+  }
+
+  # Check if na.rm is length 1
+  length_na.rm <- length(na.rm)
+  if (length_na.rm != 1){
+    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
+  }
+
+  # Check if rm_temp_var is logical
+  if (!is.logical(rm_temp_var)){
+    class_rm_temp_var <- length(rm_temp_var)
+    stop(glue::glue("rm_temp_var must be a logical, not a {class_rm_temp_var}."))
+  }
+
+  # Check if rm_temp_var is length 1
+  length_rm_temp_var <- length(rm_temp_var)
+  if (length_rm_temp_var != 1){
+    stop(glue::glue("rm_temp_var must be length 1, not length {length_rm_temp_var}."))
+  }
+
+  # Check if columns `k`, `t` are present in `df_baci`
+  columns <- c("k", "t")
+  is_column_present <- rlang::has_name(df_baci, columns)
+  if (FALSE %in% is_column_present){
+    columns_absent <- columns[which(columns == FALSE)]
+    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
+  }
+
+  # Perform computation of outliers
   df_baci <-
     df_baci |>
     dplyr::mutate(
-      uv = v / q
+      .by = c(k, t),
+      mean_diff_k_t = uv - mean(uv, na.rm = na.rm),
+      sd_k_t = stats::sd(mean_diff_k_t, na.rm = na.rm),
+      outlier =
+        dplyr::case_when(
+          mean_diff_k_t > alpha_H * sd_k_t ~ 1,
+          mean_diff_k_t < -alpha_L * sd_k_t ~ -1,
+          .default = 0
+        )
     )
 
-
-  # Détermination des outliers ----------------------------------------------
-  # Une vu est un outlier si elle est supérieure ou inférieure aux quantiles
-  # déterminés par 'seuil_H' et 'seuil_L' selon la distribution des vu
-  # par années-produit.
-  if (method == "classic"){
+  # Remove temporary variables if wanted
+  if (rm_temp_var == TRUE){
     df_baci <-
-      df_baci |>
-      # Passer les données en format R -> calcul des quantiles
-      dplyr::collect() |>
-      # Définir les outliers par année-produit
-      dplyr::mutate(
-        .by = c(t, k),
-        extreme =
-          dplyr::case_when(
-            uv >= quantile(uv, seuil_H, na.rm = TRUE) ~ 1,
-            uv <= quantile(uv, seuil_L, na.rm = TRUE) ~ -1
-          )
-      )
+      df_baci  |>
+      dplyr::select(!c(mean_diff_k_t, sd_k_t))
   }
 
-  # Une valeur unitaire est un outlier si sa différence avec la moyenne des
-  # valeurs unitaires (par produit) se trouve en dehors des quantiles déterminés
-  # par 'seuil_H' et 'seuil_L'. La distribution choisie dépend du paramètre
-  # 'whole'. S'il est TRUE alors la distribution est celle de toutes les valeurs
-  # unitaires, sinon elle est celle des valeurs unitaires par produit.
-  if (method == "fh13"){
-    df_baci <-
-      df_baci |>
-      # Passer les données en format R -> calcul des quantiles / moyenne
-      dplyr::collect() |>
-      # Calculer la différence entre la valeur unitaire et la moyenne par produit
-      dplyr::mutate(
-        .by = k,
-        mean_diff = uv - mean(uv, na.rm = TRUE)
-      ) |>
-        dplyr::mutate(
-          extreme =
-            dplyr::case_when(
-              mean_diff >= quantile(mean_diff, seuil_H, na.rm = T) ~ 1,
-              mean_diff <= quantile(mean_diff, seuil_L, na.rm = T) ~ -1
-            )
-        )
+  return(df_baci)
+}
 
-    # Enlever les variables calculées si visualisation est FALSE
-    if (visualisation == FALSE){
-      df_baci <-
-        df_baci |>
-        dplyr::select(!c(mean_diff))
-    }
+
+#' @title Method be11 for Detecting Outliers
+#'
+#' @param df_baci BACI dataframe
+#' @param alpha_H Threshold for high outliers
+#' @param alpha_L Threshold for low outliers
+#' @param beta Threshold for temporal outliers
+#' @param na.rm Exclude NA or not
+#' @param rm_temp_var Remove temporary variables or not
+#' @return BACI df with outliers Highlighted (R dataframe format)
+method_be11 <- function(df_baci, alpha_H, alpha_L, beta, na.rm, rm_temp_var){
+  # Check if alpha_H is numeric
+  if (!is.numeric(alpha_H)){
+    clas_alpha_H <- class(alpha_H)
+    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
   }
 
-  # Une valeur unitaire est définie comme étant un outlier si elle est
-  # supérieure ou inférieure à la moyenne des vu (produit, exportateur, année)
-  # multipliée ou divisée par 'seuil_H' ou 'seuil_L' respectivement.
-  if (method == "h06"){
-    df_baci <-
-      df_baci |>
-      # Passer les données en format R -> calcul des moyennes
-      dplyr::collect() |>
-      # Définir les outliers par produit, exportateur et année
-      dplyr::mutate(
-        .by = c(k, i, t),
-        extreme =
-          dplyr::case_when(
-            uv > mean(uv, na.rm = TRUE) * seuil_H ~ 1,
-            uv < mean(uv, na.rm = TRUE) / seuil_L ~ -1
-          )
-      )
+  # Check if alpha_H is length 1
+  length_alpha_H <- length(alpha_H)
+  if (length_alpha_H != 1){
+    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
   }
 
-  # Une valeur unitaire est un outlier si sa différence avec la moyenne des
-  # valeurs unitaires (par produit-année) est supérieure ou inférieure à
-  # 'seuil_H' ou 'seuil_L' fois l'écart-type de cette différence.
-  if (method == "sd"){
-    df_baci <-
-      df_baci |>
-      # Passage format R car calcul de groupes pas pris par arrow
-      dplyr::collect() |>
-      # Calcul de la différence entre la valeur unitaire et la moyenne par kt
-      dplyr::mutate(
-        .by = c(k, t),
-        mean_diff = uv - mean(uv, na.rm = TRUE)
-      ) |>
-      # Définition des outliers en fonction de l'écart-type
-      dplyr::mutate(
-        .by = c(t,k),
-        ecart_type = stats::sd(mean_diff, na.rm = TRUE),
-        extreme =
-          dplyr::case_when(
-            mean_diff > seuil_H * ecart_type ~ 1,
-            mean_diff < - seuil_L * ecart_type ~ -1
-          )
-      )
-
-    # Enelver les variables intermédiaires de comparaison
-    if (visualisation == FALSE){
-      df_baci <-
-        df_baci |>
-        dplyr::select(!c(mean_diff, ecart_type))
-    }
+  # Check if alpha_H is > 0
+  if (alpha_H >= 0){
+    stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
+  }
+  
+  # Check if alpha_L is numeric
+  if (!is.numeric(alpha_L)){
+    clas_alpha_L <- class(alpha_L)
+    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
   }
 
-  # Une valeur unitaire est un outlier si elle est supérieure à la médiane
-  # ikt multipliée par 'seuil_H' ou inférieure à la médiane ikt divisée par
-  # 'seuil_L'. De plus, une valeur unitaire est un outlier si elle est
-  # supérieure à la valeur unitaire précédente ou suivante multipliée par 1000.
-  if (method == "be11"){
-    df_baci <-
-      df_baci |>
-      # Passer les données en format R -> calcul des médianes
-      dplyr::collect() |>
-      # Calculer la médiane des valeurs unitaires par ikt
-      dplyr::mutate(
-        .by = c(i, k, t),
-        median_ikt = stats::median(uv, na.rm = TRUE)
-      ) |>
-      # Calculer les valeurs unitaires précédentes et suivantes
-      dplyr::mutate(
-        .by = c(i, j, k),
-        lag_ijk = dplyr::lag(uv, order_by = t),
-        lead_ijk = dplyr::lead(uv, order_by = t)
-      ) |>
-      # Passage au format arrow pour la mémoire et vitesse de calcul
-      # arrow::arrow_table() |>
-      # Définition des outliers
-      dplyr::mutate(
-        extreme =
-          dplyr::case_when(
-            # Outliers cross-section
-            uv > median_ikt * seuil_H ~ 1,
-            uv < median_ikt / seuil_L ~ -1,
-            # Outliers temporels
-            uv > lag_ijk * 1000 ~ 0,
-            uv > lead_ijk * 1000 ~ 0
-          )
-      )
-
-    # Enelver les variables intermédiaires de comparaison
-      if (visualisation == FALSE){
-        df_baci <-
-          df_baci |>
-          dplyr::select(!c(median_ikt, lag_ijk, lead_ijk))
-      }
+  # Check if alpha_L is length 1
+  length_alpha_L <- length(alpha_L)
+  if (length_alpha_L != 1){
+    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
   }
 
-  # Exportation des données -------------------------------------------------
-  # Passer les données en format arrow
+  # Check if alpha_L is > 0
+  if (alpha_L >= 0){
+    stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
+  }
+
+  # Check if beta is numeric
+  if (!is.numeric(beta)){
+    clas_beta <- class(beta)
+    stop(glue::glue("beta must be a numeric, not a {class_beta}."))
+  }
+
+  # Check if beta is length 1
+  length_beta <- length(beta)
+  if (length_beta != 1){
+    stop(glue::glue("beta must be length 1, not length {length_beta}."))
+  }
+
+  # Check if na.rm is logical
+  if (!is.logical(na.rm)){
+    class_na.rm <- class(na.rm)
+    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
+  }
+
+  # Check if na.rm is length 1
+  length_na.rm <- length(na.rm)
+  if (length_na.rm != 1){
+    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
+  }
+
+  # Check if rm_temp_var is logical
+  if (!is.logical(rm_temp_var)){
+    class_rm_temp_var <- length(rm_temp_var)
+    stop(glue::glue("rm_temp_var must be a logical, not a {class_rm_temp_var}."))
+  }
+
+  # Check if rm_temp_var is length 1
+  length_rm_temp_var <- length(rm_temp_var)
+  if (length_rm_temp_var != 1){
+    stop(glue::glue("rm_temp_var must be length 1, not length {length_rm_temp_var}."))
+  }
+
+  # Check if columns `i`, `j`, `k`, `t` are present in `df_baci`
+  columns <- c("i", "j", "k", "t")
+  is_column_present <- rlang::has_name(df_baci, columns)
+  if (FALSE %in% is_column_present){
+    columns_absent <- columns[which(columns == FALSE)]
+    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
+  }
+
+  
+  # Computation of outliers
   df_baci <-
     df_baci |>
-    arrow::arrow_table()
+    dplyr::mutate(
+      .by = c(i, k, t),
+      median_i_k_t = stats::median(uv, na.rm = na.rm)
+    ) |>
+    dplyr::mutate(
+      .by = c(i, j, k),
+      lag_i_j_k = dplyr::lag(uv, order_by = t),
+      lead_i_j_k = dplyr::lead(uv, order_by = t)
+    ) |>
+    dplyr::mutate(
+      outlier =
+        dplyr::case_when(
+          # Cross section outliers
+          uv > median_i_k_t * alpha_H ~ 1,
+          uv < median_i_k_t / alpha_L ~ - 1,
+          # Temporal outliers
+          uv > lag_i_j_k * beta ~ 2,
+          uv > lead_i_j_k * beta ~ 2,
+          .default = 0
+        )
+    )
 
-  # Enlever les variables calculées si visualisation est FALSE
-  # Enlever les outlier si visualisation est FALSE
-  if (visualisation == FALSE){
+  # Remove temporary variables if wanted
+  if (rm_temp_var == TRUE){
     df_baci <-
-      df_baci |>
-      dplyr::filter(is.na(extreme)) |>
-      dplyr::select(!c(uv, extreme))
+      df_baci  |>
+      dplyr::select(!c(median_i_k_t, lag_i_j_k, lead_i_j_k))
   }
-
-  # Exporter les données en parquet
-  if (!is.null(path_output)){
-    df_baci |>
-      dplyr::group_by(t) |>
-      arrow::write_dataset(path_output)
-  }
-
-  # Retourner les données en format data.frame ou arrow
-  if (return_output == TRUE){
-    if (return_pq == TRUE){
-      return(df_baci)
-    }
-    else{
-      df_baci <-
-        df_baci |>
-        dplyr::collect()
-
-    return(df_baci)
-    }
-  }
+  
+  return(df_baci)
 }
+
+
+
+
+# Fonction ----------------------------------------------------------------
+#' @title Find and Filter Outliers in BACI database
+#'
+#' @description
+#' Identify outliers based on their unit value in the BACI database. These
+#' outliers can be removed from the database. Five methods are available to
+#' find outliers (see details for more information):
+#' - classic
+#'
+#' - fh13
+#'
+#' - h06
+#'
+#' - sd
+#'
+#' - be11
+#' @details
+#' Unit values (\eqn{uv = v / q}) calculated from BACI may contain some
+#' significant outliers. The quantity data taken from UN COMTRADE may be
+#' subject to some measurement errors. To avoid any bias, it is recommended
+#' to remove outliers.
+#' 
+#' # Methods
+#' ## classic
+#' ### Explications
+#' The "classic" method, available with `method = "classic"`, looks at the
+#' distribution of unit values for each group year-product. The unit value
+#' of is treated as an outlier with the following rule:
+#' - if : \eqn{uv < UV_{\alpha L}}
+#'
+#' - if : \eqn{uv > UV_{\alpha H}}
+#'
+#' where `alpha_H` (\eqn{\alpha H}) and `alpha_L` (\eqn{\alpha L}) are the
+#' quantiles of the distribution of unit values for each group annual product.
+#' `alpha_H` and `alpha_L` must be greater than 0 and less than 1 ;
+#' \eqn{UV_{\alpha L}} and \eqn{UV_{\alpha H}} are the value taken by the distribution
+#' of unit values for these quantiles.
+#'
+#' ### Requirement
+#' The following parameters are needed to perform this method : `baci`,
+#' `alpha_H`, `alpha_L`, `na.rm`, `outliers.rm`.
+#' 
+#' The following variables are needed to perform this method :
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#' }
+#'
+#' ### Return
+#' The following variables are returned
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#'   \item{uv}{Numeric : Unit value of the trade flow}
+#'   \item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+#' the unit value is a lower outlier. 0 if the unit value is not an outlier. This
+#' variable can be removed with `outliers.rm = TRUE`.}
+#' }
+#' All others variables present in the data are also returned.
+#'
+#' ## fh13
+#' ### Explications
+#' The fh13 method, available with `method = fh13`, is taken from.
+#' [Fontagné & Hatte (2013)](https://pse.hal.science/hal-00959394/). This
+#' method calculates the difference between the unit value and the mean of the
+#' unit values for each product group. The unit value is an outlier if:
+#' - \eqn{uv < UV_{\alpha L}}
+#'
+#' - \eqn{uv > UV_{\alpha H}}
+#'
+#' where `alpha_H` (\eqn{\alpha H}) and `alpha L` (\eqn{\alpha_L}) are the
+#' quantiles of the distribution of the mean differences of the unit values
+#' for each product group. `alpha_H` and `alpha_L` must be greater than 0 and
+#' less than 1; \eqn{UV_{\alpha L}} and \eqn{UV_{\alpha H}} are the value taken by the
+#' distribution of the mean differences for these quantiles.
+#'
+#'
+#' ### Requirement
+#' The following parameters are needed to perform this method : `baci`,
+#' `alpha_H`, `alpha_L`, `na.rm`, `outliers.rm`, `rm_temp_var`.
+#' 
+#' The following variables are needed to perform this method :
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#' }
+#'
+#' ### Return
+#' The following variables are returned
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#'   \item{uv}{Numeric : Unit value of the trade flow}
+#'   \item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+#' the unit value is a lower outlier. 0 if the unit is not an outlier. This
+#' variable can be unselected with `outliers.rm = TRUE`.}
+#'   \item{mean_diff_k}{Numeric : The difference between the unit value and the
+#' mean of unit values for each product group. This variable can be removed
+#' with `rm_temp_var = TRUE`.}
+#' }
+#' 
+#' All others variables present in the data are also returned.
+#'
+#' ## h06
+#' ### Explications
+## The h06 method, available with `method = "h06"` comes from
+## [Hallak (2006)](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516).
+## This method compute the mean of the unit values for each group
+## exporter-year-product. The unit value is considered to be an outlier if:
+#' - \eqn{uv < UV_{ikt} / \alpha_L}
+#'
+#' - \eqn{uv > UV_{ikt} * \alpha_H}
+#'
+#' with `alpha_H` (\eqn{\alpha_H}) and `alpha_L` (\eqn{\alpha_L}) two constant
+#' and \eqn{UV_{ikt}} the mean of unit values for each group exporter-year-product.
+#'
+#' ### Requirement
+#' The following parameters are needed to perform this method : `baci`,
+#' `alpha_H`, `alpha_L`, `na.rm`, `outliers.rm`.
+#' 
+#' The following variables are needed to perform this method :
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{i}{Numeric/character : Iso numeric or character of the exporter}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#' }
+#'
+#' ### Return
+#' The following variables are returned (at minimum)
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{i}{Numeric/character : Iso numeric or character of the exporter}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#'   \item{uv}{Numeric : Unit value of the trade flow}
+#'   \item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+#' the unit value is a lower outlier. 0 if the unit is not an outlier. This
+#' variable can be unselected with `outliers.rm = TRUE`}
+#' }
+#' 
+#' All others variables present in the data are also returned.
+#'
+#' ## sd
+#' ### Explications
+#' the sd method, available with `method= "sd"`, caclculates the difference
+#' between the unit value and the mean of the unit values for each 
+#' product-year group. It then calculates the standard deviation of these differences
+#' for each product-year group. A unit value
+#' is an outlier if:
+#' - \eqn{UV_{tk} < sd_{tk} * (-\alpha_L)}
+#' 
+#' - \eqn{UV_{tk} > sd_{tk} * \alpha_H}
+#'
+#' with `alpha_H` (\eqn{\alpha_H}) and `alpha_L` (\eqn{\alpha_L}) two constant
+#' and \eqn{sd_{tk}} the standard deviation of the distribution of the mean
+#' differences for each group year-product and \eqn{UV_{tk}} the difference between the
+#' unit value and the mean of unit values for each year-product group.
+#'
+#' ### Requirement
+#' The following parameters are needed to perform this method : `baci`,
+#' `alpha_H`, `alpha_L`, `na.rm`, `outliers.rm`, `rm_temp_var`.
+#' 
+#' The following variables are needed to perform this method :
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#' }
+#'
+#' ### Return
+#' The following variables are returned (at minimum)
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#'   \item{uv}{Numeric : Unit value of the trade flow}
+#'   \item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+#' the unit value is a lower outlier. 0 if the unit is not an outlier. This
+#' variable can be unselected with `outliers.rm = TRUE`}
+#'   \item{mean_diff_k_t}{Numeric : The difference between the unit value and the
+#' mean of unit values for each product group. This variable can be removed
+#' with `rm_temp_var = TRUE`.}
+#'   \item{sd_k_t}{Numeric : the standard deviation of `mean_diff_k_t`
+#' for each product group. This variable can be removed
+#' with `rm_temp_var = TRUE`.}
+#' }
+#' 
+#' All others variables present in the data are also returned.
+#'
+#' ## be11
+#' ### Explications
+#' The method be11, available with `method = "be11"`, is taken from
+#' [Berthou & Emlinger (2011)](http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf).
+#' It calculates the median of the unit value distribution for each
+#' exporter-product-year group. It then calculates the lag and lead of each
+#' unit value (group exporter-importer-product). The unit value is an outlier if:
+#' - \eqn{uv < UV_{ikt} / \alpha_L}
+#'
+#' - \eqn{uv > UV_{ikt} * \alpha_H}
+#'
+#' for the cross-section outliers. And the unit value will be a temporal outlier if:
+#' - \eqn{uv < lag_{ijk} * \beta}
+#' 
+#' - \eqn{uv > lag_{ijk} * \beta}
+#'
+#'
+#' Where `alpha_H` (\eqn{\alpha_H}) and `alpha_L` (\eqn{\alpha_L}) are two constant ;
+#' \eqn{UV_ikt} is the median of the unit value distribution for each group
+#' exporter-product-year ; \eqn{\beta} a constant ; \eqn{lag_{ijk}} and
+#' \eqn{lead_{ijk}} the lag and lead of the unit value.
+#'
+#' ### Requirement
+#' The following parameters are needed to perform this method : `baci`,
+#' `alpha_H`, `alpha_L`, `beta`, `na.rm`, `outliers.rm`, `rm_temp_var`.
+#' 
+#' The following variables are needed to perform this method :
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{i}{Numeric/character : Iso numeric or character of the exporter}
+#'   \item{j}{Numeric/character : Iso numeric or character of the importer}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#' }
+#'
+#' ### Return
+#' The following variables are returned
+#' \describe{
+#'   \item{k}{Character : code product (or any other product indentifier)}
+#'   \item{t}{Numeric : Year}
+#'   \item{i}{Numeric/character : Iso numeric or character of the exporter}
+#'   \item{j}{Numeric/character : Iso numeric or character of the importer}
+#'   \item{v}{Numeric : Value of the trade flow}
+#'   \item{q}{Numeric : Quantity of the trade flow}
+#'   \item{uv}{Numeric : Unit value of the trade flow}
+#'   \item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+#' the unit value is a lower outlier, 2 if the unit value is a temporal outlier.
+#' 0 if the unit is not an outlier. This variable can be unselected
+#' with `outliers.rm = TRUE`}
+#'   \item{median_i_k_t}{Numeric : The median of the unit value distribution
+#' for each exporter-product-year group. This variable can be removed
+#' with `rm_temp_var = TRUE`.}
+#'   \item{lag_i_j_k}{Numeric : The lag of the unit value.
+#' This variable can be removed with `rm_temp_var = TRUE`.}
+#'   \item{lead_i_j_k}{Numeric : The lead of the unit value.
+#' This variable can be removed with `rm_temp_var = TRUE`.}
+#' }
+#' 
+#' All others variables present in the data are also returned.
+#'
+#' # Computation
+#' This feature uses [arrow](https://arrow.apache.org/docs/r/) functionalities.
+#' However, the computation of the various metrics must be in memory
+#' (only this part is in memory). This can take some time depending on your
+#' configuration and the size of your data. If the size of the data is too
+#' large for your computer, it may crash. It is advisable to reduce the size
+#' of your database and run this function several times.
+#'
+#' @param method Method to determine outliers. It can be `classic` (the default),
+#' `fh13`, `h06`, `sd`, `be11` (see details for more informations).
+#' @param alpha_H Numeric : Parameter to determine the upper outlier. Its
+#' meaning depends on the method chosen
+#' @param alpha_L Numeric : Parameter to determine the lower outlier. Its
+#' meaning depends on the method chosen
+#' @param beta Numeric : Parameter to determine temporal outliers in the `be11` method.
+#' It can be NULL if another method is selected.
+#' @param outliers.rm Logical indicating whether outliers should be removed from the
+#' data or not (the default).
+#' @param rm_temp_var Logical indicating whether temporary variables should be
+#' removed from the data or not (the default) (see details for more informations
+#' about these variables).
+#' @param na.rm Logical indicating whether NA should be remove from the data for
+#' the computation. By default it is set to TRUE. If FALSE you can obtain NA
+#' if NA are presents in your data be carefull. 
+#' @inheritParams .filter_baci
+#' @inheritParams .export_data
+#' @inheritParams add_chelem_classification
+#'
+#' @return BACI data with appropriate variables depending on the method.
+#' Outliers can be removed or not.
+#'
+#' @examples
+#' ## find outliers with classic method. Keep outliers return arrow object
+#' ## clean_uv_outliers(
+#' ##   baci = "baci-folder-parquet",
+#' ##   method = "classic",
+#' ##   alpha_H = 0.95,
+#' ##   alpha_L = 0.05,
+#' ##   na.rm = TRUE,
+#' ##   outliers.rm = FALSE,
+#' ##   return_output = TRUE,
+#' ##   return_arrow = TRUE
+#' ## )
+#'
+#' ## find outliers with fh13 method. Don't keep outliers return R dataframe
+#' ## object. Keep temporary variables
+#' ## clean_uv_outliers(
+#' ##   baci = "baci-folder-parquet",
+#' ##   method = "fh13",
+#' ##   alpha_H = 0.95,
+#' ##   alpha_L = 0.05,
+#' ##   na.rm = TRUE,
+#' ##   outliers.rm = TRUE,
+#' ##   rm_temp_var = FALSE
+#' ##   return_output = TRUE,
+#' ##   return_arrow = FALSE
+#' ## )
+#'
+#' ## find outliers with h06 method. Don't keep outliers, save in parquet format.
+#' ## clean_uv_outliers(
+#' ##   baci = "baci-folder-parquet",
+#' ##   method = "h06",
+#' ##   alpha_H = 5,
+#' ##   alpha_L = 5,
+#' ##   na.rm = TRUE,
+#' ##   outliers.rm = TRUE,
+#' ##   return_output = FALSE,
+#' ##   return_arrow = FALSE,
+#' ##   path_output = "folder-output-parquet"
+#' ## )
+#'
+#' ## find outliers with sd method. Don't keep outliers, save in csv format.
+#' ## clean_uv_outliers(
+#' ##   baci = "baci-folder-parquet",
+#' ##   method = "sd",
+#' ##   alpha_H = 3,
+#' ##   alpha_L = 3,
+#' ##   na.rm = TRUE,
+#' ##   outliers.rm = TRUE,
+#' ##   rm_temp_var = TRUE
+#' ##   return_output = FALSE,
+#' ##   return_arrow = FALSE,
+#' ##   path_output = "file-output-csv.csv"
+#' ## )
+#'
+#' ## find outliers with be11 method. Don't keep outliers, return arrow format,
+#' ## keep only year 2015 to 2017.
+#' ## clean_uv_outliers(
+#' ##   baci = "baci-folder-parquet",
+#' ##   years = 2015:2017,
+#' ##   method = "be11",
+#' ##   alpha_H = 10,
+#' ##   alpha_L = 10,
+#' ##   beta = 1000,
+#' ##   na.rm = TRUE,
+#' ##   outliers.rm = TRUE,
+#' ##   rm_temp_var = FALSE,
+#' ##   return_output = TRUE,
+#' ##   return_arrow = TRUE
+#' ## )
+#'
+#' @source [Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.](https://pse.hal.science/hal-00959394/)
+#'
+#' [Hallak, J. C. (2006). Product quality and the direction of trade. Journal of international Economics, 68(1), 238-265.](https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516)
+#' 
+#' [Antoine Berthou & Charlotte Emlinger , 2011. "The Trade Unit Values Database," CEPII Working Paper 2011- 10 , April 2011 , CEPII.](http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf)
+#'
+#' @seealso
+#' [.load_data()] For more informations concerning the loading.
+#' [.filter_baci()] For more informations concerning the filter of data inside the function.
+#' [.export_data()] For more informations concerning the export of the data inside the function.
+#' 
+#' @export
+clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
+                              export_countries = NULL, import_countries = NULL,
+                              method = c("classic", "fh13", "h06", "sd", "be11"),
+                              alpha_H, alpha_L, beta = NULL, na.rm = TRUE,
+                              outliers.rm = FALSE, rm_temp_var = NULL,
+                              return_output = TRUE, return_arrow = TRUE,
+                              path_output = NULL) {
+
+  # Check if method parameter is valid
+  method <- match.arg(method)
+
+  # Check the validity of export parameters
+  tradalyze::.export_data(
+    data = NULL,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = FALSE,
+    collect = NULL
+  )
+
+  # Check if outliers.rm is logical
+  if (!is.logical(outliers.rm)){
+    class_outliers.rm <- class(outliers.rm)
+    stop(glue::glue("outliers.rm must be a logical, not a {class_outliers.rm}."))
+  }
+
+  # Check if outliers.rm is length 1
+  length_outliers.rm <- length(outliers.rm)
+  if (length_outliers.rm != 1){
+    stop(glue::glue("outliers.rm must be length 1, not length {length_outliers.rm}."))
+  }
+  
+
+  # Load the data
+  df_baci <- tradalyze::.load_data(baci)
+
+  # Filter data
+  df_baci <-
+    tradalyze::.filter_baci(
+      df_baci = df_baci,
+      years = years,
+      codes = codes,
+      export_countries = export_countries,
+      import_countries = import_countries
+    ) |>
+    dplyr::mutate(
+      uv = v / q
+    ) |>
+    dplyr::collect()
+
+  df_baci <-
+    switch(
+      method,
+      "classic" =
+        method_classic(
+          df_baci = df_baci,
+          alpha_H = alpha_H,
+          alpha_L = alpha_L,
+          na.rm = na.rm
+        ),
+      "fh13" =
+        method_fh13(
+          df_baci = df_baci,
+          alpha_H = alpha_H,
+          alpha_L = alpha_L,
+          na.rm = na.rm,
+          rm_temp_var = rm_temp_var
+        ),
+      "h06" =
+        method_h06(
+          df_baci = df_baci,
+          alpha_H = alpha_H,
+          alpha_L = alpha_L,
+          na.rm = na.rm
+        ),
+      "sd" =
+        method_sd(
+          df_baci = df_baci,
+          alpha_H = alpha_H,
+          alpha_L = alpha_L,
+          na.rm = na.rm,
+          rm_temp_var = rm_temp_var
+        ),
+      "be11" =
+        method_be11(
+          df_baci = df_baci,
+          alpha_H = alpha_H,
+          alpha_L = alpha_L,
+          na.rm = na.rm,
+          rm_temp_var = rm_temp_var
+        )
+    ) # Output is in R dataframe format
+    
+  if (outliers.rm == TRUE){
+    nrow_base <- nrow(df_baci)
+    
+    df_baci <-
+      df_baci  |>
+      dplyr::filter(outlier == 0) |>
+      dplyr::select(-outlier)
+    
+    nrow_rm_outliers <- nrow(df_baci)
+    nb_outliers <- nrow_base - nrow_rm_outliers
+    message(glue::glue("{nb_outliers} outliers had been removed."))
+  }
+
+  # Export output
+  tradalyze::.export_data(
+    data = df_baci,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = TRUE,
+    collect = TRUE
+  )
+}
+
+utils::globalVariables(c("t", "k", "uv", "outlier", "mean_diff_k",
+                         "i", "mean_diff_k_t", "sd_k_t", "median_i_k_t",
+                         "lag_i_j_k", "lead_i_j_k"))
