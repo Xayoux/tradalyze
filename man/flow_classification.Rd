@@ -31,9 +31,11 @@ flow_classification(
 )
 }
 \arguments{
-\item{baci}{Data to be loaded. Can be a path to a csv or an excel file.
+\item{baci}{BACI data. Can be a path to a csv file.
 It can also be a path to a folder containing
-parquet files. Dataframe and ArrowObject are also accepted.}
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
 \item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
@@ -69,13 +71,13 @@ your data be carefull.}
 only if \code{method = "gaulier_2006"}.}
 
 \item{return_output}{Logical indicating whether data must be returned or not.
-By default data are not returned after this function.}
+By default data are returned after this function.}
 
 \item{return_arrow}{Logical indicating whether data must be return in an
-arrow format (TRUE) or not if \code{return_output = TRUE}. By default data are
-returned to a tibble format.}
+arrow format (TRUE the default) or not if \code{return_output = TRUE}.
+By default data are returned to arrow format.}
 
-\item{path_output}{Path to save the final data. If NULL (default), the data
+\item{path_output}{Path to save the data. If NULL (default), the data
 will not be saved. If \code{path_output} ends with a '.csv' extension, the data
 will be saved in csv format. If no extension is given, the data will be
 saved in a dataset parquet format in the specified folder. See the
@@ -94,8 +96,6 @@ database. 4 methods are available to classify each flow into a variety:
 \item Gaulier, Lemoine and Ünal-Kesenci (2006)
 \item Fontagné, Gaulier and Zignago (2007)
 \item Berthou and Emlinger (2011)
-Data can be filtered in this function thanks to the
-\link{filter_baci} function of this package.
 }
 }
 \section{Classification methods}{
@@ -390,5 +390,7 @@ of your database and run this function several times.
 
 }
 \seealso{
-\code{\link[=filter_baci]{filter_baci()}} to filter the data inside the function.
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
+\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filter of data inside the function.
+\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
 }

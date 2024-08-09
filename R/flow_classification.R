@@ -395,8 +395,6 @@ classification_berthou_2011 <- function(df_baci, var_weighting, na.rm){
 #' - Gaulier, Lemoine and Ünal-Kesenci (2006)
 #' - Fontagné, Gaulier and Zignago (2007)
 #' - Berthou and Emlinger (2011)
-#' Data can be filtered in this function thanks to the
-#' \link{filter_baci} function of this package.
 #'
 #' @details
 #' # Classification methods
@@ -622,7 +620,8 @@ classification_berthou_2011 <- function(df_baci, var_weighting, na.rm){
 #' your data be carefull. 
 #' @param weight Logical indicating whether a weight should be applied. Used
 #' only if `method = "gaulier_2006"`.
-#' @inheritParams filter_baci
+#' @inheritParams .filter_baci
+#' @inheritParams .export_data
 #' @inheritParams add_chelem_classification
 #' 
 #' @return BACI data with appropriate variables depending on the choosen method
@@ -637,7 +636,10 @@ classification_berthou_2011 <- function(df_baci, var_weighting, na.rm){
 #' 
 #' [A . Berthou, C . Emlinger (2011), « Les mauvaises performances françaises à l’exportation: La compétitivité prix est - elle coupable ? », La Lettre du CEPII , n°313, Septembre.](http://www.cepii.fr/PDF_PUB/lettre/2011/let313.pdf)
 #'
-#' @seealso [filter_baci()] to filter the data inside the function.
+#' @seealso
+#' [.load_data()] For more informations concerning the loading.
+#' [.filter_baci()] For more informations concerning the filter of data inside the function.
+#' [.export_data()] For more informations concerning the export of the data inside the function.
 #' 
 #' @examples
 #' ## fontagne_1997 method with both alpha set to 1.15, returned in arrow format
@@ -700,63 +702,23 @@ flow_classification <- function(baci, years = NULL, codes = NULL,
   # Check if `method` parameter is valid
   method <- match.arg(method)
 
-  # Check if return_output is logical
-  if (!is.logical(return_output)){
-    class_return_output <- class(return_output)
-    stop(glue::glue("return_output must be a logical, not a {class_return_output}."))
-  }
-
-  # Check if return_output is length 1
-  length_return_output <- length(return_output)
-  if (length_return_output != 1){
-    stop(glue::glue("return_output must be length 1, not length {length_return_output}."))
-  }
-
-  # Check if return_arrow is logical
-  if (!is.logical(return_arrow)){
-    class_return_arrow <- class(return_arrow)
-    stop(glue::glue("return_arrow must be a logical, not a {class_return_arrow}."))
-  }
-
-  # Check if return_output is length 1
-  length_return_arrow <- length(return_arrow)
-  if (length_return_arrow != 1){
-    stop(glue::glue("return_arrow must be length 1, not length {length_return_arrow}."))
-  }
-
-  # Set return_arrow on FALSE if return_output is FALSE
-  if (return_output == FALSE & return_arrow == TRUE){
-    message("return_arrow is set on TRUE while return_output is set on FALSE. return_arrow will be ignored.")
-    return_arrow <- FALSE
-  }
-
-  # Check if path_output is NULL or character
-  if (!is.null(path_output) && !is.character(path_output)){
-    class_path_output <- class(path_output)
-    stop(glue::glue("path_output must be NULL or a character, not a {class_path_output}."))
-  }
-
-  # Check if path_output is length 1
-  length_path_output <- length(path_output)
-  if (is.character(path_output) && length_path_output != 1){
-    stop(glue::glue("path_output must be length 1, not length {length_path_output}."))
-  }
-
-  # Check if path_output has an extension it is a csv extension
-  if (is.character(path_output)){
-    ext_path_output <- tools::file_ext(path_output)
-    if (!ext_path_output %in% c("", "csv")){
-      stop(glue::glue("If an extension is provided to path_output, it must be a \"csv\" extension, not a \"{ext_path_output}\" extension."))
-    }
-  }
+  # Check the validity of the export parameters
+  tradalyze::.export_data(
+    data = NULL,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = FALSE,
+    collect = NULL
+  )
 
   # Load BACI data
-  df_baci <- tradalyze::load_data(baci)
+  df_baci <- tradalyze::.load_data(baci)
 
   # Filter BACI data
   df_baci <-
-    tradalyze::filter_baci(
-      baci = baci,
+    tradalyze::.filter_baci(
+      df_baci = df_baci,
       years = years,
       codes = codes,
       export_countries = export_countries,
@@ -797,34 +759,14 @@ flow_classification <- function(baci, years = NULL, codes = NULL,
         )
     ) # Output is in R dataframe format
 
-  # Save output if needed in the right format
-  if (!is.null(path_output)){
-    # Save in csv format
-    if (tools::file_ext(path_output) == "csv"){
-      rlang::check_installed("readr", reason = "\n\nNecessary to write in csv format.")
-      df_baci  |>
-        readr::write_csv(path_output)
-    }
-    # If no extension : save in parquet format
-    else {
-      df_baci |>
-        arrow::arrow_table() |> # passage in arrow format to write in parquet
-        dplyr::group_by(t) |>
-        arrow::write_dataset(path_output)
-    }
-  }
-
-  # Return output if needed
-  if (return_output == TRUE){
-    # If return an arrow object and df_baci has been collect : go to arrow format
-    if (return_arrow == TRUE){
-      return(df_baci |> arrow::arrow_table()) 
-    }
-    # Else return df_baci collected or not
-    else {
-      return(df_baci)
-    }
-  } 
+  tradalyze::.export_data(
+    data = df_baci,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = TRUE,
+    collect = TRUE
+  )
 }
 
 utils::globalVariables(c("alpha_H", "alpha_L", "med_ref_t_k", "v", "q", "uv",
