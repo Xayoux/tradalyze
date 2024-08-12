@@ -2,104 +2,159 @@
 % Please edit documentation in R/market_share.R
 \name{market_share}
 \alias{market_share}
-\title{Calculer des parts de marché}
+\title{Compute Market Share}
 \usage{
 market_share(
   baci,
-  summarize_k = "k",
-  summarize_v = "exporter",
-  by = NULL,
-  seuil = 0,
   years = NULL,
   codes = NULL,
-  path_output = NULL,
-  return_output = FALSE,
-  return_pq = FALSE
+  export_countries = NULL,
+  import_countries = NULL,
+  var_aggregate,
+  var_share,
+  na.rm = TRUE,
+  return_output = TRUE,
+  return_arrow = TRUE,
+  path_output = NULL
 )
 }
 \arguments{
-\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
-les données de BACI au format parquet. Peut également être un dataframe ou
-bien des données au format arrow (requête ou non) permettant ainsi de chaîner
-les opérations entre elles. ce paramètre est obligatoire.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{summarize_k}{Nom de la variable "produit" à partir de
-laquelle sera calculée la part de marché. Par défaut c'est la variable \code{k}
-(le code produit HS6) qui sera utilisé. On peut l'utiliser également pour une
-variable "chapitre" ou "secteur" par exemple.}
+\item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
-\item{summarize_v}{Nom de la variable ( en chaîne de caractère) sur laquelle
-l'agrégation des flux va s'effectuer. Par défaut, c'est la variable
-\code{exporteur} qui est prise en compte.}
+\item{codes}{Character vector indicating the product codes to be kept in the
+variable \code{k}.}
 
-\item{by}{Nom de la variable (en chaîne de caractère) sur laquelle les parts
-de marché peuvent être calculées à un niveau plus fin. Par défaut, les parts
-de marché sont calculées au niveau année-produit. Ce paramètre permet de
-rajouter une dimmension, qui sera classiquement \code{importeur}.}
+\item{export_countries}{Character or numeric vector indicating the
+exporter countries to be kept in the variable \code{exporter} or \code{i}.}
 
-\item{seuil}{Valeur numérique entre 0 et 100 qui permet de filtrer les
-données dans le dataframe en fonction de la part de marché. Seules les
-observations ayant une part de marché supérieure ou égale à ce seuil seront
-gardées. Par défaut, le seuil est de 0 : toutes les observations sont
-gardées.}
+\item{import_countries}{Character or numeric vector indicating the importer
+countries to be kept in the variable \code{importer} or \code{j}.}
 
-\item{years}{Vecteur de numériques qui permet de filtrer les données en
-fonction des années. Par défaut, toutes les années sont gardées.}
+\item{var_aggregate}{A character vector specifying the variables used to
+aggregate the data in the calculation of market shares.
 
-\item{codes}{Vecteur de chaînes de caractères qui permet de filtrer les
-données en fonction des codes produits. Par défaut, tous les codes sont
-gardés.}
+This parameter determines how the market share will be calculated by defining
+the group of variables that will be used for aggregation.
+\itemize{
+\item \strong{Market Power} When there is only exporter or importer
+(e.g, \code{c("t", "k", "exporter")}), the function calculates the market share
+of the exporter for the product k in year t. This could reveal that
+Country A export z\% of product k in year t.
+}
 
-\item{path_output}{Chemin d'accès vers le fichier où les données seront
-sauvegardées. Par défaut, les données ne sont pas sauvegardées. Les formats
-possibles sont .csv, .xlsx et .parquet.}
+If the aggregation is more detailed, the order of the variables in
+\code{var_aggregate} is crucial as it changes the
+perspective of the market share analysis:
+\itemize{
+\item \strong{Exporter Perspective}: When the exporter is listed first
+(e.g., \code{c("t", "k", "exporter", "importer")}), the function calculates
+the market share of the exporter within each importer. This allows you to
+determine the proportion of a product exported
+from a particular country to different importing countries. For example,
+using this configuration could reveal that country A exports x\%
+of its product k to country B.
+\item \strong{Importer Perspective}: When the importer is listed first
+(e.g., \code{c("t", "k", "importer", "exporter")}), the function calculates
+the market share of the importer for products coming from each exporter.
+This configuration helps in understanding the share of imports from specific
+exporters into a particular importing country. For instance, this setup
+could show that Country B imports y\% of its product k from Country C.
+}
 
-\item{return_output}{Booléen qui permet de retourner les données. Par défaut, les
-données ne sont pas retournées.}
+By adjusting the variables and their order in \code{var_aggregate}, you can
+flexibly analyze market shares from different perspectives, providing
+valuable insights into trade dynamics based on the specified aggregation.}
 
-\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
-en format arrow si TRUE. Par défaut : FALSE.}
+\item{var_share}{A character vector indicating variables to be used to
+compute the market share. These variables must be numeric.}
+
+\item{na.rm}{Logical indicating whether NA should be remove from the data for
+the computation. By default it is set to TRUE. If FALSE you can obtain NA
+if NA are presents in your data be carefull.}
+
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
+
+\item{return_arrow}{Logical indicating whether data must be return in an
+arrow format (TRUE the default) or not if \code{return_output = TRUE}.
+By default data are returned to arrow format.}
+
+\item{path_output}{Path to save the data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
 }
 \value{
-Un dataframe avec les parts de marché calculées.
+Dataframe with the following variables :
+\describe{
+\item{var_aggregate}{All the variables in var_aggregate}
+\item{var_share}{All the variables in var_share}
+\item{market_share_var_share}{the MArket share of each variable in
+\code{var_share}. If \code{var_share = "v"}, the name will be \code{market_share_v}.}
+}
 }
 \description{
-Fonction qui permet de calculer les parts de marché des exportateurs pour
-chaque produit / couple produit-importateur. Cette utilisation est celle qui
-a été pensé à la création de la fonction. Mais elle peut être utilisée pour
-calculer les parts de marché des importateurs pour chaque produit par exemple.
-La définition de la part de marché (de qui, pour qui...) dépend des noms de
-colonnes entrées en argument de la fonction.
+Use the data to calculate the market share of the desired variables. The
+level of of aggregation is freely selectable.
 }
 \details{
-La fonction va agréger les flux pour chaque couple année-produit-\code{summarize_v}
-puis à partir de cette agrégation calculer les parts de marché. De base, ces
-parts sont calculées pour chaque produit-année. Mais avec le paramètre \code{by},
-il est possible de changer la définition de la part de marché. Par exemple,
-si \code{by = "importer"}, les parts de marché seront calculées pour chaque
-année-produit-importateur. Elle sera alors interprétée comme étant la part
-de marché de l'exportateur sur le marché du produit pour cet importateur.
+This function aggregate (sum) trade flow for each \code{var_aggregate} group for the
+desired variables : \code{var_share}. Then shares are computed for each variables
+in \code{var_share} with level of aggregation corresponding to \code{var_aggregate} minus
+the last variable store in \code{var_aggregate}. Market shares are returned in
+percentage.
 
-Les parts de marchés sont de base pensées et calculées avec les exportateurs
-étant les pays définis par les variables \code{i} ou \code{exporteur}. Mais si la
-variable d'intérêt est une variable de groupement régional par exemple,
-il suffit de rentrer son nom pour que les parts de marché soient calculées.
-
-Cependant, les parts de marché ne peuvent être calculées que sur un 'niveau'
-après le produit : des parts de marché calculées au niveau
-produit-région-importateur ne sont pas possibles. De même, les parts de
-marché prennent toujours en compte la dimmension temps et produit.
-
-Cette fonction utilise les fonctionnalité du package
-\href{https://arrow.apache.org/docs/r/}{arrow} pour performer des calculs sans
-avoir à charger BACI en mémoire. Cependant le calcul de la médiane
-pondérée nécessite le passage de la base (uniquement la partie nécessaire)
-en mémoire. Si la base est trop importante, les calculs peuvent prendre un
-certain temps, voir entraîner un problème de mémoire de l'ordinateur. Si
-cela arrive, il est conseillé de réduire le nombre d'années sur lesquelles
-la fonction doit calculer les gammes et d'exécuter plusieurs fois la fonction
-jusqu'à avoir toutes les années voulues.
+This feature uses \href{https://arrow.apache.org/docs/r/}{arrow} functionalities
+to load and filter the data. However, the computation of the must be in memory.
+This can take some time depending on your
+configuration and the size of your data. If the size of the data is too
+large for your computer, it may crash. It is advisable to reduce the size
+of your database and run this function several times.
 }
 \examples{
 # Pas d'exemple.
+## Share of v of the exporter for product 280530 and years 2020 to 2022
+## market_share(
+##   baci = "folder-baci-parquet",,
+##   years = 2020:2022,
+##   codes = "280530",
+##   var_aggregate = c("t", "k", "exporter"), # Exporter in last is very important
+##   var_share = "v",
+##   return_arrow = FALSE  
+## )
+
+## Proportion of v and q exported from exporters to each importer
+## Country A export x\% of product k to Country B
+## market_share(
+##   baci = "folder-baci-parquet",,
+##   years = 2020:2022,
+##   codes = "280530",
+##   var_aggregate = c("t", "k", "exporter", "importer"), # Importer in last is very important
+##   var_share = c("v", "q"),
+##   return_arrow = FALSE  
+## )
+
+## Proportion of v and q imported from each exporters to an importer
+## Country B import x\% of its product k from Country B
+## market_share(
+##   baci = "folder-baci-parquet",,
+##   years = 2020:2022,
+##   codes = "280530",
+##   var_aggregate = c("t", "k", "importer", "exporter"), # Exporter in last is very important
+##   var_share = c("v", "q"),
+##   return_arrow = FALSE  
+## )
+
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
+\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filter of data inside the function.
+\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
 }
