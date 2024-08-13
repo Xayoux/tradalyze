@@ -167,32 +167,17 @@ market_share <- function(baci, years = NULL, codes = NULL,
     stop(glue::glue("var_aggregate must be a character, not a {class_var_aggregate}."))
   }
 
-  # Check if variables in var_aggregate are in the df
-  is_var_aggregate_present <- rlang::has_name(df_baci, var_aggregate)
-  if (FALSE %in% is_var_aggregate_present){
-    var_aggregate_absent <- var_aggregate[which(var_aggregate == FALSE)]
-    stop(glue::glue("var_aggregate : {var_aggregate_absent} are not in baci."))
-  }
-
   # Check if var_share is character
   if (!is.character(var_share)){
     class_var_share <- class(var_share)
     stop(glue::glue("var_share must be a character, not a {class_var_share}."))
   }
-
   
   # The second aggregation (to compute market share) : the last variable is removed
   var_aggregate_2 <- var_aggregate[-length(var_aggregate)]
 
   # Load baci data
   df_baci <- tradalyze::.load_data(baci)
-
-  # Check if variables in var_aggregate are in the df
-  is_var_share_present <- rlang::has_name(df_baci, var_share)
-  if (FALSE %in% is_var_share_present){
-    var_share_absent <- var_share[which(var_share == FALSE)]
-    stop(glue::glue("var_share : {var_share_absent} are not in baci."))
-  }
 
   # Filter baci data
   df_baci <-
@@ -204,6 +189,20 @@ market_share <- function(baci, years = NULL, codes = NULL,
       import_countries = import_countries
     )  |>
     dplyr::collect()
+
+  # Check if variables in var_aggregate are in the df
+  is_var_aggregate_present <- rlang::has_name(df_baci, var_aggregate)
+  if (FALSE %in% is_var_aggregate_present){
+    var_aggregate_absent <- var_aggregate[which(var_aggregate == FALSE)]
+    stop(glue::glue("var_aggregate : {var_aggregate_absent} are not in baci."))
+  }
+
+  # Check if variables in var_share are in the df
+  is_var_share_present <- rlang::has_name(df_baci, var_share)
+  if (FALSE %in% is_var_share_present){
+    var_share_absent <- var_share[which(var_share == FALSE)]
+    stop(glue::glue("var_share : {var_share_absent} are not in baci."))
+  }
 
   
   # Compute the sum of each variable wanted for the share
