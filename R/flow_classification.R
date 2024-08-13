@@ -11,66 +11,21 @@ classification_fontagne_1997 <- function(df_baci, alpha_H, alpha_L,
   # Check if matrixStats is installed
   rlang::check_installed("matrixStats", reason = "\n\nMandatory to calculate the weighted median.")
 
-  # Check if alpha_H is a numeric
-  if (!is.numeric(alpha_H)){
-    class_alpha_H <- class(alpha_H)
-    stop(glue::glue("When using the method \"fontagne_1997\", alpha_H must be a numeric not a {class_alpha_H}."))
-  }
+  # Check if alpha_H is a numeric and length 1
+  tradalyze::.check_numeric(alpha_H, "alpha_H")
+  tradalyze::.check_length_1(alpha_H, "alpha_H")
 
-  # Check if `alpha_H` is unique
-  length_alpha_H <- length(alpha_H)
-  if (length_alpha_H != 1){
-    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
-  }
+  # Check if alpha_L is a numeric and length 1
+  tradalyze::.check_numeric(alpha_L, "alpha_L")
+  tradalyze::.check_length_1(alpha_L, "alpha_L")
 
-  # Check if alpha_L is a numeric
-  if (!is.numeric(alpha_L)){
-    class_alpha_L <- class(alpha_L)
-    stop(glue::glue("When using the method \"fontagne_1997\", alpha_L must be a numeric not a {class_alpha_L}."))
-  }
+  # Check if `var_weighting` is a character and length 1
+  tradalyze::.check_character(var_weighting, "var_weighting")
+  tradalyze::.check_length_1(var_weighting, "var_weighting")
 
-  # Check if `alpha_L` is unique
-  length_alpha_L <- length(alpha_L)
-  if (length_alpha_L != 1){
-    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
-  }
-
-  # Check if `var_weighting` is a character
-  if (!is.character(var_weighting)){
-    class_var_weighting <- class(var_weighting)
-    stop(glue::glue("var_weighting must be a character not a {class_var_weighting}."))
-  }
-
-  # Check if `var_weighting` is unique
-  length_var_weighting <- length(var_weighting)
-  if (length_var_weighting != 1){
-    stop(glue::glue("var_weighting must be length 1, not length {length_var_weighting}."))
-  }
-
-  # Check if `na.rm` is a logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
-
-  # Check if `na.rm` is unique
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
-
-  # Check if `var_weighting` is present in `df_baci`
-  if(!rlang::has_name(df_baci, var_weighting)){
-    stop(glue::glue("The variable {var_weighting} must be present in df_baci."))
-  }
-
-  # Check if columns `v`, `q`, `t`, `k` are present in `df_baci`
-  columns <- c("v", "q", "t", "k")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
+  # Check if `na.rm` is a logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
 
   # Perform the classification
@@ -81,7 +36,13 @@ classification_fontagne_1997 <- function(df_baci, alpha_H, alpha_L,
       alpha_H = alpha_H,
       alpha_L = alpha_L
     )  |>
-    dplyr::collect() |>
+    dplyr::collect()
+
+  # Check if columns are present in df_baci
+  tradalyze::.check_var_exist(df_baci, "baci", c(var_weighting, "v", "q", "t", "k"))
+
+  df_baci <-
+    df_baci |>
     dplyr::mutate(
       .by = c(t, k),
       med_ref_t_k = matrixStats::weightedMedian(uv, w = !!dplyr::sym(var_weighting), na.rm = na.rm)
@@ -114,55 +75,18 @@ classification_gaulier_2006 <- function(df_baci, weight, var_weighting = NULL,
     rlang::check_installed("modi", reason = "\n\nMandatory for calculation of weighted quantiles.")
   } 
 
-  # Check if weight is logical
-  if (!is.logical(weight)){
-    class_weight <- class(weight)
-    stop(glue::glue("weight must be a logical, not a {class_weight}."))
-  }
+  # Check if weight is logical and length 1
+  tradalyze::.check_logical(weight, "weight")
+  tradalyze::.check_length_1(weight, "weight")
 
-  # Check if weight is length 1
-  length_weight <- length(weight)
-  if (length_weight != 1){
-    stop(glue::glue("weight must be length 1 not length {length_weight}."))
-  }
+  # Check if var_weighting is NULL or character and length 1
+  tradalyze::.check_null_character(var_weighting, "var_weighting")
+  tradalyze::.check_length_1(var_weighting, "var_weighting")
 
-  # Check if var_weighting is NULL or character
-  if (!is.null(var_weighting) && !is.character(var_weighting)){
-    class_var_weighting <- class(var_weighting)
-    stop(glue::glue("var_weighting must be NULL or a character, not a {class_var_weighting}."))
-  }
 
-  # Check if var_weighting is length 1
-  length_var_weighting <- length(var_weighting)
-  if (is.character(var_weighting) && length_var_weighting != 1){
-    stop(glue::glue("var_weighting must be length 1 if character, not length {length_var_weighting}."))
-  }
-
-  # Check if var_weighting is present in df_baci
-  if (is.character(var_weighting) && !rlang::has_name(df_baci, var_weighting)){
-    stop(glue::glue("The column {var_weighting} must be present in df_baci."))
-  }
-
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical not a {class_na.rm}."))
-  }
-
-  # Check if na.rm is length 1
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
-  
-  # Check if columns `v`, `q`, `t`, `k` are present in `df_baci`
-  columns <- c("v", "q", "t", "k")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} must be present in df_baci."))
-  }
-  
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")  
 
   # Perform the classification
   df_baci <-
@@ -170,7 +94,13 @@ classification_gaulier_2006 <- function(df_baci, weight, var_weighting = NULL,
     dplyr::mutate(
       uv = v / q
     ) |>
-    dplyr::collect() |>
+    dplyr::collect()
+
+  # Check if columns are present in df_baci
+  tradalyze::.check_var_exist(df_baci, "baci", c(var_weighting, "v", "q", "t", "k"))
+
+  df_baci <-
+    df_baci |>
     dplyr::mutate(
       .by = c(t, k),
       perc_33 =
@@ -211,54 +141,22 @@ classification_fontagne_2007 <- function(df_baci, alpha, var_weighting, na.rm){
   # Check if matrixStats is installed
   rlang::check_installed("matrixStats", reason = "\n\nMandatoty for calculation of weighted median.")
 
-  # Check if alpha is numeric
-  if (!is.numeric(alpha)){
-    class_alpha <- class(alpha)
-    message(glue::glue("alpha must be a numeric, not a {class_alpha}."))
-  }
+  # Check if alpha is numeric and length 1
+  tradalyze::.check_numeric(alpha, "alpha_H")
+  tradalyze::.check_length_1(alpha, "alpha_H")
 
   # Check if alpha > 0
   if (alpha <= 0){
-    stop(glue:glue("alpha must be a strictly positive number, not {alpha}."))
+    stop(glue:glue("alpha_H must be a strictly positive number, not {alpha}."))
   }
 
-  # Check if alpha is length 1
-  length_alpha <- length(alpha)
-  if (length_alpha != 1){
-    stop(glue::glue("alpha must be length 1, not length {length_alpha}."))
-  }
+  # Check if var_weighting is NULL or character and length 1
+  tradalyze::.check_null_character(var_weighting, "var_weighting")
+  tradalyze::.check_length_1(var_weighting, "var_weighting")
 
-  # Check if var_weighting is character
-  if (!is.character(var_weighting)){
-    class_var_weighting <- class(var_weighting)
-    stop(glue::glue("var_weighting must be a character, not a {class_var_weighting}."))
-  }
-
-  # Check if var_weighting is length 1
-  length_var_weighting <- length(var_weighting)
-  if (length_var_weighting != 1){
-    stop(glue::glue("var_weighting mus be length 1, not length {length_var_weighting}."))
-  }
-
-  # Check if var_weighting is present in df_baci
-  if (!rlang::has_name(df_baci, var_weighting)){
-    stop(glue::glue("The column {var_weighting} must be present in df_baci."))
-  }
-
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
-
-  # Check if columns `v`, `q`, `t`, `k` are present in `df_baci`
-  columns <- c("v", "q", "t", "k")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} must be present in df_baci."))
-  }
-
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
   # Perform classification
   df_baci <-
@@ -267,7 +165,12 @@ classification_fontagne_2007 <- function(df_baci, alpha, var_weighting, na.rm){
       alpha = alpha,
       uv = v / q
     ) |>
-    dplyr::collect() |>
+    dplyr::collect()
+
+  tradalyze::.check_var_exist(df_baci, "baci", c(var_weighting, "v", "q", "t", "k"))
+
+  df_baci <-
+    df_baci  |>
     dplyr::mutate(
       .by = c(t, k),
       med_ref_t_k = matrixStats::weightedMedian(uv, w = !!dplyr::sym(var_weighting), na.rm = na.rm)
@@ -323,43 +226,27 @@ weighted_geomean <- function(x, w, ...){
 #' @return Berthou 2011 classification
 classification_berthou_2011 <- function(df_baci, var_weighting, na.rm){
 
-  # Check if var_weighting is a character
-  if (!is.character(var_weighting)){
-    class_var_weighting <- class(var_weighting)
-    stop(glue::glue("var_weighting must be a character, not a {class_var_weighting}."))
-  }
+  # Check if var_weighting is NULL or character and length 1
+  tradalyze::.check_null_character(var_weighting, "var_weighting")
+  tradalyze::.check_length_1(var_weighting, "var_weighting")
 
-  # Check if var_weighting is length 1
-  length_var_weighting <- length(var_weighting)
-  if (length_var_weighting != 1){
-    stop(glue::glue("var_weighting must be length 1, not length {length_var_weighting}."))
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
-  # Check if var_weighting is present in df_baci
-  if (!rlang::has_name(df_baci, var_weighting)){
-    stop(glue::glue("The column {var_weighting} must be present in df_baci."))
-  }
-
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
-
-  # Check if columns `v`, `q`, `t`, `k` `j` are present in `df_baci`
-  columns <- c("v", "q", "t", "k" , "j")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} must be present in df_baci."))
-  }
-  
+  # Perform classification
   df_baci <-
     df_baci |>
     dplyr::mutate(
       uv = v / q
     ) |>
-    dplyr::collect() |>
+    dplyr::collect()
+
+  # Check if columns are present in df_baci
+  tradalyze::.check_var_exist(df_baci, "baci", c(var_weighting, "v", "q", "t", "k" , "j"))
+
+  df_baci <-
+    df_baci |>
     dplyr::mutate(
       .by = c(t, k, j),
       weight_share = .data[[var_weighting]] / sum(.data[[var_weighting]], na.rm = na.rm),
