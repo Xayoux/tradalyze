@@ -162,16 +162,14 @@ market_share <- function(baci, years = NULL, codes = NULL,
   )
 
   # Check if var_aggregate is character
-  if (!is.character(var_aggregate)){
-    class_var_aggregate <- class(var_aggregate)
-    stop(glue::glue("var_aggregate must be a character, not a {class_var_aggregate}."))
-  }
+  tradalyze::.check_character(var_aggregate, "var_aggregate")
 
   # Check if var_share is character
-  if (!is.character(var_share)){
-    class_var_share <- class(var_share)
-    stop(glue::glue("var_share must be a character, not a {class_var_share}."))
-  }
+  tradalyze::.check_character(var_share, "var_share")
+
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
   
   # The second aggregation (to compute market share) : the last variable is removed
   var_aggregate_2 <- var_aggregate[-length(var_aggregate)]
@@ -190,29 +188,19 @@ market_share <- function(baci, years = NULL, codes = NULL,
     )  |>
     dplyr::collect()
 
-  # Check if variables in var_aggregate are in the df
-  is_var_aggregate_present <- rlang::has_name(df_baci, var_aggregate)
-  if (FALSE %in% is_var_aggregate_present){
-    var_aggregate_absent <- var_aggregate[which(var_aggregate == FALSE)]
-    stop(glue::glue("var_aggregate : {var_aggregate_absent} are not in baci."))
-  }
-
-  # Check if variables in var_share are in the df
-  is_var_share_present <- rlang::has_name(df_baci, var_share)
-  if (FALSE %in% is_var_share_present){
-    var_share_absent <- var_share[which(var_share == FALSE)]
-    stop(glue::glue("var_share : {var_share_absent} are not in baci."))
-  }
-
+  # Check if variables are in the df
+  tradalyze::.check_var_exist(df_baci, "baci", c(var_aggregate, var_share))
   
   # Compute the sum of each variable wanted for the share
   df_baci <-
     purrr::map(
       var_share,
-      \(var_share) sum_variable(df = df_baci,
-                                var_aggregate = var_aggregate,
-                                var_share_indiv = var_share,
-                                na.rm = na.rm)
+      \(var_share) sum_variable(
+        df = df_baci,
+        var_aggregate = var_aggregate,
+        var_share_indiv = var_share,
+        na.rm = na.rm
+      )
     ) |>
     purrr::reduce(dplyr::full_join, by = var_aggregate) # full_join df in the list
 
@@ -220,9 +208,11 @@ market_share <- function(baci, years = NULL, codes = NULL,
   df_baci <-
     purrr::map(
       var_share,
-      \(var_share) market_share_variable(df = df_baci,
-                                         var_aggregate = var_aggregate_2,
-                                         var_share_indiv = var_share)
+      \(var_share) market_share_variable(
+        df = df_baci,
+        var_aggregate = var_aggregate_2,
+        var_share_indiv = var_share
+      )
     ) |>
     purrr::reduce(dplyr::full_join, by = c(var_aggregate, var_share))
 
