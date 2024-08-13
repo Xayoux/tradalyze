@@ -1,170 +1,256 @@
 #' @title
-#' Graphique d'évolution des parts de marché
+#' Graph of the Evolution of Market Share in Data
 #'
 #' @description
-#' Fonction qui permet de créer un graphique pour représenter l'évolution des
-#' parts de marché en fonction du temps. Le graphique peut être de type "area",
-#' ou line avec ou sans point sur les observations.
+#' Create, export and save graph showing the evolution of the market share
+#' (it can be other data, but this function has been think with the idea of
+#' market share). Graph can be an area graph, a line graph or a line and point
+#' graph. Some grahics paramters has been set for this function but all can
+#' be change manually inside or outside the function (the graph can be
+#' exported and so modified after the function).
+#'
+#' This function does not calcuate the market share. Be sure to use data
+#' a market share variable (or the variable you want to represent). It his
+#' suggested to use the function \link{market_share} to compute the
+#' market shares. 
 #'
 #' @details
-#' La fonction permet de créer un graphique pour représenter l'évolution des
-#' parts de marché en fonction du temps. Cette fonction utilise les fonctions
-#' de ggplot2 pour la création du graphique.
+#' # Theme default parameters
+#' ## Grid lines
+#' Major and minor gridlines are removed (`panel.grid.minor()` and
+#' `panel.grid.major()`).
 #'
-#' Il est important de noter, que cette fonction ne calcule pas les parts de
-#' marché. Celles-ci doivent être calculées précédemment (de préférence avec
-#' la fonction \link{market_share}). Il est possible de passer d'autres variables
-#' que celles définies à partir des fonctions de ce package. Néanmoins cela reste
-#' aux risques et périls de l'utilisateur si le rendu n'est pas cohérent.
+#' ## Titles options
+#' - The size of the title is 26 and it is centered.
 #'
-#' Grâce au paramètre `return_output`, il est possible de récupérer le graphique
-#' afin de pouvoir le modifier presque entièrement par la suite.
+#' - the size of the subtitle is 22 and it is centered.
 #'
+#' - The size of the caption is 16 and it is left adjust.
 #'
-#' @param baci Les données de BACI sous forme de chemin d'accès, de format
-#' parquet ou de dataframe R.
-#' @param x La variable correspondant à l'axe des abscisses. Par défaut et de
-#' manière conseillé cette variable est "t.
-#' @param y La variable correspondant à l'axe des ordonnées. Par défaut et de
-#' manière conseillé cette variable est "market_share".
-#' @param graph_type Le type de graphique à réaliser. Par défaut, le graphique
-#' est de type "area". Les autres options sont "line" et "line_point". Pour
-#' une représentation des parts de marché avec des lignes et potentiellement
-#' des points sur les observations, il est conseillé de choisir area qui produit
-#' un graphique en aire.
-#' @param var_fill_color La variable catégorielle correspondant aux
-#' différentes catégories à mettre en couleur.
-#' Par défaut, cette variable est NULL.
-#' @param palette_color La palette de couleur à utiliser pour le graphique.
-#' Attention si le nombre de couleur dans la palette n'est pas suffisant par
-#' rapport au nombre de catégories, une erreur sera retournée. Par défaut,
-#' cette variable est NULL.
-#' @param manual_color Les couleurs manuelles à utiliser pour le graphique.
-#' Doit généralement être un vecteur contenant les couleurs utilisés et les
-#' pays auxquels elles sont associées. Par défaut, cette variable est NULL.
-#' @param percent Si TRUE, les valeurs de l'axe des ordonnées seront exprimées
-#' en pourcentage. Par défaut, cette variable est TRUE. Attention, les valeurs
-#' ne doit pas être exprimées de base de proportion, mais bien en pourcentage
-#' (de 1 à 100).
-#' @param na.rm Si TRUE, les valeurs manquantes seront retirées du graphique.
-#' @param x_breaks Les valeurs à afficher sur l'axe des abscisses. Par défaut,
-#' cette variable est NULL. Dans ce cas, les valeurs vont du minimum au maximum
-#' de la variable x avec un écart de 2 entre chaque valeur.
-#' @param x_title Le titre de l'axe des abscisses. Par défaut, cette variable
-#' est vide.
-#' @param y_title Le titre de l'axe des ordonnées. Par défaut, cette variable
-#' est vide.
-#' @param title Le titre du graphique. Par défaut, cette variable est vide.
-#' @param subtitle Le sous-titre du graphique. Par défaut, cette variable est
-#' vide.
-#' @param caption La légende du graphique. Par défaut, cette variable est vide.
-#' @param color_legend Le titre de la légende des couleurs. Par défaut, cette
-#' variable est vide. Inutilisé si graph_type est "area".
-#' @param fill_legend Le titre de la légende des couleurs de remplissage. Par
-#' défaut, cette variable est vide. Inutilisé si graph_type est "line" ou
-#' "line_point".
-#' @param type_theme Le thème général du graphique. Par défaut, cette variable
-#' est "bw". Les valeurs possibles sont "bw", "classic" et "minimal".
-#' @param var_facet La variable à utiliser pour les facettes. Par défaut, cette
-#' variable est NULL. Si NULL alors l'entièreté des données sera représentée
-#' sur un seul graphique. Sinon, les données seront séparées en fonction des
-#' différentes catégories présentes dans la variable (généralement une variable
-#' de secteur).
-#' @param path_output Le chemin d'accès pour sauvegarder le graphique. Par
-#' défaut, cette variable est NULL. Si NULL, le graphique ne sera pas sauvegardé.
-#' @param width La largeur du graphique. Par défaut, cette variable est 15.
-#' @param height La hauteur du graphique. Par défaut, cette variable est 8.
-#' @param print Si TRUE, le graphique sera affiché. Par défaut, cette variable
-#' est TRUE.
-#' @param return_output Si TRUE, le graphique sera retourné permettant sa
-#' modification par l'utilisateur. Par défaut, cettevariable est TRUE.
+#' ## x axis options
+#' - The text of the x axis if at an angle of 45° and tight adjust. It has a
+#' size of 18 and a "black" color.
 #'
-#' @return Un graphique représentant l'évolution des parts de marché en fonction
-#' du temps.
+#' - The size of the x axis title is 22 and `vjust = -0.5`.
+#'
+#' ## y axis options
+#' - The size of the y axis text is 18 and its color is "black".
+#'
+#' - the size of the y axis title is 22.
+#'
+#' ## Legend options
+#' - legend position is right
+#'
+#' - Text of the legend has a size of 18 and a "black" color.
+#'
+#' - `legend.key.spacing.y = ggplot::unit(0.3, "cm")`.
+#'
+#' - the title of the legend has a size of 22, a "black" color and is centered.
+#'
+#' ## Facet options
+#' - The strip of the facet has a "black" colour and is fill with the following
+#' color : `"#D9D9D9"`.
+#'
+#' - The text of the strip has a size of 18 and a "black" color.
+#'
+#' By default facet are "free_y".
+#' 
+#' 
+#' @param x Name of the variable used for the x axis. By default it is "t".
+#' @param y Name of the variable used for the y axis. 
+#' @param graph_type Type of the graph to be represented. It can be "area"
+#' (by default and the suggested value) for an area graph, "line" for a line
+#' graph or "line_point" for a line and point graph. 
+#' @param var_fill_color Name of the variable to be used to color the
+#' graph. 
+#' @param palette_color Name of the palette to be used. See
+#' \link[ggplot2]{scale_fill_brewer}. Be carefull, if the number of colors
+#' in the palette is too small compared to the number of categories in
+#' the variable `var_fill_color`, some categories an error will be returned.
+#' By default this parameter is set on NULL if no palette color is used.
+#' @param manual_color Colors to be used for each category. Can be a vector
+#' of colors of a list linking each color to a category. By default this variable
+#' is NULL if no manual color is used.
+#' @param percent Logical indicating if labels on the y axis should be expressed
+#' in percentage or not. TRUE is the default value. if TRUE data must already
+#' be expressed in percentage.
+#' @param na.rm Logical indicating whether NA should be exclude of the
+#' graph (avoid warning message). TRUE is the default value.
+#' @param x_breaks Values of the breaks on the x axis. By default the value is
+#' NULL. In this case values are automatically choosen.
+#' @param y_breaks Values of the breaks on the y axis. By default the value is
+#' NULL. In this case values are automatically choosen.
+#' @param x_title Title of the x axis. By default it is set to an empty string.
+#' @param y_title Title of the y axis. By default it is set to an empty string.
+#' @param title Title of the graph. By default it is set to an empty string.
+#' @param subtitle Subtitle of the graph. By default it is set to an empty string.
+#' @param caption Caption of the graph. By default it is set to an empty string.
+#' @param legend_title Title of the color legend. By default it is set to an
+#' empty string.
+#' @param type_theme General theme of the graph. It can be "bw" (the default)
+#' `ggplot2::theme_bw()`, "classic" for `ggplot2::theme_classic()` or "minimal"
+#' for `ggplot2::theme_minimal()`.
+#' @param var_facet Name of the variable to be used to divide the graphs in
+#' differents part with `ggplot2::facet_wrap()`. By default it his set on NULL
+#' indicating that the graph will not be divide. Depends on the level of
+#' aggregation of the data and the construction of the data. 
+#' @param path_output Path to save the graph in "pdf" or "png" format. If NULL
+#' (the default), the graph will not be saved.
+#' @param width Width of the saved graph. Bu default it is set to 15
+#' @param height Height of the saved graph. By default it is set to 8
+#' @param print Logical indicating if the graph should be printed (default)
+#' or not.
+#' @param return_output Logical indicating if the graph must be returned for
+#' further modifications (default) or not.
+#' @inheritParams add_chelem_classification
+#'
+#' @return Graph representing the evolution of market shares.
+#'
+#' @examples
+#' ## graph area printed and saved
+#' ## market shares had been computed at the exporter level
+#' ## graph_market_share(
+#' ##   baci = "df-baci-market-share.csv",
+#' ##   x = "t",
+#' ##   y = "market_share_v",
+#' ##   graph_type = "area",
+#' ##   var_fill_color = "exporter",
+#' ##   palette_color = "Paired",
+#' ##   percent = TRUE,
+#' ##   title = "Title of the graph at the exporter level",
+#' ##   legend_title = "Exporters",
+#' ##   type_theme = "classic",
+#' ##   path_output = "path-to-png.png",
+#' ##   return_output = FALSE
+#' ## )
+#'
+#' ## graph area returned for modifications
+#' ## market shares had been computed at the region level
+#' ## One graph for each category of products
+#' ## graph_market_share(
+#' ##   baci = "df-baci-market-share.csv",
+#' ##   x = "t",
+#' ##   y = "market_share_v",
+#' ##   graph_type = "area",
+#' ##   var_fill_color = "region",
+#' ##   manual_color = c("blue", "red"),
+#' ##   percent = TRUE,
+#' ##   type_theme = "classic",
+#' ##   var_facet = "category",
+#' ##   return_output = TRUE,
+#' ##   print = FALSE
+#' ## )  +
+#' ##   ggplot2::theme(
+#' ##     legend.position = "left"
+#' ##   )
+#'
 #' @export
-#'
-#' @examples # Pas d'exemple
 graph_market_share <- function(baci, x = "t", y,
-                               compute_ms = FALSE,
                                graph_type = c("area", "line", "line_point"),
-                               var_fill_color = NULL, palette_color = NULL,
+                               var_fill_color, palette_color = NULL,
                                manual_color = NULL, percent = TRUE,
                                na.rm = TRUE, x_breaks = NULL, y_breaks = NULL,
                                x_title = "", y_title = "", title = "",
-                               subtitle = "", caption = "", color_legend = "",
-                               fill_legend = "", type_theme = c("bw", "classic", "minimal"),
+                               subtitle = "", caption = "", legend_title = "",
+                               type_theme = c("bw", "classic", "minimal"),
                                var_facet = NULL, path_output = NULL,
                                width = 15, height = 8, print = TRUE,
-                               return_output = TRUE,...){
+                               return_output = TRUE){
 
 
   # Messages d'erreur -------------------------------------------------------
 
+  # Check if x is a character and length 1
+  tradalyze::.check_character(x, "x")
+  tradalyze::.check_length_1(x, "x")
+
+  # Check if y is character and length 1
+  tradalyze::.check_character(y, "y")
+  tradalyze::.check_length_1(y, "y")
+
   # Check if parameter graph_type is valid
   graph_type <- match.arg(graph_type)
 
-  # Check if parameter type_theme is valid
-  type_theme <- match.arg(type_type)
+  # Check if var_fill_color is character
+  tradalyze::.check_character(var_fill_color, "var_fill_color")
 
+  # Check if palette_color is null or character
+  tradalyze::.check_null_character(palette_color, "palette_color")
+
+  # Check if manual_color is null or character
+  tradalyze::.check_null_list_character(manual_color, "manual_color")
+
+  # Check if percent is logical
+  tradalyze::.check_logical(percent, "percent")
+
+  # Check if na.rm is logical
+  tradalyze::.check_logical(na.rm, "na.rm")
+
+  # Check if x_breaks is NULL or numeric
+  tradalyze::.check_null_numeric(x_breaks, "x_breaks")
+
+  # Check if y_breaks is NULL or numeric
+  tradalyze::.check_null_numeric(y_breaks, "y_breaks")
+
+  # Check if x_title is character
+  tradalyze::.check_character(x_title, "x_title")
+
+  # Check if y_title is character
+  tradalyze::.check_character(y_title, "y_title")
+
+  # Check if title is character
+  tradalyze::.check_character(title, "title")
+
+  # Check if subtitle is character
+  tradalyze::.check_character(subtitle, "subtitle")
+
+  # Check if caption is character
+  tradalyze::.check_character(caption, "caption")
+
+  # Check if legend_title is character
+  tradalyze::.check_character(legend_title, "legend_title")
+
+  # Check if parameter type_theme is valid
+  type_theme <- match.arg(type_theme)
+
+  # Check if var_facet is NULL or character
+  tradalyze::.check_null_character(var_facet, "var_facet")
+
+  # Check if path_output is NULL or character
+  tradalyze::.check_null_character(path_output, "path_output")
+
+  # Check if extension of path_output is pdf or png
+  ext_path_output <- tools::file_ext(path_output)
+  if (!is.null(path_output)){
+    if (!ext_path_output %in% c("png", "pdf")){
+      stop(glue::glue("If path output is provided, the extension must be \"png\" or \"pdf\", not \"{extpath_output}\"."))
+    }
+  }
+
+  # Check if width is numeric
+  tradalyze::.check_numeric(width, "width")
+
+  # Check if height is numeric
+  tradalyze::.check_numeric(height, "height")
+
+  # Check if print is logical
+  tradalyze::.check_logical(print, "print")
+
+  # Check is return_output is logical
+  tradalyze::.check_logical(return_output, "return_output")
+  
+
+  # Create graph ----------------------------------------------------------
   # Load baci data
   df_baci <-
     tradalyze::.load_data(baci) |>
     dplyr::collect()
 
-  # Compute market share if needed
-  if (compute_ms == TRUE){
-    df_baci <-
-      tradalyze::market_share(
-        baci = df_baci,
-        ...
-      )
-  }
-
-  # Check if x is character
-  if (!is.character(x)){
-    class_x <- class(x)
-    stop(glue::glue("x must be a character, not a {class_x}."))
-  }
-  
-  # Check if x is unique
-  length_x <- length(x)
-  if (length_x != 1){
-    stop(glue::glue("x must be length 1, not length {length_x}."))
-  }
-
-  # Check if y is character
-  if (!is.character(y)){
-    class_y <- class(y)
-    stop(glue::glue("y must be a character, not a {class_y}."))
-  }
-  
-  # Check if y is unique
-  length_y <- length(y)
-  if (length_y != 1){
-    stop(glue::glue("y must be length 1, not length {length_y}."))
-  }
-
-  # Check if columns `t`, `y` are present in `df_baci`
-  columns <- c(t, y)
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
+  # Check if columns `x`, `y` are present in `df_baci`
+  tradalyze::.check_var_exist(df = df_baci, name_df = "df_baci", columns = c(x, y, var_fill_color))
 
 
-  
-
-  # si pas de x_breaks spécifié alors x va du min au max avec un écart de 2 entre chaque valeur
-  if (is.null(x_breaks)){
-    x_breaks <- seq(
-      min(df_baci[x], na.rm = TRUE),
-      max(df_baci[x], na.rm = TRUE),
-      by = 2
-    )
-  }
-
-  # Fondations du graph
+  # Base of the graph
   graph <-
     df_baci |>
     ggplot2::ggplot(
@@ -174,7 +260,7 @@ graph_market_share <- function(baci, x = "t", y,
       )
     )
 
-  # Définir le type de graphique -----------------------------------------
+  # Type of the graph -----------------------------------------------------
 
   # Graph area
   if (graph_type == "area"){
@@ -187,14 +273,14 @@ graph_market_share <- function(baci, x = "t", y,
         na.rm = na.rm
       )
 
-    # Couleurs du graph par palette
+    # Fill of the graph by palette
     if (!is.null(palette_color)){
       graph <-
         graph +
         ggplot2::scale_fill_brewer(palette = palette_color)
     }
 
-    # Couleurs du graph manuelles
+    # Fill of the graph manually
     if (!is.null(manual_color)){
       graph <-
         graph +
@@ -212,21 +298,21 @@ graph_market_share <- function(baci, x = "t", y,
         na.rm = na.rm
       )
 
-    # Couleurs du graph par palette
+    # Colors of the graph by palette
     if (!is.null(palette_color)){
       graph <-
         graph +
         ggplot2::scale_color_brewer(palette = palette_color)
     }
 
-    # Couleurs du graph manuelles
+    # Colors of the graph manually
     if (!is.null(manual_color)){
       graph <-
         graph +
         ggplot2::scale_color_manual(values = manual_color)
     }
   }
-  # Graph line_point (lignes avec des points sur les observations)
+  # Graph line_point (lines with point on observations)
   else if (graph_type == "line_point"){
     graph <-
       graph +
@@ -243,14 +329,14 @@ graph_market_share <- function(baci, x = "t", y,
         na.rm = na.rm
       )
 
-    # Couleurs du graph par palette
+    # Colors of the graph by palette
     if (!is.null(palette_color)){
       graph <-
         graph +
         ggplot2::scale_color_brewer(palette = palette_color)
     }
 
-    # Couleurs du graph manuelles
+    # Couleurs of the graph manually
     if (!is.null(manual_color)){
       graph <-
         graph +
@@ -259,17 +345,21 @@ graph_market_share <- function(baci, x = "t", y,
   }
 
 
-  # Paramètres graphiques ---------------------------------------------------
+  # Graphics parameters ---------------------------------------------------
 
-  # Définir les breaks sur l'axe des x
-  graph <-
-    graph +
-    ggplot2::scale_x_continuous(
-      breaks = x_breaks
-    )
+  # Breaks on x axis
+  if (!is.null(x_breaks)){
+    graph <-
+      graph +
+      ggplot2::scale_x_continuous(
+        breaks = x_breaks
+      )
+  }
+  
 
-  # Exprimer l'axe des ordonnées en pourcentage si souhaité + breaks
+  # Breaks on y axis
   if (!is.null(y_breaks)){
+    # Change label of y axis to percent
     if (percent == TRUE){
       graph <-
         graph +
@@ -278,7 +368,9 @@ graph_market_share <- function(baci, x = "t", y,
           labels = scales::label_percent(scale = 1),
           breaks = y_breaks
         )
-    } else {
+    }
+    # Kepp label of y axis standard
+    else {
       graph <-
         graph +
         # Suppose que les parts de marché sont en pourcentage et non pas proportion
@@ -298,7 +390,7 @@ graph_market_share <- function(baci, x = "t", y,
   }
 
   
-  # Titres et légendes
+  # Titles 
   graph <-
     graph +
     ggplot2::labs(
@@ -307,26 +399,19 @@ graph_market_share <- function(baci, x = "t", y,
       title    = title,
       subtitle = subtitle,
       caption  = caption,
-      color    = color_legend,
-      fill     = fill_legend
+      color    = legend_title,
+      fill     = legend_title
     )
 
-  # Thème général du graphique
-  if (type_theme == "bw"){
-    graph <-
-      graph +
-      ggplot2::theme_bw()
-  }
-  else if (type_theme == "classic"){
-    graph <-
-      graph +
-      ggplot2::theme_classic()
-  }
-  else if (type_theme == "minimal"){
-    graph <-
-      graph +
-      ggplot2::theme_minimal()
-  }
+  # Theme general of the graph
+  graph <-
+    graph +
+    switch(
+      type_theme,
+      "bw" = ggplot2::theme_bw(),
+      "classic" = ggplot2::theme_classic(),
+      "minimal" = ggplot2::theme_minimal()
+    )
 
 
   # Themes ------------------------------------------------------------------
@@ -334,11 +419,11 @@ graph_market_share <- function(baci, x = "t", y,
   graph <-
     graph +
     ggplot2::theme(
-      # Option des gridlines : les enlever
+      # Remove gridlines
       panel.grid.minor = ggplot2::element_blank(),
       panel.grid.major = ggplot2::element_blank(),
 
-      # Option des titres
+      # Titles options
       plot.title =
         ggplot2::element_text(
           size = 26,
@@ -356,7 +441,7 @@ graph_market_share <- function(baci, x = "t", y,
           color = "black"
         ),
 
-      # Option du texte de l'axe des X
+      # X axis options
       axis.text.x =
         ggplot2::element_text(
           angle = 45,
@@ -370,7 +455,7 @@ graph_market_share <- function(baci, x = "t", y,
           vjust = -0.5
         ),
 
-      # Option du texte de l'axe des Y
+      # Y axis options
       axis.text.y =
         ggplot2::element_text(
           size = 18,
@@ -381,7 +466,7 @@ graph_market_share <- function(baci, x = "t", y,
           size = 22
         ),
 
-      # Options de la légende
+      # Legend options
       legend.position  = "right",
       legend.text =
         ggplot2::element_text(
@@ -396,7 +481,7 @@ graph_market_share <- function(baci, x = "t", y,
           hjust = 0.5
         ),
 
-      # Options des facettes
+      # Facet options
       strip.background =
         ggplot2::element_rect(
           colour = "black",
@@ -409,7 +494,7 @@ graph_market_share <- function(baci, x = "t", y,
         )
     )
 
-  # Facettes
+  # Facet
   if (!is.null(var_facet)){
     graph <-
       graph +
@@ -420,7 +505,7 @@ graph_market_share <- function(baci, x = "t", y,
   }
 
 
-  # Exporter le graph -------------------------------------------------------
+  # Export graph -----------------------------------------------------------
   if (print == TRUE){
     print(graph)
   }
@@ -438,7 +523,3 @@ graph_market_share <- function(baci, x = "t", y,
     return(graph)
   }
 }
-
-
-
-

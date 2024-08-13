@@ -2,27 +2,27 @@
 % Please edit documentation in R/graph_market_share.R
 \name{graph_market_share}
 \alias{graph_market_share}
-\title{Graphique d'évolution des parts de marché}
+\title{Graph of the Evolution of Market Share in Data}
 \usage{
 graph_market_share(
   baci,
   x = "t",
-  y = "market_share",
-  graph_type = "area",
-  var_fill_color = NULL,
+  y,
+  graph_type = c("area", "line", "line_point"),
+  var_fill_color,
   palette_color = NULL,
   manual_color = NULL,
   percent = TRUE,
   na.rm = TRUE,
   x_breaks = NULL,
+  y_breaks = NULL,
   x_title = "",
   y_title = "",
   title = "",
   subtitle = "",
   caption = "",
-  color_legend = "",
-  fill_legend = "",
-  type_theme = "bw",
+  legend_title = "",
+  type_theme = c("bw", "classic", "minimal"),
   var_facet = NULL,
   path_output = NULL,
   width = 15,
@@ -32,110 +32,183 @@ graph_market_share(
 )
 }
 \arguments{
-\item{baci}{Les données de BACI sous forme de chemin d'accès, de format
-parquet ou de dataframe R.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{x}{La variable correspondant à l'axe des abscisses. Par défaut et de
-manière conseillé cette variable est "t.}
+\item{x}{Name of the variable used for the x axis. By default it is "t".}
 
-\item{y}{La variable correspondant à l'axe des ordonnées. Par défaut et de
-manière conseillé cette variable est "market_share".}
+\item{y}{Name of the variable used for the y axis.}
 
-\item{graph_type}{Le type de graphique à réaliser. Par défaut, le graphique
-est de type "area". Les autres options sont "line" et "line_point". Pour
-une représentation des parts de marché avec des lignes et potentiellement
-des points sur les observations, il est conseillé de choisir area qui produit
-un graphique en aire.}
+\item{graph_type}{Type of the graph to be represented. It can be "area"
+(by default and the suggested value) for an area graph, "line" for a line
+graph or "line_point" for a line and point graph.}
 
-\item{var_fill_color}{La variable catégorielle correspondant aux
-différentes catégories à mettre en couleur.
-Par défaut, cette variable est NULL.}
+\item{var_fill_color}{Name of the variable to be used to color the
+graph.}
 
-\item{palette_color}{La palette de couleur à utiliser pour le graphique.
-Attention si le nombre de couleur dans la palette n'est pas suffisant par
-rapport au nombre de catégories, une erreur sera retournée. Par défaut,
-cette variable est NULL.}
+\item{palette_color}{Name of the palette to be used. See
+\link[ggplot2]{scale_fill_brewer}. Be carefull, if the number of colors
+in the palette is too small compared to the number of categories in
+the variable \code{var_fill_color}, some categories an error will be returned.
+By default this parameter is set on NULL if no palette color is used.}
 
-\item{manual_color}{Les couleurs manuelles à utiliser pour le graphique.
-Doit généralement être un vecteur contenant les couleurs utilisés et les
-pays auxquels elles sont associées. Par défaut, cette variable est NULL.}
+\item{manual_color}{Colors to be used for each category. Can be a vector
+of colors of a list linking each color to a category. By default this variable
+is NULL if no manual color is used.}
 
-\item{percent}{Si TRUE, les valeurs de l'axe des ordonnées seront exprimées
-en pourcentage. Par défaut, cette variable est TRUE. Attention, les valeurs
-ne doit pas être exprimées de base de proportion, mais bien en pourcentage
-(de 1 à 100).}
+\item{percent}{Logical indicating if labels on the y axis should be expressed
+in percentage or not. TRUE is the default value. if TRUE data must already
+be expressed in percentage.}
 
-\item{na.rm}{Si TRUE, les valeurs manquantes seront retirées du graphique.}
+\item{na.rm}{Logical indicating whether NA should be exclude of the
+graph (avoid warning message). TRUE is the default value.}
 
-\item{x_breaks}{Les valeurs à afficher sur l'axe des abscisses. Par défaut,
-cette variable est NULL. Dans ce cas, les valeurs vont du minimum au maximum
-de la variable x avec un écart de 2 entre chaque valeur.}
+\item{x_breaks}{Values of the breaks on the x axis. By default the value is
+NULL. In this case values are automatically choosen.}
 
-\item{x_title}{Le titre de l'axe des abscisses. Par défaut, cette variable
-est vide.}
+\item{y_breaks}{Values of the breaks on the y axis. By default the value is
+NULL. In this case values are automatically choosen.}
 
-\item{y_title}{Le titre de l'axe des ordonnées. Par défaut, cette variable
-est vide.}
+\item{x_title}{Title of the x axis. By default it is set to an empty string.}
 
-\item{title}{Le titre du graphique. Par défaut, cette variable est vide.}
+\item{y_title}{Title of the y axis. By default it is set to an empty string.}
 
-\item{subtitle}{Le sous-titre du graphique. Par défaut, cette variable est
-vide.}
+\item{title}{Title of the graph. By default it is set to an empty string.}
 
-\item{caption}{La légende du graphique. Par défaut, cette variable est vide.}
+\item{subtitle}{Subtitle of the graph. By default it is set to an empty string.}
 
-\item{color_legend}{Le titre de la légende des couleurs. Par défaut, cette
-variable est vide. Inutilisé si graph_type est "area".}
+\item{caption}{Caption of the graph. By default it is set to an empty string.}
 
-\item{fill_legend}{Le titre de la légende des couleurs de remplissage. Par
-défaut, cette variable est vide. Inutilisé si graph_type est "line" ou
-"line_point".}
+\item{legend_title}{Title of the color legend. By default it is set to an
+empty string.}
 
-\item{type_theme}{Le thème général du graphique. Par défaut, cette variable
-est "bw". Les valeurs possibles sont "bw", "classic" et "minimal".}
+\item{type_theme}{General theme of the graph. It can be "bw" (the default)
+\code{ggplot2::theme_bw()}, "classic" for \code{ggplot2::theme_classic()} or "minimal"
+for \code{ggplot2::theme_minimal()}.}
 
-\item{var_facet}{La variable à utiliser pour les facettes. Par défaut, cette
-variable est NULL. Si NULL alors l'entièreté des données sera représentée
-sur un seul graphique. Sinon, les données seront séparées en fonction des
-différentes catégories présentes dans la variable (généralement une variable
-de secteur).}
+\item{var_facet}{Name of the variable to be used to divide the graphs in
+differents part with \code{ggplot2::facet_wrap()}. By default it his set on NULL
+indicating that the graph will not be divide. Depends on the level of
+aggregation of the data and the construction of the data.}
 
-\item{path_output}{Le chemin d'accès pour sauvegarder le graphique. Par
-défaut, cette variable est NULL. Si NULL, le graphique ne sera pas sauvegardé.}
+\item{path_output}{Path to save the graph in "pdf" or "png" format. If NULL
+(the default), the graph will not be saved.}
 
-\item{width}{La largeur du graphique. Par défaut, cette variable est 15.}
+\item{width}{Width of the saved graph. Bu default it is set to 15}
 
-\item{height}{La hauteur du graphique. Par défaut, cette variable est 8.}
+\item{height}{Height of the saved graph. By default it is set to 8}
 
-\item{print}{Si TRUE, le graphique sera affiché. Par défaut, cette variable
-est TRUE.}
+\item{print}{Logical indicating if the graph should be printed (default)
+or not.}
 
-\item{return_output}{Si TRUE, le graphique sera retourné permettant sa
-modification par l'utilisateur. Par défaut, cettevariable est TRUE.}
+\item{return_output}{Logical indicating if the graph must be returned for
+further modifications (default) or not.}
 }
 \value{
-Un graphique représentant l'évolution des parts de marché en fonction
-du temps.
+Graph representing the evolution of market shares.
 }
 \description{
-Fonction qui permet de créer un graphique pour représenter l'évolution des
-parts de marché en fonction du temps. Le graphique peut être de type "area",
-ou line avec ou sans point sur les observations.
-}
-\details{
-La fonction permet de créer un graphique pour représenter l'évolution des
-parts de marché en fonction du temps. Cette fonction utilise les fonctions
-de ggplot2 pour la création du graphique.
+Create, export and save graph showing the evolution of the market share
+(it can be other data, but this function has been think with the idea of
+market share). Graph can be an area graph, a line graph or a line and point
+graph. Some grahics paramters has been set for this function but all can
+be change manually inside or outside the function (the graph can be
+exported and so modified after the function).
 
-Il est important de noter, que cette fonction ne calcule pas les parts de
-marché. Celles-ci doivent être calculées précédemment (de préférence avec
-la fonction \link{market_share}). Il est possible de passer d'autres variables
-que celles définies à partir des fonctions de ce package. Néanmoins cela reste
-aux risques et périls de l'utilisateur si le rendu n'est pas cohérent.
-
-Grâce au paramètre \code{return_output}, il est possible de récupérer le graphique
-afin de pouvoir le modifier presque entièrement par la suite.
+This function does not calcuate the market share. Be sure to use data
+a market share variable (or the variable you want to represent). It his
+suggested to use the function \link{market_share} to compute the
+market shares.
 }
+\section{Theme default parameters}{
+\subsection{Grid lines}{
+
+Major and minor gridlines are removed (\code{panel.grid.minor()} and
+\code{panel.grid.major()}).
+}
+
+\subsection{Titles options}{
+\itemize{
+\item The size of the title is 26 and it is centered.
+\item the size of the subtitle is 22 and it is centered.
+\item The size of the caption is 16 and it is left adjust.
+}
+}
+
+\subsection{x axis options}{
+\itemize{
+\item The text of the x axis if at an angle of 45° and tight adjust. It has a
+size of 18 and a "black" color.
+\item The size of the x axis title is 22 and \code{vjust = -0.5}.
+}
+}
+
+\subsection{y axis options}{
+\itemize{
+\item The size of the y axis text is 18 and its color is "black".
+\item the size of the y axis title is 22.
+}
+}
+
+\subsection{Legend options}{
+\itemize{
+\item legend position is right
+\item Text of the legend has a size of 18 and a "black" color.
+\item \code{legend.key.spacing.y = ggplot::unit(0.3, "cm")}.
+\item the title of the legend has a size of 22, a "black" color and is centered.
+}
+}
+
+\subsection{Facet options}{
+\itemize{
+\item The strip of the facet has a "black" colour and is fill with the following
+color : \code{"#D9D9D9"}.
+\item The text of the strip has a size of 18 and a "black" color.
+}
+
+By default facet are "free_y".
+}
+}
+
 \examples{
-# Pas d'exemple
+## graph area printed and saved
+## market shares had been computed at the exporter level
+## graph_market_share(
+##   baci = "df-baci-market-share.csv",
+##   x = "t",
+##   y = "market_share_v",
+##   graph_type = "area",
+##   var_fill_color = "exporter",
+##   palette_color = "Paired",
+##   percent = TRUE,
+##   title = "Title of the graph at the exporter level",
+##   legend_title = "Exporters",
+##   type_theme = "classic",
+##   path_output = "path-to-png.png",
+##   return_output = FALSE
+## )
+
+## graph area returned for modifications
+## market shares had been computed at the region level
+## One graph for each category of products
+## graph_market_share(
+##   baci = "df-baci-market-share.csv",
+##   x = "t",
+##   y = "market_share_v",
+##   graph_type = "area",
+##   var_fill_color = "region",
+##   manual_color = c("blue", "red"),
+##   percent = TRUE,
+##   type_theme = "classic",
+##   var_facet = "category",
+##   return_output = TRUE,
+##   print = FALSE
+## )  +
+##   ggplot2::theme(
+##     legend.position = "left"
+##   )
+
 }
