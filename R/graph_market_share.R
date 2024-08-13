@@ -144,7 +144,7 @@
 #' ##     legend.position = "left"
 #' ##   )
 #'
-#' #' @seealso
+#' @seealso
 #' [.load_data()] For more informations concerning the loading.
 #' [.filter_baci()] For more informations concerning the filter of data inside the function.
 #' [.export_data()] For more informations concerning the export of the data inside the function.

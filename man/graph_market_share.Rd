@@ -211,10 +211,10 @@ By default facet are "free_y".
 ##     legend.position = "left"
 ##   )
 
-#' @seealso
-[.load_data()] For more informations concerning the loading.
-[.filter_baci()] For more informations concerning the filter of data inside the function.
-[.export_data()] For more informations concerning the export of the data inside the function.
-[market_share()] To compute market shares.
-
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
+\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filter of data inside the function.
+\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
+\code{\link[=market_share]{market_share()}} To compute market shares.
 }
