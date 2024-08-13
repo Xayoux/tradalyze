@@ -180,19 +180,19 @@ market_share <- function(baci, years = NULL, codes = NULL,
     stop(glue::glue("var_share must be a character, not a {class_var_share}."))
   }
 
-  # Check if variables in var_aggregate are in the df
-  is_var_share_present <- rlang::has_name(df_baci, var_share)
-  if (FALSE %in% is_var_share_present){
-    var_share_absent <- var_share[which(var_share == FALSE)]
-    stop(glue::glue("var_share : {var_share_absent} are not in baci."))
-  }
-
   
   # The second aggregation (to compute market share) : the last variable is removed
   var_aggregate_2 <- var_aggregate[-length(var_aggregate)]
 
   # Load baci data
   df_baci <- tradalyze::.load_data(baci)
+
+  # Check if variables in var_aggregate are in the df
+  is_var_share_present <- rlang::has_name(df_baci, var_share)
+  if (FALSE %in% is_var_share_present){
+    var_share_absent <- var_share[which(var_share == FALSE)]
+    stop(glue::glue("var_share : {var_share_absent} are not in baci."))
+  }
 
   # Filter baci data
   df_baci <-
