@@ -1,3 +1,119 @@
+#' @title Calculate the Mean of a variable in a Dataframe
+#'
+#' @param df_baci Baci data
+#' @param var_aggregate Character : vector of aggreagtions variables
+#' @param na.rm Exclude NA or not
+#' @return Dataframe of aggregate unit values
+mean_aggregation <- function(df_baci, var, var_aggregation, na.rm){
+  df_baci <-
+    df_baci  |>
+    dplyr::summarize(
+      .by = var_aggregation,
+      !!var := mean(.data[[var]], na.rm = na.rm)
+    )
+
+  return(df_baci)
+}
+
+
+#' @title Calculate the Median of a variable in a Dataframe
+#'
+#' @param df_baci Baci data
+#' @param var_aggregate Character : vector of aggreagtions variables
+#' @param na.rm Exclude NA or not
+#' @return Dataframe of aggregate unit values
+median_aggregation <- function(df_baci, var, var_aggregation, na.rm){
+  df_baci <-
+    df_baci  |>
+    dplyr::summarize(
+      .by = var_aggregation,
+      !!var := stats::median(.data[[var]], na.rm = na.rm)
+    )
+}
+
+
+fixed_weight_computation <- function(df_baci, year_ref_fixed_weight,
+                                     var_desagregation, var_pond, var_temporal){
+  df_pond <-
+    df_baci  |>
+    dplyr::filter(
+      !!sym(var_temporal) == year_ref_fixed_weight
+    ) |>
+    dplyr::select({{var_desagregation}}, {{var_pond}}) |>
+    dplyr::select(!{{var_temporal}})
+
+  var_join <-
+    var_desagregation[var_desagregation != var_temporal]
+
+  df_baci <-
+    df_baci  |>
+    dplyr::select(!{{var_pond}}) |>
+    dplyr::left_join(
+      df_pond,
+      dplyr::join_by(var_join)
+    )
+    
+
+  return(df_pond)
+}
+
+
+
+
+# Création d'un dataframe d'exemple
+df_baci <- data.frame(
+  exporter = c("ARG", "BRA", "CHN", "USA", "FRA", "ARG", "BRA", "CHN", "USA", "FRA"),
+  importer = c("FRA", "USA", "ARG", "BRA", "CHN", "FRA", "USA", "ARG", "BRA", "CHN"),
+  product_code = c("1001", "1002", "1003", "1004", "1005", "1001", "1002", "1003", "1004", "1005"),
+  year = c(2020, 2020, 2020, 2020, 2020, 2021, 2021, 2021, 2021, 2021),
+  value = c(100, 200, 300, 400, 500, 150, 250, 350, 450, 550),
+  weight = c(10, 20, 30, 40, 50, 15, 25, 35, 45, 55)
+)
+
+# Affichage du dataframe
+print(df_baci)
+
+
+
+
+
+
+
+
+
+
+
+
+if (fixed_weight == TRUE){
+    df_pond <-
+      df_baci |>
+      dplyr::filter(t == year_ref_fixed_weight) |>
+      dplyr::select({{var_desagregate}}, {{var_pond}}) |>
+      dplyr::select(-t)
+
+    var_desagregate_join <-
+      var_desagregate[var_desagregate != "t"]
+
+    df_baci <-
+      df_baci |>
+      dplyr::select(-{{var_pond}}) |>
+      dplyr::left_join(
+        df_pond,
+        by = var_desagregate_join
+      )
+  }
+
+
+fixed_weight_computation(
+  df_baci = df_baci,
+  year_ref_fixed_weight = 2020,
+  var_desagregation = c("exporter", "importer", "product_code", "year"),
+  var_pond = "weight",
+  var_temporal = "year"
+)
+
+
+
 # Documentation -----------------------------------------------------------
 #' @title
 #' Comparaison des valeurs unitaires
@@ -61,47 +177,40 @@
 #' @examples # Pas d'exemples.
 # Fonction uv_comp ---------------------------------------------------------
 ## Définition de la fonction -----------------------------------------------
-uv_comp <- function(baci, years = NULL, codes = NULL, formula = "median_pond",
+uv_comp <- function(baci, years = NULL, codes = NULL,
+                    export_countries = NULL, import_countries = NULL,
+                    formula = "median_pond",
                     var_pond = NULL, fixed_weight = FALSE,
                     year_ref, var_exporter, year_ref_fixed_weight = year_ref,
                      var_desagregate = c("t", "exporter", "importer", "k"),
                     var_k, exporter_ref = NULL, base_100 = TRUE,
                     compare = FALSE,
-                    return_output = TRUE, return_pq = FALSE,
+                    return_output = TRUE, return_arrow = FALSE,
                     path_output = NULL){
 
-  ## Importation des données ----------------------------------------------
-  # Ouvrir les données de BACI
-  if (is.character(baci) == TRUE){
-    # Ouvrir les données depuis un dossier parquet (si chemin c'est parquet)
-    df_baci <-
-      baci |>
-      arrow::open_dataset()
-  }
-  else if (is.data.frame(baci) == TRUE){
-    # Ouvrir les données depuis un dataframe : passage en format arrow
-    df_baci <-
-      baci |>
-      arrow::arrow_table()
-  }
-  else{
-    # Ouvrir les données depuis format arrow : rien à faire
-    df_baci <- baci
-  }
+  # Check export parameters
+  tradalyze::.export_data(
+    data = NULL,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = FALSE,
+    collect = NULL
+  )
 
-  # Garder les années voulues si years != NULL
-  if(!is.null(years)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(t %in% years)
-  }
+  # Import and filter baci data
+  df_baci <-
+    tradalyze::.load_data(baci)  |>
+    tradalyze::.filter_baci(
+      years = years,
+      codes = codes,
+      export_countries = export_countries,
+      import_countries = import_countries
+    ) |>
+    dplyr::mutate(
+      uv = v / q
+    )
 
-  # Garder les codes voulus si codes != NULL
-  if(!is.null(codes)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(k %in% codes)
-  }
 
 
   ## Calcul des valeurs unitaires -----------------------------------------
