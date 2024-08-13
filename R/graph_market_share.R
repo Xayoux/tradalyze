@@ -2,17 +2,17 @@
 #' Graph of the Evolution of Market Share in Data
 #'
 #' @description
-#' Create, export and save graph showing the evolution of the market share
-#' (it can be other data, but this function has been think with the idea of
-#' market share). Graph can be an area graph, a line graph or a line and point
-#' graph. Some grahics paramters has been set for this function but all can
-#' be change manually inside or outside the function (the graph can be
-#' exported and so modified after the function).
+#' Create, export and save a graph showing the evolution of the market share.
+#' (it could be other data, but this function has been designed with the idea
+#' of market share in mind). The graph can be an area graph, a line graph or a
+#' line and point graph. graph. Some graphic parameters have been set for this
+#' function, but all can be manually changed inside or outside the function
+#' (the graph can be exported and thus (the graph can be exported and modified
+#' after the function).
 #'
-#' This function does not calcuate the market share. Be sure to use data
-#' a market share variable (or the variable you want to represent). It his
-#' suggested to use the function \link{market_share} to compute the
-#' market shares. 
+#' This function does not calculate market share. Make sure you use the market
+#' share variable (or the variable you want to represent). It is suggested to
+#' use the function \link{market_share} to calculate market shares. 
 #'
 #' @details
 #' # Theme default parameters
@@ -66,13 +66,13 @@
 #' @param palette_color Name of the palette to be used. See
 #' \link[ggplot2]{scale_fill_brewer}. Be carefull, if the number of colors
 #' in the palette is too small compared to the number of categories in
-#' the variable `var_fill_color`, some categories an error will be returned.
+#' the variable `var_fill_color`, an error will be returned.
 #' By default this parameter is set on NULL if no palette color is used.
 #' @param manual_color Colors to be used for each category. Can be a vector
 #' of colors of a list linking each color to a category. By default this variable
 #' is NULL if no manual color is used.
 #' @param percent Logical indicating if labels on the y axis should be expressed
-#' in percentage or not. TRUE is the default value. if TRUE data must already
+#' in percentage or not. TRUE is the default value. Ff TRUE data must already
 #' be expressed in percentage.
 #' @param na.rm Logical indicating whether NA should be exclude of the
 #' graph (avoid warning message). TRUE is the default value.
@@ -143,6 +143,12 @@
 #' ##   ggplot2::theme(
 #' ##     legend.position = "left"
 #' ##   )
+#'
+#' #' @seealso
+#' [.load_data()] For more informations concerning the loading.
+#' [.filter_baci()] For more informations concerning the filter of data inside the function.
+#' [.export_data()] For more informations concerning the export of the data inside the function.
+#' [market_share()] To compute market shares.
 #'
 #' @export
 graph_market_share <- function(baci, x = "t", y,
