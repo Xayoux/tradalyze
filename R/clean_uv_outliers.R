@@ -6,34 +6,18 @@
 #' @param na.rm Exclude NA or not
 #' @return BACI df with outliers Highlighted (R dataframe format)
 method_classic <- function(df_baci, alpha_H, alpha_L, na.rm){  
-  # Check if alpha_H is numeric
-  if (!is.numeric(alpha_H)){
-    clas_alpha_H <- class(alpha_H)
-    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
-  }
-
-  # Check if alpha_H is length 1
-  length_alpha_H <- length(alpha_H)
-  if (length_alpha_H != 1){
-    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
-  }
+  # Check if alpha_H is numeric and length 1
+  tradalyze::.check_numeric(alpha_H, "alpha_H")
+  tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is >= 0 and <= 1
   if (alpha_H < 0 | alpha_H > 1){
     stop(glue::glue("alpha_H must be between [0,1], not {alpha_H}."))
   }
   
-  # Check if alpha_L is numeric
-  if (!is.numeric(alpha_L)){
-    clas_alpha_L <- class(alpha_L)
-    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
-  }
-
-  # Check if alpha_L is length 1
-  length_alpha_L <- length(alpha_L)
-  if (length_alpha_L != 1){
-    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
-  }
+  # Check if alpha_L is numeric and length 1
+  tradalyze::.check_numeric(alpha_L, "alpha_L")
+  tradalyze::.check_length_1(alpha_L, "alpha_L")
 
   # Check if alpha_L is >= 0 and <= 1
   if (alpha_L < 0 | alpha_L > 1){
@@ -45,25 +29,12 @@ method_classic <- function(df_baci, alpha_H, alpha_L, na.rm){
     stop("alpha_H ({alpha_H}) must be greater than alpha_L ({alpha_L}).")
   }
 
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
-
-  # Check if na.rm is length 1
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
   # Check if columns `t`, `k` are present in `df_baci`
-  columns <- c("t", "k")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
+  tradalyze::.check_var_exist(df_baci, "baci", c("t", "k"))
 
   # Compute outliers
   df_baci <-
@@ -91,34 +62,18 @@ method_classic <- function(df_baci, alpha_H, alpha_L, na.rm){
 #' @param rm_temp_var Remove temporary variables or not
 #' @return BACI df with outliers Highlighted (R dataframe format)
 method_fh13 <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
-  # Check if alpha_H is numeric
-  if (!is.numeric(alpha_H)){
-    clas_alpha_H <- class(alpha_H)
-    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
-  }
-
-  # Check if alpha_H is length 1
-  length_alpha_H <- length(alpha_H)
-  if (length_alpha_H != 1){
-    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
-  }
+  # Check if alpha_H is numeric and length 1
+  tradalyze::.check_numeric(alpha_H, "alpha_H")
+  tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is >= 0 and <= 1
   if (alpha_H < 0 | alpha_H > 1){
     stop(glue::glue("alpha_H must be between [0,1], not {alpha_H}."))
   }
   
-  # Check if alpha_L is numeric
-  if (!is.numeric(alpha_L)){
-    clas_alpha_L <- class(alpha_L)
-    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
-  }
-
-  # Check if alpha_L is length 1
-  length_alpha_L <- length(alpha_L)
-  if (length_alpha_L != 1){
-    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
-  }
+  # Check if alpha_L is numeric and length 1
+  tradalyze::.check_numeric(alpha_L, "alpha_L")
+  tradalyze::.check_length_1(alpha_L, "alpha_L")
 
   # Check if alpha_L is >= 0 and <= 1
   if (alpha_L < 0 | alpha_L > 1){
@@ -130,38 +85,16 @@ method_fh13 <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
     stop("alpha_H ({alpha_H}) must be greater than alpha_L ({alpha_L}).")
   }
 
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
-  # Check if na.rm is length 1
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
-
-  # Check if rm_temp_var is logical
-  if (!is.logical(rm_temp_var)){
-    class_rm_temp_var <- length(rm_temp_var)
-    stop(glue::glue("rm_temp_var must be a logical, not a {class_rm_temp_var}."))
-  }
-
-  # Check if rm_temp_var is length 1
-  length_rm_temp_var <- length(rm_temp_var)
-  if (length_rm_temp_var != 1){
-    stop(glue::glue("rm_temp_var must be length 1, not length {length_rm_temp_var}."))
-  }
+  # Check if rm_temp_var is logical and length 1
+  tradalyze::.check_logical(rm_temp_var, "rm_temp_var")
+  tradalyze::.check_length_1(rm_temp_var, "rm_temp_var")
 
   # Check if column `k` is present in `df_baci`
-  columns <- c("k")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
-
+  tradalyze::.check_var_exist(df_baci, "baci", "k")
 
   # Compute outliers
   df_baci <-
@@ -200,60 +133,31 @@ method_fh13 <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
 #' @param na.rm Exclude NA or not
 #' @return BACI df with outliers Highlighted (R dataframe format)
 method_h06 <- function(df_baci, alpha_H, alpha_L, na.rm){
-    # Check if alpha_H is numeric
-  if (!is.numeric(alpha_H)){
-    clas_alpha_H <- class(alpha_H)
-    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
-  }
-
-  # Check if alpha_H is length 1
-  length_alpha_H <- length(alpha_H)
-  if (length_alpha_H != 1){
-    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
-  }
+  # Check if alpha_H is numeric and length 1
+  tradalyze::.check_numeric(alpha_H, "alpha_H")
+  tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is > 0
   if (alpha_H >= 0){
     stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
   }
   
-  # Check if alpha_L is numeric
-  if (!is.numeric(alpha_L)){
-    clas_alpha_L <- class(alpha_L)
-    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
-  }
-
-  # Check if alpha_L is length 1
-  length_alpha_L <- length(alpha_L)
-  if (length_alpha_L != 1){
-    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
-  }
+  # Check if alpha_L is numeric and length 1
+  tradalyze::.check_numeric(alpha_L, "alpha_L")
+  tradalyze::.check_length_1(alpha_L, "alpha_L")
 
   # Check if alpha_L is > 0
   if (alpha_L >= 0){
     stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
   }
 
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
-
-  # Check if na.rm is length 1
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
   # Check if column `k`, `i`, `t` is present in `df_baci`
-  columns <- c("k", "i", "t")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
-
+  tradalyze::.check_var_exist(df_baci, "baci", c("k", "i", "t"))
+  
   # Compute outliers
   df_baci <-
     df_baci  |>
@@ -280,71 +184,34 @@ method_h06 <- function(df_baci, alpha_H, alpha_L, na.rm){
 #' @param rm_temp_var Remove temporary variables or not
 #' @return BACI df with outliers Highlighted (R dataframe format)
 method_sd <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
-    # Check if alpha_H is numeric
-  if (!is.numeric(alpha_H)){
-    clas_alpha_H <- class(alpha_H)
-    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
-  }
+  # Check if alpha_H is numeric and length 1
+  tradalyze::.check_numeric(alpha_H, "alpha_H")
+  tradalyze::.check_length_1(alpha_H, "alpha_H")
 
-  # Check if alpha_H is length 1
-  length_alpha_H <- length(alpha_H)
-  if (length_alpha_H != 1){
-    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
-  }
-
-    # Check if alpha_H is > 0
+  # Check if alpha_H is > 0
   if (alpha_H >= 0){
     stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
   }
   
-  # Check if alpha_L is numeric
-  if (!is.numeric(alpha_L)){
-    clas_alpha_L <- class(alpha_L)
-    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
-  }
-
-  # Check if alpha_L is length 1
-  length_alpha_L <- length(alpha_L)
-  if (length_alpha_L != 1){
-    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
-  }
+  # Check if alpha_L is numeric and length 1
+  tradalyze::.check_numeric(alpha_L, "alpha_L")
+  tradalyze::.check_length_1(alpha_L, "alpha_L")
 
     # Check if alpha_L is > 0
   if (alpha_L >= 0){
     stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
   }
 
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
-  # Check if na.rm is length 1
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
-
-  # Check if rm_temp_var is logical
-  if (!is.logical(rm_temp_var)){
-    class_rm_temp_var <- length(rm_temp_var)
-    stop(glue::glue("rm_temp_var must be a logical, not a {class_rm_temp_var}."))
-  }
-
-  # Check if rm_temp_var is length 1
-  length_rm_temp_var <- length(rm_temp_var)
-  if (length_rm_temp_var != 1){
-    stop(glue::glue("rm_temp_var must be length 1, not length {length_rm_temp_var}."))
-  }
+  # Check if rm_temp_var is logical and length 1
+  tradalyze::.check_logical(rm_temp_var, "rm_temp_var")
+  tradalyze::.check_length_1(rm_temp_var, "rm_temp_var")
 
   # Check if columns `k`, `t` are present in `df_baci`
-  columns <- c("k", "t")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
+  tradalyze::.check_var_exist(df_baci, "baci", c("k", "t"))
 
   # Perform computation of outliers
   df_baci <-
@@ -382,83 +249,38 @@ method_sd <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
 #' @param rm_temp_var Remove temporary variables or not
 #' @return BACI df with outliers Highlighted (R dataframe format)
 method_be11 <- function(df_baci, alpha_H, alpha_L, beta, na.rm, rm_temp_var){
-  # Check if alpha_H is numeric
-  if (!is.numeric(alpha_H)){
-    clas_alpha_H <- class(alpha_H)
-    stop(glue::glue("alpha_H must be a numeric, not a {class_alpha_H}."))
-  }
-
-  # Check if alpha_H is length 1
-  length_alpha_H <- length(alpha_H)
-  if (length_alpha_H != 1){
-    stop(glue::glue("alpha_H must be length 1, not length {length_alpha_H}."))
-  }
+  # Check if alpha_H is numeric and length 1
+  tradalyze::.check_numeric(alpha_H, "alpha_H")
+  tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is > 0
   if (alpha_H >= 0){
     stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
   }
   
-  # Check if alpha_L is numeric
-  if (!is.numeric(alpha_L)){
-    clas_alpha_L <- class(alpha_L)
-    stop(glue::glue("alpha_L must be a numeric, not a {class_alpha_L}."))
-  }
-
-  # Check if alpha_L is length 1
-  length_alpha_L <- length(alpha_L)
-  if (length_alpha_L != 1){
-    stop(glue::glue("alpha_L must be length 1, not length {length_alpha_L}."))
-  }
+  # Check if alpha_L is numeric and length 1
+  tradalyze::.check_numeric(alpha_L, "alpha_L")
+  tradalyze::.check_length_1(alpha_L, "alpha_L")
 
   # Check if alpha_L is > 0
   if (alpha_L >= 0){
     stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
   }
 
-  # Check if beta is numeric
-  if (!is.numeric(beta)){
-    clas_beta <- class(beta)
-    stop(glue::glue("beta must be a numeric, not a {class_beta}."))
-  }
+  # Check if beta is numeric and length 1
+  tradalyze::.check_numeric(beta, "beta")
+  tradalyze::.check_length_1(beta, "beta")
 
-  # Check if beta is length 1
-  length_beta <- length(beta)
-  if (length_beta != 1){
-    stop(glue::glue("beta must be length 1, not length {length_beta}."))
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
-  # Check if na.rm is logical
-  if (!is.logical(na.rm)){
-    class_na.rm <- class(na.rm)
-    stop(glue::glue("na.rm must be a logical, not a {class_na.rm}."))
-  }
-
-  # Check if na.rm is length 1
-  length_na.rm <- length(na.rm)
-  if (length_na.rm != 1){
-    stop(glue::glue("na.rm must be length 1, not length {length_na.rm}."))
-  }
-
-  # Check if rm_temp_var is logical
-  if (!is.logical(rm_temp_var)){
-    class_rm_temp_var <- length(rm_temp_var)
-    stop(glue::glue("rm_temp_var must be a logical, not a {class_rm_temp_var}."))
-  }
-
-  # Check if rm_temp_var is length 1
-  length_rm_temp_var <- length(rm_temp_var)
-  if (length_rm_temp_var != 1){
-    stop(glue::glue("rm_temp_var must be length 1, not length {length_rm_temp_var}."))
-  }
+  # Check if rm_temp_var is logical and length 1
+  tradalyze::.check_logical(rm_temp_var, "rm_temp_var")
+  tradalyze::.check_length_1(rm_temp_var, "rm_temp_var")
 
   # Check if columns `i`, `j`, `k`, `t` are present in `df_baci`
-  columns <- c("i", "j", "k", "t")
-  is_column_present <- rlang::has_name(df_baci, columns)
-  if (FALSE %in% is_column_present){
-    columns_absent <- columns[which(columns == FALSE)]
-    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
-  }
+  tradalyze::.check_var_exist(df_baci, "baci", c("i", "j", "k", "t"))
 
   
   # Computation of outliers
@@ -894,17 +716,8 @@ clean_uv_outliers <- function(baci, years = NULL, codes = NULL,
     collect = NULL
   )
 
-  # Check if outliers.rm is logical
-  if (!is.logical(outliers.rm)){
-    class_outliers.rm <- class(outliers.rm)
-    stop(glue::glue("outliers.rm must be a logical, not a {class_outliers.rm}."))
-  }
-
-  # Check if outliers.rm is length 1
-  length_outliers.rm <- length(outliers.rm)
-  if (length_outliers.rm != 1){
-    stop(glue::glue("outliers.rm must be length 1, not length {length_outliers.rm}."))
-  }
+  tradalyze::.check_logical(outliers.rm, "outliers.rm")
+  tradalyze::.check_length_1(outliers.rm, "outliers.rm")
   
 
   # Load the data
