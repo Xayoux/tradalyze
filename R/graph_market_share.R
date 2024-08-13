@@ -84,38 +84,76 @@
 #' @export
 #'
 #' @examples # Pas d'exemple
-graph_market_share <- function(baci, x = "t", y = "market_share",
-                               graph_type = "area",
+graph_market_share <- function(baci, x = "t", y,
+                               compute_ms = FALSE,
+                               graph_type = c("area", "line", "line_point"),
                                var_fill_color = NULL, palette_color = NULL,
                                manual_color = NULL, percent = TRUE,
-                               na.rm = TRUE, x_breaks = NULL,
+                               na.rm = TRUE, x_breaks = NULL, y_breaks = NULL,
                                x_title = "", y_title = "", title = "",
                                subtitle = "", caption = "", color_legend = "",
-                               fill_legend = "", type_theme = "bw",
+                               fill_legend = "", type_theme = c("bw", "classic", "minimal"),
                                var_facet = NULL, path_output = NULL,
                                width = 15, height = 8, print = TRUE,
-                               return_output = TRUE){
+                               return_output = TRUE,...){
 
 
   # Messages d'erreur -------------------------------------------------------
 
+  # Check if parameter graph_type is valid
+  graph_type <- match.arg(graph_type)
 
+  # Check if parameter type_theme is valid
+  type_theme <- match.arg(type_type)
 
-  # Ouvrir les données de BACI
-  # Ouvrir les données depuis un dossier parquet
-  if (is.character(baci) == TRUE){
+  # Load baci data
+  df_baci <-
+    tradalyze::.load_data(baci) |>
+    dplyr::collect()
+
+  # Compute market share if needed
+  if (compute_ms == TRUE){
     df_baci <-
-      baci |>
-      arrow::open_dataset() |>
-      dplyr::collect()
-  }
-  # Ouvrir les données depuis un dataframe R
-  else if (is.data.frame(baci) == TRUE){
-    df_baci <- baci
+      tradalyze::market_share(
+        baci = df_baci,
+        ...
+      )
   }
 
-  # Collecter les données (être sûr que les données sont en format R)
-  df_baci <- dplyr::collect(df_baci)
+  # Check if x is character
+  if (!is.character(x)){
+    class_x <- class(x)
+    stop(glue::glue("x must be a character, not a {class_x}."))
+  }
+  
+  # Check if x is unique
+  length_x <- length(x)
+  if (length_x != 1){
+    stop(glue::glue("x must be length 1, not length {length_x}."))
+  }
+
+  # Check if y is character
+  if (!is.character(y)){
+    class_y <- class(y)
+    stop(glue::glue("y must be a character, not a {class_y}."))
+  }
+  
+  # Check if y is unique
+  length_y <- length(y)
+  if (length_y != 1){
+    stop(glue::glue("y must be length 1, not length {length_y}."))
+  }
+
+  # Check if columns `t`, `y` are present in `df_baci`
+  columns <- c(t, y)
+  is_column_present <- rlang::has_name(df_baci, columns)
+  if (FALSE %in% is_column_present){
+    columns_absent <- columns[which(columns == FALSE)]
+    stop(glue::glue("Columns {columns_absent} are not in df_baci."))
+  }
+
+
+  
 
   # si pas de x_breaks spécifié alors x va du min au max avec un écart de 2 entre chaque valeur
   if (is.null(x_breaks)){
@@ -231,15 +269,35 @@ graph_market_share <- function(baci, x = "t", y = "market_share",
     )
 
   # Exprimer l'axe des ordonnées en pourcentage si souhaité + breaks
-  if (percent == TRUE){
-    graph <-
-      graph +
-      # Suppose que les parts de marché sont en pourcentage et non pas proportion
-      ggplot2::scale_y_continuous(
-        labels = scales::label_percent(scale = 1)
-      )
+  if (!is.null(y_breaks)){
+    if (percent == TRUE){
+      graph <-
+        graph +
+        # Suppose que les parts de marché sont en pourcentage et non pas proportion
+        ggplot2::scale_y_continuous(
+          labels = scales::label_percent(scale = 1),
+          breaks = y_breaks
+        )
+    } else {
+      graph <-
+        graph +
+        # Suppose que les parts de marché sont en pourcentage et non pas proportion
+        ggplot2::scale_y_continuous(
+          breaks = y_breaks
+        )
+    }
+  } else {
+    if (percent == TRUE){
+      graph <-
+        graph +
+        # Suppose que les parts de marché sont en pourcentage et non pas proportion
+        ggplot2::scale_y_continuous(
+          labels = scales::label_percent(scale = 1)
+        )
+    }
   }
 
+  
   # Titres et légendes
   graph <-
     graph +
@@ -380,3 +438,7 @@ graph_market_share <- function(baci, x = "t", y = "market_share",
     return(graph)
   }
 }
+
+
+
+
