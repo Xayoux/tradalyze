@@ -99,156 +99,76 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, double_bar = FALSE,
                                 return_output = TRUE){
 
 
-  # Importer les données ---------------------------------------------------
-  # Ouvrir les données de baci depuis un chemin d'accès
-  if (is.character(baci) == TRUE){
-    # Ouvrir le ficheir csv
-    if (tools::file_ext(baci) == "csv"){
-      df_baci <- readr::read_csv(baci)
-    }
-    # Ouvrir fichier parquet
-    else if (tools::file_ext(baci) == "pq"){
-      df_baci <- arrow::read_parquet(baci)
-    }
-  }
-  # Ouvrir baci depuis un dataframe R
-  else if (is.data.frame(baci) == TRUE){
-    df_baci <- baci
-  }
+  df_baci <-
+    tradalyze::.load_data(baci)  |>
+    dplyr::collect()
 
-  # Collecter les données (être sûr que les données sont en format R)
-  df_baci <- dplyr::collect(df_baci)
 
   # Création du corps du graphique ------------------------------------------
   # Fondations du graph
   graph <- ggplot2::ggplot()
 
-  # Définir le graphique
-  # Une barre par année représentée
-  if (stack == FALSE){
-    # Garder uniquement les années voulues
-    df_baci <-
-      df_baci |>
-      dplyr::filter(
-        !!dplyr::sym(var_t) %in% c(year_1, year_2)
-      )
+  
+  # Une seule barre : évolution montrée par la partie plus claire
+  
+  # Données pour l'année 1
+  df_baci_year_1 <-
+    df_baci |>
+    dplyr::filter(!!dplyr::sym(var_t) == year_1)
 
-    # Définir le graph
+  # Données pour l'année 2
+  df_baci_year_2 <-
+    df_baci |>
+    dplyr::filter(!!dplyr::sym(var_t) == year_2)
+
+
+  graph <-
+    graph +
+    ggplot2::geom_bar(
+      ggplot2::aes(
+        x = !!dplyr::sym(x),
+        y = !!dplyr::sym(y)
+      ),
+      na.rm = na.rm,
+      stat = "identity",
+      position = "dodge",
+      color = color_1,
+      data = df_baci_year_1
+    )
+
+  if (double_bar == TRUE){
     graph <-
       graph +
       ggplot2::geom_bar(
         ggplot2::aes(
           x = !!dplyr::sym(x),
-          y = !!dplyr::sym(y),
-          fill = !!dplyr::sym(var_fill),
-          group = !!dplyr::sym(var_t)
+          y = !!dplyr::sym(y)
         ),
         na.rm = na.rm,
         stat = "identity",
         position = "dodge",
-        color = color_1,
-        data = df_baci
+        color = color_2,
+        alpha = alpha,
+        data = df_baci_year_2
+      )
+  } else {
+    graph <-
+      graph +
+      ggplot2::geom_point(
+        ggplot2::aes(
+          x = !!dplyr::sym(x),
+          y = !!dplyr::sym(y),
+          fill = dplyr::if_else(is.null(var_fill_shape), NULL, !!dplyr::sym(var_fill_shape))
+        ),
+        alpha = alpha,
+        na.rm = na.rm,
+        shape = shape,
+        size = size_shape,
+        data = df_baci_year_2,
+        color = "black"
       )
   }
-  # Une seule barre : évolution montrée par la partie plus claire
-  else if (stack == TRUE){
-    # Données pour l'année 1
-    df_baci_year_1 <-
-      df_baci |>
-      dplyr::filter(!!dplyr::sym(var_t) == year_1)
-
-    # Données pour l'année 2
-    df_baci_year_2 <-
-      df_baci |>
-      dplyr::filter(!!dplyr::sym(var_t) == year_2)
-
-    if (double_bar == TRUE){
-      # Définir le graph
-      graph <-
-        graph +
-        # Première barre "foncée" avec les données de l'année 1
-        ggplot2::geom_bar(
-          ggplot2::aes(
-            x = !!dplyr::sym(x),
-            y = !!dplyr::sym(y)
-          ),
-          na.rm = na.rm,
-          stat = "identity",
-          position = "dodge",
-          color = color_1,
-          data = df_baci_year_1
-        ) +
-        # Deuxième barre "claire" avec les données de l'année 2
-        ggplot2::geom_bar(
-          ggplot2::aes(
-            x = !!dplyr::sym(x),
-            y = !!dplyr::sym(y)
-          ),
-          na.rm = na.rm,
-          stat = "identity",
-          position = "dodge",
-          color = color_2,
-          alpha = alpha,
-          data = df_baci_year_2
-        )
-    } else if (double_bar == FALSE){
-
-
-
-
-
-      # Définir le graph
-      graph <-
-        graph +
-        # Barre représentant la première année
-        ggplot2::geom_bar(
-          ggplot2::aes(
-            x = !!dplyr::sym(x),
-            y = !!dplyr::sym(y)
-          ),
-          na.rm = na.rm,
-          stat = "identity",
-          position = "dodge",
-          color = color_1,
-          data = df_baci_year_1
-        )
-
-      # Points de la même couleur que les barres
-      if (!is.null(var_fill_shape)){
-        # Point représentant la deuxième année
-        graph <-
-          graph +
-          ggplot2::geom_point(
-            ggplot2::aes(
-              x = !!dplyr::sym(x),
-              y = !!dplyr::sym(y),
-              fill = !!dplyr::sym(var_fill_shape)
-            ),
-            alpha = alpha,
-            na.rm = na.rm,
-            shape = shape,
-            size = size_shape,
-            data = df_baci_year_2,
-            color = "black"
-          )
-      } else{
-        # Point représentant la deuxième année de couleur unique
-        graph <-
-          graph +
-          ggplot2::geom_point(
-            ggplot2::aes(
-              x = !!dplyr::sym(x),
-              y = !!dplyr::sym(y)
-            ),
-            na.rm = na.rm,
-            shape = shape,
-            size = size_shape,
-            fill = fill_shape,
-            data = df_baci_year_2
-          )
-      } 
-    }
-  }
+  
 
 
   # Définir les couleurs si souhaité
@@ -419,3 +339,8 @@ graph_bar_comp_year <- function(baci, x, y, stack = TRUE, double_bar = FALSE,
     return(graph)
   }
 }
+
+iris |>
+  ggplot2::ggplot(ggplot2::aes(x = Sepal.Length, y = Sepal.Width, color = Species, fill = Species))+
+  ggplot2::geom_point() +
+  ggplot2::scale_color_brewer(palette = "Paired")
