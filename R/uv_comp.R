@@ -1,7 +1,7 @@
 #' @title Calculate the Mean of a variable in a Dataframe
 #'
 #' @param df_baci Baci data
-#' @param var_aggregate Character : vector of aggreagtions variables
+#' @param var_aggregation Character : vector of aggregations variables
 #' @param na.rm Exclude NA or not
 #' @return Dataframe of aggregate unit values
 mean_aggregation <- function(df_baci, var, var_aggregation, na.rm){
@@ -19,7 +19,7 @@ mean_aggregation <- function(df_baci, var, var_aggregation, na.rm){
 #' @title Calculate the Median of a variable in a Dataframe
 #'
 #' @param df_baci Baci data
-#' @param var_aggregate Character : vector of aggreagtions variables
+#' @param var_aggregation Character : vector of aggregations variables
 #' @param na.rm Exclude NA or not
 #' @return Dataframe of aggregate unit values
 median_aggregation <- function(df_baci, var, var_aggregation, na.rm){
@@ -31,52 +31,153 @@ median_aggregation <- function(df_baci, var, var_aggregation, na.rm){
     )
 }
 
-
+#' @title Cretate Dataframe with Fixed Weight
+#'
+#' @param df_baci Dataframe.
+#' @param year_ref_fixed_weight Numeric : Year to keep to the fixed weight.
+#' @param var_disaggregation Vector of character indicating the variables
+#' corresponding to the lower level of aggregation : generally
+#' `var_disaggregation = c("exporter", "importer", "k", "t")`.
+#' @param var_temporal Name of the variable indicating the time.
+#' @param var_weight Name of the variable to be used for the ponderation.
+#' @return Dataframe with values in `var_pond` kept fixed.
 fixed_weight_computation <- function(df_baci, year_ref_fixed_weight,
-                                     var_desagregation, var_pond, var_temporal){
+                                     var_disaggregation, var_weight, var_temporal){
   df_pond <-
     df_baci  |>
     dplyr::filter(
-      !!sym(var_temporal) == year_ref_fixed_weight
+      !!dplyr::sym(var_temporal) == year_ref_fixed_weight
     ) |>
-    dplyr::select({{var_desagregation}}, {{var_pond}}) |>
+    dplyr::select({{var_disaggregation}}, {{var_weight}}) |>
     dplyr::select(!{{var_temporal}})
 
   var_join <-
-    var_desagregation[var_desagregation != var_temporal]
+    var_disaggregation[var_disaggregation != var_temporal]
 
   df_baci <-
     df_baci  |>
-    dplyr::select(!{{var_pond}}) |>
+    dplyr::select(!{{var_weight}}) |>
     dplyr::left_join(
       df_pond,
-      dplyr::join_by(var_join)
+      by = (var_join)
     )
     
 
-  return(df_pond)
+  return(df_baci)
+}
+
+#' @title Calculate the Weighted Mean of a Variable in a Dataframe.
+#'
+#' @param df_baci Dataframe.
+#' @param var Name of the variable to be aggregate by the weighted mean
+#' @param var_aggregation Character : vector of aggregations variables
+#' @param fixed_weight Logical indicating if the weight should be kept fixed
+#' or not.
+#' @param var_weight Name of the variable to be used for the ponderation.
+#' @param year_ref_fixed_weight Numeric : Year to keep to the fixed weight.
+#' @param var_disaggregation Vector of character indicating the variables
+#' corresponding to the lower level of aggregation : generally
+#' `var_disaggregation = c("exporter", "importer", "k", "t")`.
+#' @param var_temporal Name of the variable indicating the time.
+#' @param na.rm Logical indicating whether NA should be removed or not.
+#' @return Dataframe of aggregate unit values
+weighted_median_aggregation <- function(df_baci, var, var_aggregation, fixed_weight,
+                                  var_weight, year_ref_fixed_weight = NULL,
+                                  var_disaggregation, var_temporal, na.rm){
+  # Check if matrixStats package is installed.
+  rlang::check_installed("matrixStats", reason = "Necessary for the computation of weighted median.")
+
+  # Make weight fixed or not
+  if (fixed_weight == TRUE){
+    df_baci <-
+      df_baci |>
+      fixed_weight_computation(
+        year_ref_fixed_weight = year_ref_fixed_weight,
+        var_disaggregation = var_disaggregation,
+        var_weight = var_weight,
+        var_temporal = var_temporal
+      )
+  }
+
+  # Aggregate with weighted median
+  df_baci <-
+    df_baci |>
+    dplyr::mutate(
+      .by = var_aggregation,
+      !!var := matrixStats::weightedMedian(.data[[var]], w = .data[[var_weight]], na.rm = na.rm)
+    )
+
+  return(df_baci)
+}
+
+
+#' @title Calculate the Weighted Mean of a Variable in a Dataframe.
+#'
+#' @param df_baci Dataframe.
+#' @param var Name of the variable to be aggregate by the weighted mean
+#' @param var_aggregation Character : vector of aggregations variables
+#' @param fixed_weight Logical indicating if the weight should be kept fixed
+#' or not.
+#' @param var_weight Name of the variable to be used for the ponderation.
+#' @param year_ref_fixed_weight Numeric : Year to keep to the fixed weight.
+#' @param var_disaggregation Vector of character indicating the variables
+#' corresponding to the lower level of aggregation : generally
+#' `var_disaggregation = c("exporter", "importer", "k", "t")`.
+#' @param var_temporal Name of the variable indicating the time.
+#' @param na.rm Logical indicating whether NA should be removed or not.
+#' @return Dataframe of aggregate unit values
+weighted_mean_aggregation <- function(df_baci, var, var_aggregation, fixed_weight,
+                                  var_weight, year_ref_fixed_weight = NULL,
+                                  var_disaggregation, var_temporal, na.rm){
+
+  # Make weight fixed or not
+  if (fixed_weight == TRUE){
+    df_baci <-
+      df_baci |>
+      fixed_weight_computation(
+        year_ref_fixed_weight = year_ref_fixed_weight,
+        var_disaggregation = var_disaggregation,
+        var_weight = var_weight,
+        var_temporal = var_temporal
+      )
+  }
+
+  # Aggregate with weighted median
+  df_baci <-
+    df_baci |>
+    dplyr::mutate(
+      .by = var_aggregation,
+      !!var := stats::weighted.mean(.data[[var]], w = .data[[var_weight]], na.rm = na.rm)
+    )
+
+  return(df_baci)
 }
 
 
 
 
-# Création d'un dataframe d'exemple
-df_baci <- data.frame(
-  exporter = c("ARG", "BRA", "CHN", "USA", "FRA", "ARG", "BRA", "CHN", "USA", "FRA"),
-  importer = c("FRA", "USA", "ARG", "BRA", "CHN", "FRA", "USA", "ARG", "BRA", "CHN"),
-  product_code = c("1001", "1002", "1003", "1004", "1005", "1001", "1002", "1003", "1004", "1005"),
-  year = c(2020, 2020, 2020, 2020, 2020, 2021, 2021, 2021, 2021, 2021),
-  value = c(100, 200, 300, 400, 500, 150, 250, 350, 450, 550),
-  weight = c(10, 20, 30, 40, 50, 15, 25, 35, 45, 55)
-)
+## # Création d'un dataframe d'exemple
+## df_baci <- data.frame(
+##   exporter = c("ARG", "BRA", "CHN", "USA", "FRA", "ARG", "BRA", "CHN", "USA", "FRA"),
+##   importer = c("FRA", "USA", "ARG", "BRA", "CHN", "FRA", "USA", "ARG", "BRA", "CHN"),
+##   product_code = c("1001", "1002", "1003", "1004", "1005", "1001", "1002", "1003", "1004", "1005"),
+##   year = c(2020, 2020, 2020, 2020, 2020, 2021, 2021, 2021, 2021, 2021),
+##   value = c(100, 200, 300, 400, 500, 150, 250, 350, 450, 550),
+##   weight = c(10, 20, 30, 40, 50, 15, 25, 35, 45, 55)
+## )
 
-# Affichage du dataframe
-print(df_baci)
-
-
+## # Affichage du dataframe
+## print(df_baci)
 
 
 
+## fixed_weight_computation(
+##   df_baci = df_baci,
+##   year_ref_fixed_weight = 2020,
+##   var_disaggregation = c("exporter", "importer", "product_code", "year"),
+##   var_pond = "weight",
+##   var_temporal = "year"
+## )
 
 
 
@@ -84,33 +185,11 @@ print(df_baci)
 
 
 
-if (fixed_weight == TRUE){
-    df_pond <-
-      df_baci |>
-      dplyr::filter(t == year_ref_fixed_weight) |>
-      dplyr::select({{var_desagregate}}, {{var_pond}}) |>
-      dplyr::select(-t)
-
-    var_desagregate_join <-
-      var_desagregate[var_desagregate != "t"]
-
-    df_baci <-
-      df_baci |>
-      dplyr::select(-{{var_pond}}) |>
-      dplyr::left_join(
-        df_pond,
-        by = var_desagregate_join
-      )
-  }
 
 
-fixed_weight_computation(
-  df_baci = df_baci,
-  year_ref_fixed_weight = 2020,
-  var_desagregation = c("exporter", "importer", "product_code", "year"),
-  var_pond = "weight",
-  var_temporal = "year"
-)
+
+
+
 
 
 
@@ -179,14 +258,22 @@ fixed_weight_computation(
 ## Définition de la fonction -----------------------------------------------
 uv_comp <- function(baci, years = NULL, codes = NULL,
                     export_countries = NULL, import_countries = NULL,
-                    formula = "median_pond",
-                    var_pond = NULL, fixed_weight = FALSE,
+                    method = c("mean", "median", "weighted_mean", "weighted_median"),
+                    var, var_aggregation,
+                    var_weight = NULL, fixed_weight = FALSE,
                     year_ref, var_exporter, year_ref_fixed_weight = year_ref,
-                     var_desagregate = c("t", "exporter", "importer", "k"),
+                    var_disaggregation = c("t", "exporter", "importer", "k"),
+                    var_temporal,
                     var_k, exporter_ref = NULL, base_100 = TRUE,
-                    compare = FALSE,
+                    compare = FALSE, na.rm = na.rm,
                     return_output = TRUE, return_arrow = FALSE,
                     path_output = NULL){
+
+  # Check validity of method
+  method <- match.arg(mathod)
+
+  # Check validity of var_disaggregation
+  var_disaggregation <- match.arg(var_disaggregation)
 
   # Check export parameters
   tradalyze::.export_data(
@@ -212,92 +299,71 @@ uv_comp <- function(baci, years = NULL, codes = NULL,
     )
 
 
-
-  ## Calcul des valeurs unitaires -----------------------------------------
-  # Faire la moyenne des valeurs unitaires pour chaque année, exporter, produits
-  if(formula == "mean"){
-    df_uv <-
-      df_baci |>
-      dplyr::summarize(
-        .by = c(t, {{var_exporter}}, {{var_k}}),
-        uv = mean(uv, na.rm = TRUE)
-      )
-  }
-  
-  # Faire la médiane
-  if (formula == "median"){
-    df_uv <-
-      df_baci |>
-      dplyr::summarize(
-        .by = c(t, {{var_exporter}}, {{var_k}}),
-        uv = stats::median(uv, na.rm = TRUE)
-      )
-  }
-
-
-  # Uniquement sur les calculs avec des pondérations
-  # Si les poids sont fixes, calculés les poids de l'année de référence
-  # Les associer aux flux
-  if (fixed_weight == TRUE){
-    df_pond <-
-      df_baci |>
-      dplyr::filter(t == year_ref_fixed_weight) |>
-      dplyr::select({{var_desagregate}}, {{var_pond}}) |>
-      dplyr::select(-t)
-
-    var_desagregate_join <-
-      var_desagregate[var_desagregate != "t"]
-
-    df_baci <-
-      df_baci |>
-      dplyr::select(-{{var_pond}}) |>
-      dplyr::left_join(
-        df_pond,
-        by = var_desagregate_join
-      )
-  }
-  
-  
-  # Faire la médiane pondérée
-  if (formula == "median_pond"){
-    df_uv <-
-      df_baci |>
-      dplyr::collect() |>
-      dplyr::summarize(
-        .by = c(t, {{var_exporter}}, {{var_k}}),
-        uv = matrixStats::weightedMedian(uv, w = !!dplyr::sym(var_pond), na.rm = TRUE)
-      )
-  }
-  
-  # Faire la moyenne pondérée
-  if (formula == "mean_pond"){
-    df_uv <-
-      df_baci |>
-      dplyr::collect() |>
-      dplyr::summarize(
-        .by = c(t, {{var_exporter}}, {{var_k}}),
-        uv = stats::weighted.mean(uv, w = !!dplyr::sym(var_pond), na.rm = TRUE)
-      )
-  }
+  # Compute the aggregation
+  df_baci <-
+    switch(
+      method,
+      "mean" =
+        mean_aggregation(
+          df_baci = df_baci,
+          var = var,
+          var_aggregation = var_aggregation,
+          na.rm = na.rm
+        ),
+      "median" =
+        median_aggregation(
+          df_baci = df_baci,
+          var = var,
+          var_aggregation = var_aggregation,
+          na.rm = na.rm
+        ),
+      "weighted_median" =
+        weighted_median_aggregation(
+          df_baci = df_baci,
+          var = var,
+          var_aggregation = var_aggregation,
+          fixed_weight = fixed_weight,
+          var_weight = var_weight,
+          year_ref_fixed_weight = year_ref_fixed_weight,
+          var_disaggregation = var_disaggregation,
+          var_temporal = var_temporal,
+          na.rm = na.rm
+        ),
+      "weighted_mean" =
+        weighted_median_aggregation(
+          df_baci = df_baci,
+          var = var,
+          var_aggregation = var_aggregation,
+          fixed_weight = fixed_weight,
+          var_weight = var_weight,
+          year_ref_fixed_weight = year_ref_fixed_weight,
+          var_disaggregation = var_disaggregation,
+          var_temporal = var_temporal,
+          na.rm = na.rm
+        )
+    )
 
 
   ## Base 100 -------------------------------------------------------------
-  # Mettre en base 100 si voulu
+  # Transform data into base 100 if wanted
   if (base_100 == TRUE){
-    df_uv_year_ref <-
-      df_uv |>
-      dplyr::filter(t == year_ref) |>
-      dplyr::select(-t) |>
-      dplyr::rename(uv_year_ref = uv)
+    df_year_ref <-
+      df_baci |>
+      dplyr::filter(dplyr::sym(var_temporal) == year_ref) |>
+      dplyr::select(!{{var_temporal}}) |>
+      dplyr::rename(!!glue::glue("{var}_year_ref") := .data[[var]])
 
-    df_uv <-
-      df_uv |>
+    var_join <-
+        var_aggregation[!var_aggregation == var_temporal]
+
+    df_baci <-
+      df_baci |>
       dplyr::left_join(
-        df_uv_year_ref,
-        dplyr::join_by({{var_exporter}}, {{var_k}})
+        df_year_ref,
+        by = var_join
       ) |>
       dplyr::mutate(
-        uv_100 = uv / uv_year_ref * 100
+        !!glue::glue("{var}_100") := .data[[var]] / .data[[glue::glue("{var}_year_ref")]] * 100
       )
 
 
@@ -308,6 +374,7 @@ uv_comp <- function(baci, years = NULL, codes = NULL,
         dplyr::filter(!!dplyr::sym(var_exporter) == exporter_ref) |>
         dplyr::select(t, {{var_k}}, uv_100) |>
         dplyr::rename(uv_100_exporter_ref = uv_100)
+
 
       df_uv <-
         df_uv |>
