@@ -1,105 +1,217 @@
 #' @title
-#' Graphique de la demande adressée.
+#' Create Line Graph
 #'
 #' @description
-#' Cette fonction permet de générer un graphique représentant l'évolution de la
-#' demande adressée en fonction du temps. Selon les variables indiquées en input,
-#' la demande adressée peut être en valeur, en base 100 ou par rapport à un
-#' pays de référence.
+#' Represent a line graph allowing to represent the evolution of
+#' a variable. 
 #'
 #' @details
-#' La fonction permet de créer un graphique pour représenter l'évolution de la
-#' demande adressée en fonction du temps. Elle utilise les fonctions de ggplot2
-#' pour la création du graphique.
+#' # General informations
+#' This function don't modify data, so you must provide exact data you want
+#' to represent.
 #'
-#' Il est important de noter, que cette fonction ne calcule pas la demande
-#' adressée. Celle-ci doit être calculées précédemment (de préférence avec
-#' la fonction \link{adressed_demand}). Il est possible de passer d'autres variables
-#' que celles définies à partir des fonctions de ce package. Néanmoins cela reste
-#' aux risques et périls de l'utilisateur si le rendu n'est pas cohérent.
+#' Thanks to the `return_output` parameter, it is possible to return the graph,
+#' allowing for further modifications.
 #'
-#' Grâce au paramètre `return_output`, il est possible de récupérer le graphique
-#' afin de pouvoir le modifier presque entièrement par la suite.
+#' # Theme default parameters
+#' ## Grid lines
+#' Major and minor gridlines are removed (`panel.grid.minor()` and
+#' `panel.grid.major()`).
 #'
-#' @param baci Les données de la demande adressée. Il est possible de passer
-#' un chemin d'accès vers un fichier csv ou parquet ou un dataframe R.
-#' @param x La variable à mettre en abscisse. Par défaut, c'est le temps : `t`
-#' @param y La variable à mettre en ordonnée. Il n'y a pas de paramètre par
-#' défaut, la variable choisie étant dépendante du type de demande adressée
-#' calculée.
-#' @param linewidth L'épaisseur de la ligne du graphique. Par défaut, c'est 1.
-#' @param var_color La variable à mettre en couleur. Par défaut, c'est `NULL`.
-#' @param palette_color La palette de couleur à utiliser. Par défaut, c'est `NULL`.
-#' Aucune palette de couleur ne sera utilisée/
-#' @param manual_color Les couleurs à utiliser. Par défaut, c'est `NULL`. Aucune
-#' couleur ne sera utilisée.
-#' @param na.rm Indique si les valeurs manquantes doivent être retirées. Par
-#' défaut, c'est `TRUE`.
-#' @param x_breaks Les breaks à utiliser sur l'axe des x. Par défaut, c'est `NULL`.
-#' dans ce cas, les breaks vont du min au max avec un écart de 2 entre chaque valeur.
-#' @param y_breaks Les breaks à utiliser sur l'axe des y. Par défaut, c'est `NULL`.
-#' Dans ce cas, les valeurs sont prises par défaut.
-#' @param x_title Le titre de l'axe des x. Par défaut, c'est `""`.
-#' @param y_title Le titre de l'axe des y. Par défaut, c'est `""`.
-#' @param title Le titre du graphique. Par défaut, c'est `""`.
-#' @param subtitle Le sous-titre du graphique. Par défaut, c'est `""`.
-#' @param caption La caption du graphique. Par défaut, c'est `""`.
-#' @param color_legend Le titre de la légende des couleurs. Par défaut, c'est `""`.
-#' @param type_theme Le type de thème à utiliser. Par défaut, c'est `bw`. Les
-#' autres options sont `classic` et `minimal`.
-#' @param var_facet La variable à utiliser pour les facettes. Par défaut, c'est
-#' `NULL`. Si utilisé, le paramètres `scales = "free_y"` est utilisé.
-#' @param path_output Le chemin d'accès pour sauvegarder le graphique. Par défaut,
-#' c'est `NULL`.
-#' @param width La largeur du graphique. Par défaut, c'est 15.
-#' @param height La hauteur du graphique. Par défaut, c'est 8.
-#' @param print Indique si le graphique doit être affiché. Par défaut, c'est `TRUE`.
-#' @param return_output Indique si le graphique doit être retourné. Par défaut,
-#' c'est `TRUE`.
-#' @param var_linetype La variable qui va définir le type de ligne. Par défaut,
-#' c'est `NULL`, les lignes seront toutes les mêmes.
-#' @param manual_linetype Un vecteur indiquant à quelle entité quel type de ligne
-#' doit correspondre.
-#' @param linetype_legend Le titre de la légende des types de ligne. Par défaut,
-#' c'est `""`.
+#' ## Titles options
+#' - The size of the title is 26 and it is centered.
 #'
-#' @return Un graphique représentant l'évolution de la demande adressée.
+#' - the size of the subtitle is 22 and it is centered.
+#'
+#' - The size of the caption is 16 and it is left adjust.
+#'
+#' ## x axis options
+#' - The text of the x axis if at an angle of 45° and tight adjust. It has a
+#' size of 18 and a "black" color.
+#'
+#' - The size of the x axis title is 22 and `vjust = -0.5`.
+#'
+#' ## y axis options
+#' - The size of the y axis text is 18 and its color is "black".
+#'
+#' - the size of the y axis title is 22.
+#'
+#' ## Legend options
+#' - legend position is right
+#'
+#' - Text of the legend has a size of 18 and a "black" color.
+#'
+#' - `legend.key.spacing.y = ggplot::unit(0.3, "cm")`.
+#'
+#' - the title of the legend has a size of 22, a "black" color and is centered.
+#'
+#' ## Facet options
+#' - The strip of the facet has a "black" colour and is fill with the following
+#' color : `"#D9D9D9"`.
+#'
+#' - The text of the strip has a size of 18 and a "black" color.
+#'
+#' By default facet are "free_y".
+#'
+#' @param linewidth Numeric indicating the width of the lines. By default it is
+#' set to 1.
+#' @param var_linetype Character indicating the name of the variable use
+#' to define the type of the lines. By default it is set to NULL : all the
+#' lines will be the same.
+#' @param manual_linetype Character indicating the linetype to be used for each category.
+#' Can be a vector of linetype or a list linking each linetype to a category.
+#' By default this variable is NULL if no manual linetype is used. Used only
+#' if `var_linetype = TRUE`.
+#' @param var_color Name of the variable to be used to color the
+#' lines. By default it is set to null indicating that all lines will have the
+#' same default color.
+#' @param palette_color Name of the palette to be used. See
+#' \link[ggplot2]{scale_fill_brewer}. Be carefull, if the number of colors
+#' in the palette is too small compared to the number of categories in
+#' the variable `var_color`, an error will be returned.
+#' @param color_legend Title of the legend for the colors. By default it is
+#' set to "".
+#' @param linetype_legend Title of the legend for the linetype. By default it
+#' is set to "". if the variable for the linetype and the color is the same,
+#' there will only be one legend.
+#' @inheritParams add_chelem_classification
+#' @inheritParams graph_market_share
+#'
+#' @return Graph representing the time evolution of a variable.
+#'
+#' @examples
+#' ## Basic example
+#' ## graph_lines_comparison(
+#' ##   baci = "data-folder-parquet",
+#' ##   x = "t",
+#' ##   y = "adressed-demand",
+#' ##   linewidth = 1,
+#' ##   var_linetype = "exporter",
+#' ##   var_color = exporter,
+#' ##   palette_color = "Paired",
+#' ##   type_theme = "minimal",
+#' ##   var_facet = "category"
+#' ## )
+#'
+#' @seealso
+#' [.load_data()] For more informations concerning the loading.
+#' 
 #' @export
-#'
-#' @examples # Pas d'exemples.
-graph_lines_comparison <- function(baci, x = "t", y, linewidth = 1,
+graph_lines_comparison <- function(baci, x, y, linewidth = 1,
                                   var_linetype = NULL, manual_linetype = NULL,
                                   var_color = NULL, palette_color = NULL,
                                   manual_color = NULL,
                                   na.rm = TRUE, x_breaks = NULL, y_breaks = NULL,
                                   x_title = "", y_title = "", title = "",
                                   subtitle = "", caption = "", color_legend = "",
-                                  linetype_legend ="", type_theme = "bw",
+                                  linetype_legend ="", type_theme = c("bw", "classic", "minimal"),
                                   var_facet = NULL, path_output = NULL,
                                   width = 15, height = 8, print = TRUE,
                                   return_output = TRUE){
 
+  # Check if x is a character and length 1
+  tradalyze::.check_character(x, "x")
+  tradalyze::.check_length_1(x, "x")
 
-  # Messages d'erreur -------------------------------------------------------
+  # Check if y is character and length 1
+  tradalyze::.check_character(y, "y")
+  tradalyze::.check_length_1(y, "y")
 
-  # Ouvrir les données de baci depuis un chemin d'accès
-  if (is.character(baci) == TRUE){
-    # Ouvrir le ficheir csv
-    if (tools::file_ext(baci) == "csv"){
-      df_baci <- readr::read_csv(baci)
-    }
-    # Ouvrir fichier parquet
-    else if (tools::file_ext(baci) == "pq"){
-      df_baci <- arrow::read_parquet(baci)
+  # Check if linewidth is numeric and length 1
+  tradalyze::.check_numeric(linewidth, "linewidth")
+  tradalyze::.check_length_1(linewidth, "linewidth")
+
+  # Check if var_linetype is character or NULL
+  tradalyze::.check_null_character(var_linetype, "var_linetype")
+
+  # Check if manual_linetype is null or character or a list
+  tradalyze::.check_null_list_character(manual_linetype, "manual_linetype")
+
+  # Check if var_color is character or NULL
+  tradalyze::.check_null_character(var_color, "var_color")
+
+  # Check if palette_color is character or NULL
+  tradalyze::.check_null_character(palette_color, "palette_color")
+
+  # Check if manual_color is null or character or a list
+  tradalyze::.check_null_list_character(manual_color, "manual_color")
+
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
+
+  # Check if x_breaks is NULL or numeric
+  tradalyze::.check_null_numeric(x_breaks, "x_breaks")
+
+  # Check if y_breaks is NULL or numeric
+  tradalyze::.check_null_numeric(y_breaks, "y_breaks")
+
+  # Check if x_title is character and length 1
+  tradalyze::.check_character(x_title, "x_title")
+  tradalyze::.check_length_1(x_title, "x_title")
+
+  # Check if y_title is character and length 1
+  tradalyze::.check_character(y_title, "y_title")
+  tradalyze::.check_length_1(y_title, "y_title")
+
+  # Check if title is character and length 1
+  tradalyze::.check_character(title, "title")
+  tradalyze::.check_length_1(title, "title")
+
+  # Check if subtitle is character and length 1
+  tradalyze::.check_character(subtitle, "subtitle")
+  tradalyze::.check_length_1(subtitle, "subtitle")
+
+  # Check if caption is character and length 1
+  tradalyze::.check_character(caption, "caption")
+  tradalyze::.check_length_1(caption, "caption")
+
+  # Check if color_legend is character and length 1
+  tradalyze::.check_character(color_legend, "color_legend")
+  tradalyze::.check_length_1(color_legend, "color_legend")
+
+  # Check if linetype_legend is character and length 1
+  tradalyze::.check_character(linetype_legend, "linetype_legend")
+  tradalyze::.check_length_1(linetype_legend, "linetype_legend")
+
+  # Check if parameter type_theme is valid
+  type_theme <- match.arg(type_theme)
+
+  # Check if var_facet is NULL or character
+  tradalyze::.check_null_character(var_facet, "var_facet")
+
+  # Check if path_output is NULL or character
+  tradalyze::.check_null_character(path_output, "path_output")
+
+  # Check if extension of path_output is pdf or png
+  ext_path_output <- tools::file_ext(path_output)
+  if (!is.null(path_output)){
+    if (!ext_path_output %in% c("png", "pdf")){
+      stop(glue::glue("If path output is provided, the extension must be \"png\" or \"pdf\", not \"{extpath_output}\"."))
     }
   }
-  # Ouvrir baci depuis un dataframe R
-  else if (is.data.frame(baci) == TRUE){
-    df_baci <- baci
-  }
 
-  # Collecter les données (être sûr que les données sont en format R)
-  df_baci <- dplyr::collect(df_baci)
+  # Check if width is numeric and length 1
+  tradalyze::.check_numeric(width, "width")
+  tradalyze::.check_length_1(width, "width")
+
+  # Check if height is numeric and length 1
+  tradalyze::.check_numeric(height, "height")
+  tradalyze::.check_length_1(height, "height")
+
+  # Check if print is logical and length 1
+  tradalyze::.check_logical(print, "print")
+  tradalyze::.check_length_1(print, "print")
+
+  # Check is return_output is logical and length 1
+  tradalyze::.check_logical(return_output, "return_output")
+  tradalyze::.check_length_1(return_output, "return_output")
+
+
+  # Load data
+  df_baci <-
+    tradalyze::.load_data(baci)  |>
+    dplyr::collect()
 
   # si pas de x_breaks spécifié alors x va du min au max avec un écart de 2 entre chaque valeur
   if (is.null(x_breaks)){
@@ -186,7 +298,6 @@ graph_lines_comparison <- function(baci, x = "t", y, linewidth = 1,
     }
   }
 
-  # Paramètres graphiques ---------------------------------------------------
 
   # Définir les breaks sur l'axe des x
   graph <-
@@ -216,25 +327,15 @@ graph_lines_comparison <- function(baci, x = "t", y, linewidth = 1,
       color    = color_legend
     )
 
-  # Thème général du graphique
-  if (type_theme == "bw"){
-    graph <-
-      graph +
-      ggplot2::theme_bw()
-  }
-  else if (type_theme == "classic"){
-    graph <-
-      graph +
-      ggplot2::theme_classic()
-  }
-  else if (type_theme == "minimal"){
-    graph <-
-      graph +
-      ggplot2::theme_minimal()
-  }
-
-
-  # Themes ------------------------------------------------------------------
+  # Themes 
+  graph <-
+    graph +
+    switch(
+      type_theme,
+      "bw" = ggplot2::theme_bw(),
+      "classic" = ggplot2::theme_classic(),
+      "minimal" = ggplot2::theme_minimal()
+    )
 
   graph <-
     graph +
@@ -324,8 +425,7 @@ graph_lines_comparison <- function(baci, x = "t", y, linewidth = 1,
       )
   }
 
-
-  # Exporter le graph -------------------------------------------------------
+  # Export graph
   if (print == TRUE){
     print(graph)
   }
