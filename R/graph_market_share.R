@@ -69,7 +69,7 @@
 #' the variable `var_fill_color`, an error will be returned.
 #' By default this parameter is set on NULL if no palette color is used.
 #' @param manual_color Colors to be used for each category. Can be a vector
-#' of colors of a list linking each color to a category. By default this variable
+#' of colors or a list linking each color to a category. By default this variable
 #' is NULL if no manual color is used.
 #' @param percent Logical indicating if labels on the y axis should be expressed
 #' in percentage or not. TRUE is the default value. Ff TRUE data must already
@@ -146,8 +146,6 @@
 #'
 #' @seealso
 #' [.load_data()] For more informations concerning the loading.
-#' [.filter_baci()] For more informations concerning the filter of data inside the function.
-#' [.export_data()] For more informations concerning the export of the data inside the function.
 #' [market_share()] To compute market shares.
 #'
 #' @export
@@ -163,8 +161,6 @@ graph_market_share <- function(baci, x = "t", y,
                                width = 15, height = 8, print = TRUE,
                                return_output = TRUE){
 
-
-  # Messages d'erreur -------------------------------------------------------
 
   # Check if x is a character and length 1
   tradalyze::.check_character(x, "x")
@@ -189,8 +185,9 @@ graph_market_share <- function(baci, x = "t", y,
   # Check if percent is logical
   tradalyze::.check_logical(percent, "percent")
 
-  # Check if na.rm is logical
+  # Check if na.rm is logical and length 1
   tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
 
   # Check if x_breaks is NULL or numeric
   tradalyze::.check_null_numeric(x_breaks, "x_breaks")
@@ -198,23 +195,29 @@ graph_market_share <- function(baci, x = "t", y,
   # Check if y_breaks is NULL or numeric
   tradalyze::.check_null_numeric(y_breaks, "y_breaks")
 
-  # Check if x_title is character
+  # Check if x_title is character and length 1
   tradalyze::.check_character(x_title, "x_title")
+  tradalyze::.check_length_1(x_title, "x_title")
 
-  # Check if y_title is character
+  # Check if y_title is character and length 1
   tradalyze::.check_character(y_title, "y_title")
+  tradalyze::.check_length_1(y_title, "y_title")
 
-  # Check if title is character
+  # Check if title is character and length 1
   tradalyze::.check_character(title, "title")
+  tradalyze::.check_length_1(title, "title")
 
-  # Check if subtitle is character
+  # Check if subtitle is character and length 1
   tradalyze::.check_character(subtitle, "subtitle")
+  tradalyze::.check_length_1(subtitle, "subtitle")
 
-  # Check if caption is character
+  # Check if caption is character and length 1
   tradalyze::.check_character(caption, "caption")
+  tradalyze::.check_length_1(caption, "caption")
 
-  # Check if legend_title is character
+  # Check if legend_title is character and length 1
   tradalyze::.check_character(legend_title, "legend_title")
+  tradalyze::.check_length_1(legend_title, "legend_title")
 
   # Check if parameter type_theme is valid
   type_theme <- match.arg(type_theme)
@@ -233,17 +236,21 @@ graph_market_share <- function(baci, x = "t", y,
     }
   }
 
-  # Check if width is numeric
+  # Check if width is numeric and length 1
   tradalyze::.check_numeric(width, "width")
+  tradalyze::.check_length_1(width, "width")
 
-  # Check if height is numeric
+  # Check if height is numeric and length 1
   tradalyze::.check_numeric(height, "height")
+  tradalyze::.check_length_1(height, "height")
 
-  # Check if print is logical
+  # Check if print is logical and length 1
   tradalyze::.check_logical(print, "print")
+  tradalyze::.check_length_1(print, "print")
 
-  # Check is return_output is logical
+  # Check is return_output is logical and length 1
   tradalyze::.check_logical(return_output, "return_output")
+  tradalyze::.check_length_1(return_output, "return_output")
   
 
   # Create graph ----------------------------------------------------------
@@ -252,7 +259,7 @@ graph_market_share <- function(baci, x = "t", y,
     tradalyze::.load_data(baci) |>
     dplyr::collect()
 
-  # Check if columns `x`, `y` are present in `df_baci`
+  # Check if columns `x`, `y`  and `var_fill_color` are present in `df_baci`
   tradalyze::.check_var_exist(df = df_baci, name_df = "df_baci", columns = c(x, y, var_fill_color))
 
 

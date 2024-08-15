@@ -56,7 +56,7 @@ the variable \code{var_fill_color}, an error will be returned.
 By default this parameter is set on NULL if no palette color is used.}
 
 \item{manual_color}{Colors to be used for each category. Can be a vector
-of colors of a list linking each color to a category. By default this variable
+of colors or a list linking each color to a category. By default this variable
 is NULL if no manual color is used.}
 
 \item{percent}{Logical indicating if labels on the y axis should be expressed
@@ -214,7 +214,5 @@ By default facet are "free_y".
 }
 \seealso{
 \code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
-\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filter of data inside the function.
-\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
 \code{\link[=market_share]{market_share()}} To compute market shares.
 }
