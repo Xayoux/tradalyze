@@ -2,17 +2,16 @@
 % Please edit documentation in R/graph_bar_comp_year.R
 \name{graph_bar_comp_year}
 \alias{graph_bar_comp_year}
-\title{Graphique de comparaison en barres}
+\title{Create Bar Graph to Compare Two Years}
 \usage{
 graph_bar_comp_year(
   baci,
   x,
   y,
-  stack = TRUE,
   double_bar = FALSE,
-  var_t = NULL,
-  year_1 = NULL,
-  year_2 = NULL,
+  var_t,
+  year_1,
+  year_2,
   color_1 = FALSE,
   color_2 = FALSE,
   alpha = 0.7,
@@ -29,8 +28,8 @@ graph_bar_comp_year(
   title = "",
   subtitle = "",
   caption = "",
-  fill_legend = "",
-  type_theme = "bw",
+  legend_title = "",
+  type_theme = c("bw", "classic", "minimal"),
   var_facet = NULL,
   path_output = NULL,
   width = 15,
@@ -40,114 +39,236 @@ graph_bar_comp_year(
 )
 }
 \arguments{
-\item{baci}{Chemin d'accès, dataframe ou format parquet des données de baci
-à utiliser.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{x}{Variable x du graphique}
+\item{x}{Name of the variable used for the x axis. By default it is "t".}
 
-\item{y}{Variable y du graphique}
+\item{y}{Name of the variable used for the y axis.}
 
-\item{stack}{Booléen indiquant si les barres doivent être empilées ou non.
-Si TRUE, alors la comparaison ne peut se faire qu'entre deux années et les
-paramètres \code{year_1} et \code{year_2} doivent être définis.}
+\item{double_bar}{Logical indicating whether bar must be stacked (TRUE), with
+darker indicating the \code{year_1} and the clearer indicating the \code{year_2}, or
+not (FALSE : the default value). In this case \code{year_2} is indicating by a shape.}
 
-\item{double_bar}{Booléen indiquant si dans le cas où \code{stack = TRUE}, les
-deux barres doivent êtres représentées, ou bien si une seule année doit être
-représentée sous forme de barre et la deuxième sous forme de point sur la
-barre.}
+\item{var_t}{Character indicating the name of the temporal variable
+from wich \code{year_1} and \code{year_2} are extracted.}
 
-\item{var_t}{Variable temporelle à utiliser pour la comparaison des années.}
+\item{year_1}{Numeric indicating the year 1.}
 
-\item{year_1}{Année 1 à comparer.}
+\item{year_2}{Numeric indicating the year 2.}
 
-\item{year_2}{Année 2 à comparer.}
+\item{color_1}{Character indicating the color of the \code{year_1} bar for the
+outline. By default it is set to FALSE indicating that there will be no
+outline.}
 
-\item{color_1}{Couleur de la barre de l'année 1. Si FALSE la barre 1
-(correspondant à l'année 1) n'aura pas de couleurs de bordure. Dans le cas
-où \code{stack = FALSE}, ce sera cette couleur qui sera utilisée pour la couleur
-des bordures des différentes barres.}
+\item{color_2}{Character indicating the color of the \code{year_2} bar for the
+outline. By default it is set to FALSE indicating that there will be no
+outline. Not used if \code{doubel_bar = TRUE}.}
 
-\item{color_2}{Couleur de la barre de l'année 2. Si FALSE la barre 2
-(correspondant à l'année 2) n'aura pas de couleurs de bordure.}
+\item{alpha}{Numeric indicating the transparency of the \code{year_2} bar or
+the shape representing \code{year_2} depending on \code{double_bar} parameter. By
+default it is set to 0.7. It is not recommended to put it to 1.}
 
-\item{alpha}{Transparence de la barre de l'année 2. Cette transparence
-permet de voir la barre de l'année 1 à travers la barre de l'année 2.}
+\item{var_fill}{Character indicating the variable to be used to color
+the bars (the two bars in the case of \code{double_bar = TRUE} or the unique bar
+if \code{double_bar = FALSE}). If NULL (the default) is provided, the basic color
+will be used.}
 
-\item{var_fill}{Variable à utiliser pour le remplissage des barres.}
+\item{palette_fill}{Character indicating the name of the palette to be used. See
+\link[ggplot2]{scale_fill_brewer}. Be carefull, if the number of colors
+in the palette is too small compared to the number of categories in
+the variable \code{var_fill_color}, an error will be returned.
+By default this parameter is set on NULL if no palette color is used.}
 
-\item{palette_fill}{Palette de couleur à utiliser pour le remplissage des
-barres.}
+\item{manual_fill}{Character indicating the colors to be used for each category.
+Can be a vector of colors or a list linking each color to a category.
+By default this variable is NULL if no manual color is used. These color
+applicates also to the sjape if \code{var_fill_shape} if used.}
 
-\item{manual_fill}{Les couleurs à utliser définies manuellement.}
+\item{shape}{Numeric corresponding to the number of the shape wanted
+if \code{double_bar = FALSE}. By default it is set to 22 (a full square). It is
+recommended to use shape above or equal to 21 beacause these shape are full
+and can be colored.}
 
-\item{shape}{Numéros correspond à la formevoulue dans le cas où
-\code{stack = TRUE} et \code{double_bar = FALSE}}
+\item{size_shape}{Numeric indicating the
+size of the shape if \code{double_bar = TRUE}. By default it is set to 5.}
 
-\item{size_shape}{= la taille de la forme utilisée.}
+\item{var_fill_shape}{Character indicating the name of the variable
+to be used to color the shape if \code{double_bar = TRUE}. It is recommended to
+use the same as \code{var_fill}. If NULL (the default) is provided you can
+use \code{fill_shape} to set a unique color.}
 
-\item{var_fill_shape}{Variable sous forme de chaîne de caractère, servant
-à donner la couleurs aux points si \code{double_bar = TRUE}. Si ce paramètre est
-\code{FALSE}, alors la couleur sera la même pour tous}
+\item{fill_shape}{Character indicating the color to be used for the shape
+if \code{double_bar = TRUE} and \code{var_fill_shape = NULL}. The color will be the
+same for all shapes. The default is "black".}
 
-\item{fill_shape}{= la couleur de la forme à utiliser. Couleur indentique
-pour toutes les formes.}
+\item{na.rm}{Logical indicating whether NA should be exclude of the
+graph (avoid warning message). TRUE is the default value.}
 
-\item{na.rm}{Booléen indiquant si les valeurs manquantes doivent être
-retirée.}
+\item{x_title}{Title of the x axis. By default it is set to an empty string.}
 
-\item{x_title}{Titre de l'axe des X.}
+\item{y_title}{Title of the y axis. By default it is set to an empty string.}
 
-\item{y_title}{Titre de l'axe des Y.}
+\item{title}{Title of the graph. By default it is set to an empty string.}
 
-\item{title}{Titre du graphique.}
+\item{subtitle}{Subtitle of the graph. By default it is set to an empty string.}
 
-\item{subtitle}{Sous-titre du graphique.}
+\item{caption}{Caption of the graph. By default it is set to an empty string.}
 
-\item{caption}{Légende du graphique.}
+\item{legend_title}{Title of the color legend. By default it is set to an
+empty string.}
 
-\item{fill_legend}{Légende du remplissage des barres.}
+\item{type_theme}{General theme of the graph. It can be "bw" (the default)
+\code{ggplot2::theme_bw()}, "classic" for \code{ggplot2::theme_classic()} or "minimal"
+for \code{ggplot2::theme_minimal()}.}
 
-\item{type_theme}{Thème du graphique. Peut être "bw" (noir et blanc),
-"classic" (classique) ou "minimal" (minimaliste).}
+\item{var_facet}{Name of the variable to be used to divide the graphs in
+differents part with \code{ggplot2::facet_wrap()}. By default it his set on NULL
+indicating that the graph will not be divide. Depends on the level of
+aggregation of the data and the construction of the data.}
 
-\item{var_facet}{Variable à utiliser pour les facettes.}
+\item{path_output}{Path to save the data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
 
-\item{path_output}{Chemin d'accès pour enregistrer le graphique.}
+\item{width}{Width of the saved graph. Bu default it is set to 15}
 
-\item{width}{Largeur du graphique.}
+\item{height}{Height of the saved graph. By default it is set to 8}
 
-\item{height}{Hauteur du graphique.}
+\item{print}{Logical indicating if the graph should be printed (default)
+or not.}
 
-\item{print}{Booléen indiquant si le graphique doit être affiché.}
-
-\item{return_output}{Booléen indiquant si le graphique doit être retourné.}
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
 }
 \value{
-Un graphique en barre comparant deux années.
+Graph representing the level and evolution of a variable for 2 years
 }
 \description{
-Représentation d'un graphique en barre permettant de comparer le niveau et
-l'évolution d'une variable sur deux (ou plus) années différentes.
+Represent a bar graph allowing to compare the level and evolution of
+different groups in a variable.
 }
-\details{
-Ce graphique permet de comparer le niveau et l'évolution d'une variable
-sur deux années différentes. Il est possible de représenter les données
-d'une façon telle qu'une barre représente une année. Il est également
-possible (ne fonctionne que pour deux années) de représenter les données
-sur une seule barre. La partie "foncée" indique le niveau à l'année 1, tandis
-que la différence avec l'année 2 est représenté par la partie "claire".
+\section{Representations}{
+There is two types of representation. The first is by stacking the bar
+with \code{double_bar = TRUE}. The \code{year_1} is represented by a darker bar and the
+\code{year_2} is represented by a clear bar above. Be carefull with this
+representation because if the value of \code{year_1} is greter than the value
+of \code{year_2} the clearer bar will be hidden by the darker bar and only the
+outline will be visible if \code{color_2} is provided.
 
-CEtte deuxième représentation fonctionne particlièrement bien pour les
-données qui ne sont que croissantes ou décroissantes (dans ce dernier cas,
-il faut intervertir l'année 1 et 2). En effet, si les données ne sont pas
-uniquement croissantes ou décroissantes, la partie "foncée" causera un
-overlap avec la partie "claire" et la lecture des données sera difficile.
-Cela peut être compensé par l'ajout des couleurs dans le paramètre \code{color}
-qui permettent de délimiter chaque barre.
-
-Grâce au paramètre \code{return_output = TRUE}, il est possible de retourner le
-graphique afin de pouvoir le modifier manuellement par la suite.
+The second representation consist of one bar representing the \code{year_1} and
+the \code{year_2} is representing by a shape.
 }
+
+\section{General informations}{
+This function don't modify data, so you must provide exact data you want
+to represent.
+
+Thanks to the \code{return_output} parameter, it is possible to return the graph,
+allowing for further modifications.
+}
+
+\section{Theme default parameters}{
+\subsection{Grid lines}{
+
+Major and minor gridlines are removed (\code{panel.grid.minor()} and
+\code{panel.grid.major()}).
+}
+
+\subsection{Titles options}{
+\itemize{
+\item The size of the title is 26 and it is centered.
+\item the size of the subtitle is 22 and it is centered.
+\item The size of the caption is 16 and it is left adjust.
+}
+}
+
+\subsection{x axis options}{
+\itemize{
+\item The text of the x axis if at an angle of 45° and tight adjust. It has a
+size of 18 and a "black" color.
+\item The size of the x axis title is 22 and \code{vjust = -0.5}.
+}
+}
+
+\subsection{y axis options}{
+\itemize{
+\item The size of the y axis text is 18 and its color is "black".
+\item the size of the y axis title is 22.
+}
+}
+
+\subsection{Legend options}{
+\itemize{
+\item legend position is right
+\item Text of the legend has a size of 18 and a "black" color.
+\item \code{legend.key.spacing.y = ggplot::unit(0.3, "cm")}.
+\item the title of the legend has a size of 22, a "black" color and is centered.
+}
+}
+
+\subsection{Facet options}{
+\itemize{
+\item The strip of the facet has a "black" colour and is fill with the following
+color : \code{"#D9D9D9"}.
+\item The text of the strip has a size of 18 and a "black" color.
+}
+
+By default facet are "free_y".
+}
+}
+
 \examples{
-# Pas d'exemples.
+## Bar stacked
+## graph_bar_comp_year(
+##   baci = "data-folder-parquet",
+##   x = "exporter",
+##   y = "uv",
+##   double_bar = TRUE,
+##   var_t = "t",
+##   year_1 = 2010,
+##   year_2 = 2022,
+##   color_1 = "black",
+##   color_2 = "black",
+##   alpha = 0.7,
+##   var_fill = "exporter",
+##   palette_fill = "Paired",
+##   title = "Compare the level and evolution of unit values between 2010 and 2022",
+##   type_theme = "bw",
+##   var_facet = "sector"
+## ) +
+##   ggplot2::theme(
+##     legend.position = "none" # No legend display
+##   )
+
+## Bar and shape
+## graph_bar_comp_year(
+##   baci = "data-folder-parquet",
+##   x = "exporter",
+##   y = "quality",
+##   double_bar = FALSE,
+##   var_t = "t",
+##   year_1 = 2010,
+##   year_2 = 2022,
+##   alpha = 0.7,
+##   var_fill = "exporter",
+##   palette_fill = "Paired",
+##   shape = 21,
+##   size_shape = 6,
+##   var_fill_shape = "exporter"
+##   title = "Compare the level and evolution of unit values between 2010 and 2022",
+##   type_theme = "classic"
+## ) +
+##   ggplot2::theme(
+##     legend.position = "none" # No legend display
+##   )
+
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
 }
