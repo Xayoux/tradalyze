@@ -143,7 +143,7 @@ saved in a dataset parquet format in the specified folder. See the
 \link[arrow]{arrow} package.}
 }
 \value{
-BAci data with the following variables : variables contained in
+BACI data with the following variables : variables contained in
 \code{var_aggregation}, \code{var}. Depending on the value taken by \code{base_100} and
 \code{compare} 2 or 4 more variables can be present. See the explications of these
 parameters.

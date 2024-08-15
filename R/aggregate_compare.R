@@ -271,7 +271,7 @@ weighted_mean_aggregation <- function(df_baci, var, var_aggregation, fixed_weigh
 #' @inheritParams add_chelem_classification
 #' @inheritParams clean_uv_outliers
 #'
-#' @return BAci data with the following variables : variables contained in
+#' @return BACI data with the following variables : variables contained in
 #' `var_aggregation`, `var`. Depending on the value taken by `base_100` and
 #' `compare` 2 or 4 more variables can be present. See the explications of these
 #' parameters.
