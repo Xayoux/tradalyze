@@ -94,7 +94,7 @@
 #' @param manual_fill Character indicating the colors to be used for each category.
 #' Can be a vector of colors or a list linking each color to a category.
 #' By default this variable is NULL if no manual color is used. These color
-#' applicates also to the sjape if `var_fill_shape` if used.
+#' applicates also to the shape if `var_fill_shape` if used.
 #' @param shape Numeric corresponding to the number of the shape wanted
 #' if `double_bar = FALSE`. By default it is set to 22 (a full square). It is
 #' recommended to use shape above or equal to 21 beacause these shape are full
@@ -211,7 +211,7 @@ graph_bar_comp_year <- function(baci, x, y, double_bar = FALSE,
   # Check if palette_fill is character or NULL
   tradalyze::.check_null_character(palette_fill, "palette_fill")
 
-  # Check if manual_fill is null or character
+  # Check if manual_fill is null or character or a list
   tradalyze::.check_null_list_character(manual_fill, "manual_fill")
 
   # Check if shape is numeric and length 1

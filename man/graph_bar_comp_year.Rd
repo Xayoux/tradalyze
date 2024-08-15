@@ -86,7 +86,7 @@ By default this parameter is set on NULL if no palette color is used.}
 \item{manual_fill}{Character indicating the colors to be used for each category.
 Can be a vector of colors or a list linking each color to a category.
 By default this variable is NULL if no manual color is used. These color
-applicates also to the sjape if \code{var_fill_shape} if used.}
+applicates also to the shape if \code{var_fill_shape} if used.}
 
 \item{shape}{Numeric corresponding to the number of the shape wanted
 if \code{double_bar = FALSE}. By default it is set to 22 (a full square). It is
