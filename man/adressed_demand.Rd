@@ -2,80 +2,145 @@
 % Please edit documentation in R/adressed_demand.R
 \name{adressed_demand}
 \alias{adressed_demand}
-\title{Calculer la demande adressée à chaque pays}
+\title{Compute the Adressed Demand}
 \usage{
 adressed_demand(
   baci,
   years = NULL,
   codes = NULL,
+  export_countries = NULL,
+  import_countries = NULL,
   year_ref,
   var_exporter,
   var_k,
   var_importer = "importer",
-  exporter_ref = NULL,
-  base_100 = TRUE,
+  base_100 = FALSE,
   compare = FALSE,
+  exporter_ref = NULL,
   return_output = TRUE,
-  return_pq = FALSE,
+  return_arrow = TRUE,
   path_output = NULL
 )
 }
 \arguments{
-\item{baci}{Chemin d'accès, dataframe ou format parquet des données de baci
-à utiliser.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{years}{Années à garder dans les données.}
+\item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
-\item{codes}{Codes à garder dans les données.}
+\item{codes}{Character vector indicating the product codes to be kept in the
+variable \code{k}.}
 
-\item{year_ref}{Année de référence pour le calcul de la demande adressée et
-de la base 100.}
+\item{export_countries}{Character or numeric vector indicating the
+exporter countries to be kept in the variable \code{exporter} or \code{i}.}
 
-\item{var_exporter}{Variable contenant les exportateurs.}
+\item{import_countries}{Character or numeric vector indicating the importer
+countries to be kept in the variable \code{importer} or \code{j}.}
 
-\item{var_k}{Variable à utiliser pour le groupement des produits.}
+\item{year_ref}{Numeric indicating the year of reference to compute the
+adressed demand and the base 100.}
 
-\item{var_importer}{Variable à utiliser pour le groupement exportateurs.
-Il est fortement recommandé de laisser "importer".}
+\item{var_exporter}{Character indicating the name of the variable containing
+the exporters.}
 
-\item{exporter_ref}{Exportateur de référence pour le calcul du ratio de la
-base 100.}
+\item{var_k}{Character indicating the name of the variable containing
+the products/group-products.}
 
-\item{base_100}{Booléen indiquant si la demande adressée doit être calculée
-en base 100 par rapport à l'année de référence.}
+\item{var_importer}{Character indicating the name of variable containing
+the importers. it is recommended to let "importer".}
 
-\item{compare}{Booléen indiquant si le ratio de la demande adressée doit être
-calculé par rapport à un pays de référence.}
+\item{base_100}{Logical indicating whether the adressed demand must be
+transformed in base 100 (TRUE) or not (FALSE : the default). If TRUE two new
+variables will be added :
+\describe{
+\item{DA_year_ref}{Numeric : Value of the adressed demand in the
+reference year defined by \code{year_ref} parameter.}
+\item{DA_100}{Numeric : Value of the adressed demand transformed
+in base 100.}
+}}
 
-\item{return_output}{Booléen indiquant si le résultat doit être retourné.}
+\item{compare}{Logical indicating if the base 100 should be compared (TRUE)
+by a ratio, to the base 100 of a reference exporter, defined by the parameter
+\code{exporter_ref}, or not (FALSE the default). If TRUE, two nex variables are
+added
+\describe{
+\item{DA_100_exporter_ref}{Numeric : Value of the adressed demand for the
+reference exporter defined by \code{exporter_ref} parameter.}
+\item{DA_100_diff'}{Numeric : Value of the ratio between the base 100 and
+the base 100 of the reference exporter. A value greater than 1 indicate that
+the the variable for the exporter has increased more than the variable for
+the reference exporter.}
+}}
 
-\item{return_pq}{Booléen indiquant si le résultat doit être retourné en format
-parquet.}
+\item{exporter_ref}{Character indicating the reference exporter (or entity)
+present in the variable given in \code{var_exporter}. Used only if
+\code{compare = TRUE}. if not used it can be set on NULL.}
 
-\item{path_output}{Chemin d'accès pour enregistrer le résultat. Peut être
-en format csv ou parquet.}
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
+
+\item{return_arrow}{Logical indicating whether data must be return in an
+arrow format (TRUE the default) or not if \code{return_output = TRUE}.
+By default data are returned to arrow format.}
+
+\item{path_output}{Path to save the data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
 }
 \value{
-Un dataframe contenant la demande adressée.
+BACI data with the following variables : variables contained in
+\code{year_ref}, \code{var_exporter}, \code{var_k}, \code{var_importer}. There is also "DA" as new
+variable. Depending on the value taken by \code{base_100} and
+\code{compare} 2 or 4 more variables can be present. See the explications of these
+parameters.
 }
 \description{
-Cacule la demande adressée à chaque pays pour chaque année. La
-demande adressée peut être calculée par pays ou par groupement de produits.
-Le résultat retourné peut être la valeur de la demande adressée, la demande
-adressée en base 100 ou bien le ratio de la base 100 avec la base 100 d'un
-pays de référence.
+Compute the demand adress at each exporter, each year by product. The
+result can be in level or in base 100.
 }
 \details{
-La demande adressée sert à observer l'évolution de la demande potentielle
-adressée à un pays en prenant en compte le positionnement du pays sur
-l'ensemble des marchés étudiés sur une année de référence. Elle est calculée
-en sommant l'ensemble des importations de tous les pays sur un produit donné,
-chaque valeur d'importation étant pondérée par la part que le pays représente
-dans les exportations totale du pays étudié sur le produit donné.
-La formule est la suivante :
+The adress demand allow to observe the evolution of a potential demand
+adressed to a country, taking into account the initial positionnement
+of the country.
+
+It is calculate by making the sum of the import for an importer and
+weight it by the share this importer represent for the exporter. Then the
+result for all importers is summed for each exporter.
 
 \eqn{DA_{it} = \sum_{jk}M_{jkt} \times \frac{X_{ijkt=0}}{X_{it=0}}}
+
+For this variable it is mandatory to have variables t and k in your dataframe
+for the time and products.
 }
 \examples{
-# Pas d'exemples.
+## Calculate the DA
+## adressed_demand(
+##   baci = "baci-parquet-folder",
+##   year_ref = 2010,
+##   var_exporter = "exporter",
+##   var_k = "k",
+##   base_100 = FALSE
+## )
+
+## Calculate the DA and take the base 100 and comapre it to France
+## adressed_demand(
+##   baci = "baci-parquet-folder",
+##   year_ref = 2015,
+##   var_exporter = "exporter",
+##   var_k = "category",
+##   base_100 = TRUE,
+##   compare = TRUE,
+##   exporter_ref = "FRA"
+## )
+
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
+\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filtering of data inside the function.
+\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
 }

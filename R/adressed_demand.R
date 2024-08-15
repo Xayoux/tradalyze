@@ -1,96 +1,155 @@
 
 # Documentation -------------------------------------------------------------
 #' @title
-#' Calculer la demande adressée à chaque pays
+#' Compute the Adressed Demand
 #'
 #' @description
-#' Cacule la demande adressée à chaque pays pour chaque année. La
-#' demande adressée peut être calculée par pays ou par groupement de produits.
-#' Le résultat retourné peut être la valeur de la demande adressée, la demande
-#' adressée en base 100 ou bien le ratio de la base 100 avec la base 100 d'un
-#' pays de référence.
+#' Compute the demand adress at each exporter, each year by product. The
+#' result can be in level or in base 100.
 #'
 #' @details
-#' La demande adressée sert à observer l'évolution de la demande potentielle
-#' adressée à un pays en prenant en compte le positionnement du pays sur
-#' l'ensemble des marchés étudiés sur une année de référence. Elle est calculée
-#' en sommant l'ensemble des importations de tous les pays sur un produit donné,
-#' chaque valeur d'importation étant pondérée par la part que le pays représente
-#' dans les exportations totale du pays étudié sur le produit donné.
-#' La formule est la suivante :
+#' The adress demand allow to observe the evolution of a potential demand
+#' adressed to a country, taking into account the initial positionnement
+#' of the country.
+#'
+#' It is calculate by making the sum of the import for an importer and
+#' weight it by the share this importer represent for the exporter. Then the
+#' result for all importers is summed for each exporter.
 #'
 #' \eqn{DA_{it} = \sum_{jk}M_{jkt} \times \frac{X_{ijkt=0}}{X_{it=0}}}
 #'
-#' @param baci Chemin d'accès, dataframe ou format parquet des données de baci
-#' à utiliser.
-#' @param years Années à garder dans les données.
-#' @param codes Codes à garder dans les données.
-#' @param year_ref Année de référence pour le calcul de la demande adressée et
-#' de la base 100.
-#' @param var_exporter Variable contenant les exportateurs.
-#' @param var_k Variable à utiliser pour le groupement des produits.
-#' @param var_importer Variable à utiliser pour le groupement exportateurs.
-#' Il est fortement recommandé de laisser "importer". 
-#' @param exporter_ref Exportateur de référence pour le calcul du ratio de la
-#' base 100.
-#' @param base_100 Booléen indiquant si la demande adressée doit être calculée
-#' en base 100 par rapport à l'année de référence.
-#' @param compare Booléen indiquant si le ratio de la demande adressée doit être
-#' calculé par rapport à un pays de référence.
-#' @param return_output Booléen indiquant si le résultat doit être retourné.
-#' @param return_pq Booléen indiquant si le résultat doit être retourné en format
-#' parquet.
-#' @param path_output Chemin d'accès pour enregistrer le résultat. Peut être
-#' en format csv ou parquet.
+#' For this variable it is mandatory to have variables t and k in your dataframe
+#' for the time and products.
 #'
-#' @return Un dataframe contenant la demande adressée.
+#' @param year_ref Numeric indicating the year of reference to compute the
+#' adressed demand and the base 100.
+#' @param var_exporter Character indicating the name of the variable containing
+#' the exporters.
+#' @param var_k Character indicating the name of the variable containing
+#' the products/group-products.
+#' @param var_importer Character indicating the name of variable containing
+#' the importers. it is recommended to let "importer".
+#' @param base_100 Logical indicating whether the adressed demand must be
+#' transformed in base 100 (TRUE) or not (FALSE : the default). If TRUE two new
+#' variables will be added :
+#' \describe{
+#'   \item{DA_year_ref}{Numeric : Value of the adressed demand in the
+#' reference year defined by `year_ref` parameter.}
+#'   \item{DA_100}{Numeric : Value of the adressed demand transformed
+#' in base 100.}
+#' }
+#' @param compare Logical indicating if the base 100 should be compared (TRUE)
+#' by a ratio, to the base 100 of a reference exporter, defined by the parameter
+#' `exporter_ref`, or not (FALSE the default). If TRUE, two nex variables are
+#' added
+#' \describe{
+#'   \item{DA_100_exporter_ref}{Numeric : Value of the adressed demand for the
+#' reference exporter defined by `exporter_ref` parameter.}
+#'   \item{DA_100_diff'}{Numeric : Value of the ratio between the base 100 and
+#' the base 100 of the reference exporter. A value greater than 1 indicate that
+#' the the variable for the exporter has increased more than the variable for
+#' the reference exporter.}
+#' }
+#' @inheritParams .filter_baci
+#' @inheritParams .export_data
+#' @inheritParams add_chelem_classification
+#' @inheritParams aggregate_compare
+#'
+#' @return BACI data with the following variables : variables contained in
+#' `year_ref`, `var_exporter`, `var_k`, `var_importer`. There is also "DA" as new
+#' variable. Depending on the value taken by `base_100` and
+#' `compare` 2 or 4 more variables can be present. See the explications of these
+#' parameters.
+#'
+#' @examples
+#' ## Calculate the DA
+#' ## adressed_demand(
+#' ##   baci = "baci-parquet-folder",
+#' ##   year_ref = 2010,
+#' ##   var_exporter = "exporter",
+#' ##   var_k = "k",
+#' ##   base_100 = FALSE
+#' ## )
+#'
+#' ## Calculate the DA and take the base 100 and comapre it to France
+#' ## adressed_demand(
+#' ##   baci = "baci-parquet-folder",
+#' ##   year_ref = 2015,
+#' ##   var_exporter = "exporter",
+#' ##   var_k = "category",
+#' ##   base_100 = TRUE,
+#' ##   compare = TRUE,
+#' ##   exporter_ref = "FRA"
+#' ## )
+#'
+#' @seealso
+#' [.load_data()] For more informations concerning the loading.
+#' [.filter_baci()] For more informations concerning the filtering of data inside the function.
+#' [.export_data()] For more informations concerning the export of the data inside the function.
+#'
 #' @export
-#'
-#' @examples # Pas d'exemples.
-# Fonction adressed_demand -------------------------------------------------
-## Définition de la fonction -----------------------------------------------
-adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_exporter,
+adressed_demand <- function(baci, years = NULL, codes = NULL,
+                            export_countries = NULL, import_countries = NULL,
+                            year_ref, var_exporter,
                             var_k, var_importer = "importer",
-                            exporter_ref = NULL, base_100 = TRUE,
-                            compare = FALSE,
-                            return_output = TRUE, return_pq = FALSE,
+                            base_100 = FALSE,
+                            compare = FALSE, exporter_ref = NULL,
+                            return_output = TRUE, return_arrow = TRUE,
                             path_output = NULL){
 
-## Importation des données------------------------------------------------
-  # Ouvrir les données de BACI
-  if (is.character(baci) == TRUE){
-    # Ouvrir les données depuis un dossier parquet (si chemin c'est parquet)
-    df_baci <-
-      baci |>
-      arrow::open_dataset()
-  }
-  else if (is.data.frame(baci) == TRUE){
-    # Ouvrir les données depuis un dataframe : passage en format arrow
-    df_baci <-
-      baci |>
-      arrow::arrow_table()
-  }
-  else{
-    # Ouvrir les données depuis format arrow : rien à faire
-    df_baci <- baci
+  # Check if year ref is a numeric and length 1
+  tradalyze::.check_numeric(year_ref, "year_ref")
+  tradalyze::.check_length_1(year_ref, "year_ref")
+
+  # Check if var_exporter is character and length 1
+  tradalyze::.check_character(var_exporter, "var_exporter")
+  tradalyze::.check_length_1(var_exporter, "var_exporter")
+
+  # Check if var_k is character and length 1
+  tradalyze::.check_character(var_k, "var_k")
+  tradalyze::.check_length_1(var_k, "var_k")
+
+  # Check if var_importer is character and length 1
+  tradalyze::.check_character(var_importer, "var_importer")
+  tradalyze::.check_length_1(var_importer, "var_importer")
+
+  # Check if base_100 is logical and length 1
+  tradalyze::.check_logical(base_100 ,"base_100")
+  tradalyze::.check_length_1(base_100, "base_100")
+
+  # Check if compare is logical and length 1
+  tradalyze::.check_logical(compare, "compare")
+  tradalyze::.check_length_1(compare, "compare")
+
+  if (compare == TRUE){
+    # Check if exporter_ref is character and length 1
+    tradalyze::.check_character(exporter_ref, "exporter_ref")
+    tradalyze::.check_length_1(exporter_ref, "exporter_ref")
   }
 
+  # Check validity of export parameters
+  tradalyze::.export_data(
+    data = NULL,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = FALSE,
+    collect = NULL
+  )
+  
+  baci <-
+    tradalyze::.load_data(baci) |>
+    tradalyze::.filter_baci(
+      years = years,
+      codes = codes,
+      export_countries = export_countries,
+      import_countries = import_countries
+    )
 
-  # Garder les années voulues si years != NULL
-  if(!is.null(years)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(t %in% years)
-  }
+  # Check if t, k, v and other var are present in baci
+  tradalyze::.check_var_exist(baci, "baci", c("t", "k", "v", var_exporter, var_k, var_importer))
 
-  # Garder les codes voulus si codes != NULL
-  if(!is.null(codes)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(k %in% codes)
-  }
 
-## Calcul de la demande adressée -----------------------------------------
   # Agréger le commerce par "Régions exportatrices", importer et produits HS6.
   # Permet une aggégration des exportateurs mais reste sur le niveau
   # le plus fin pour le reste.
@@ -147,30 +206,28 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
     ) |>
     dplyr::filter(!is.na({{var_exporter}}))
 
-  ## Base 100 ---------------------------------------------------------------
   if (base_100 == TRUE){
     # Isoler la demande adressée de l'année de référence
     # Sert à calculer la base 100
-    df_da_2010 <-
+    df_da_year_ref <-
       df_da |>
       dplyr::filter(t == year_ref) |>
       # Supprimer lan variable t, pour que le join aille sur toutes les lignes
       dplyr::select(-t) |>
-      dplyr::rename(DA_2010 = DA)
+      dplyr::rename(DA_year_ref = DA)
 
 
     # Caculer la demande adressée en base 100 par rapport à l'année de référence
     df_da <-
       df_da |>
       dplyr::left_join(
-        df_da_2010,
+        df_da_year_ref,
         dplyr::join_by({{var_exporter}}, {{var_k}})
       )  |>
       dplyr::mutate(
-        DA_100 = DA / DA_2010 * 100
+        DA_100 = DA / DA_year_ref * 100
       )
 
-    ## Comparaison avec un pays de référence ---------------------------------
     if (compare == TRUE){
       # Isoler la demande adressée de l'exportateur de référence
       df_da_100_exporter_ref <-
@@ -188,36 +245,22 @@ adressed_demand <- function(baci, years = NULL, codes = NULL, year_ref, var_expo
           dplyr::join_by({{var_k}}, t)
         ) |>
         dplyr::mutate(
-          DA_diff = DA_100 / DA_100_exporter_ref
+          DA_100_diff = DA_100 / DA_100_exporter_ref
         ) |>
         dplyr::filter(!is.na(DA_diff))
     }
   }
 
-
-  ## Exportation des résultats -----------------------------------------------
-  # Enregistrer le résultat
-  if (!is.null(path_output)){
-    if (tools::file_ext(path_output) == "csv"){
-      df_da |>
-        readr::write_csv(path_output)
-    }
-    else if (tools::file_ext(path_output) == "pq"){
-      df_da |>
-        arrow::write_parquet(path_output)
-    }
-  }
-
-  
-  # Retourner le résultat
- if (return_output == TRUE){
-   if (return_pq == TRUE){
-     df_da <-
-       df_da |>
-       arrow::arrow_table()
-   }
-
-   return(df_da |>  dplyr::collect())
- }
-
+  tradalyze::.export_data(
+    data = df_da,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = TRUE,
+    collect = TRUE
+  )
 }
+
+utils::globalVariables(c("t", "k", "v", "poids", "total_import_jk", "DA",
+                         "DA_year_ref", "DA_100", "DA_100_exporter_ref",
+                         "DA_100_diff"))
