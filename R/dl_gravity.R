@@ -1,35 +1,86 @@
+# Fonction pour transformer un dossier Gravity en format parquet
+#' Transforme La base de données Gravity en format parquet.
+#'
+#' @param csv_folder Chemin d'accès au dossier contenant les fichiers csv de
+#' gravity
+#' @param path_output Chemin d'accès au dossier où seront stockés les fichiers
+#' parquet de Gravity (par défaut, le même que csv_folder).
+#' Ils seront stockés dans un dossier nommé "Gravity-parquet".
+#' @param version Version des fichiers Gravity. Trouvable sur la page
+#' [Gravity](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8)
+#'
+#' @return Les fichiers parquet de Gravity.
+#'
+#' @examples # Pas d'exemple.
+transfo_gravity_pq <- function(csv_folder, path_output = csv_folder, version){
+
+  gravity_path <-
+    here::here(csv_folder, stringr::str_glue("Gravity_V{version}.csv"))
+
+
+  # Créer le dossier Gravity-parquet s'il n'existe pas
+  if (!dir.exists(here::here(path_output, "Gravity-parquet"))) {
+    dir.create(here::here(path_output, "Gravity-parquet"), recursive = TRUE)
+  }
+
+  # Ecrire la base gravity en parquet : un par année : gain de place + efficacité
+  gravity_path |>
+    # Ouvrir Gravity : pas en mémoire
+    arrow::read_csv_arrow(as_data_frame = FALSE) |>
+    # Grouper par année (un fichier parquet par année)
+    dplyr::group_by(year) |>
+    # Ecrire cette base en parquet
+    arrow::write_dataset(
+      path = here::here(path_output, "Gravity-parquet"),
+      format = "parquet"
+    )
+}
+
+
+
 # Documentation -----------------------------------------------------------
-#' @title
-#' Télécharge les données de la base de données Gravity
+#' @title Download the Gravity Database
 #'
 #' @description
-#' Télécharge la base de données Gravity depuis le site du CEPII dans sa
-#' dernière version disponible puis la transforme en format parquet avec un
-#' fichier par année.
+#' Download the [Gravity](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8)
+#' Database created by the [CEPII](http://www.cepii.fr/CEPII/en/welcome.asp) in
+#' its last version the transform it into parquet files with one file by year.
 #'
-#' Si la fonction est lancée dans une session interactive, alors il sera
-#' demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
-#' Sinon le téélchargement s'effectuera automatiquement. 
-#'
-#' @param dl_folder Chemin d'accès au dossier où seront stockés les fichiers
-#' csv de Gravity. Ils seront stockés dans un dossier nommé
-#' "Gravity_csv_V(version)". Ainsi si la version change un nouveau sous-dossier
-#' sera créé.
-#' @param dl_zip Si TRUE, télécharge le fichier zip de Gravity dans tous les cas.
-#' Si FALSE, vérifie si le fichier zip existe déjà. Si oui, ne télécharge pas et
-#' effectue uniquement le dezipage.
-#'
-#' @return Les fichiers parquet et csv de Gravity.
+#' @param dl_folder Character indicating the path to the folder where the data
+#' will be saved. Data will be saved in a sub-folder named "Gravity_csv_V(version)"
+#' allowing to have more than one version.
+#' @param dl_zip Logical indicating if the zip file must be dowloaded each time
+#' even if it already exist (TRUE) or not (FALSE : the default). If FALSE, if
+#' tjz ip file alreaqdy exist, only unzip and transform into parquet files.
+#' @return A folder containing the csv files and a folder containing the
+#' parquet files of the Gravity Database.
 #' @export
 #'
-#' @examples # Pas d'exemple
+#' @examples
+#' ## dl_gravity(
+#' ##   dol_folder = "path-to save the data",
+#' ##   dl_zip = TRUE
+#' ## )
+#' 
 #' @source Base [Gravity](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8)
 #' du [CEPII](http://www.cepii.fr/CEPII/fr/welcome.asp)
 # Fonction dl_gravity ------------------------------------------------------
 dl_gravity <- function(dl_folder, dl_zip = FALSE){
 
+  rlang::check_installed("svDialogs", reason = "Mandatory to ask question to the user.")
+  rlang::check_installed("rvest", reason = "Mandatory to obtain the download link.")
+
+  # Check if dl_folder is character and length 1
+  tradalyze::.check_character(dl_folder, "dl_folder")
+  tradalyze::.check_length_1(dl_folder, "dl_folder")
+
+  # Check if dl_zip is logical and length 1
+  tradalyze::.check_logical(dl_zip, "dl_zip")
+  tradalyze::.check_length_1(dl_zip, "dl_zip")
+
   # Lien vers la page de la base de données Gravity sur le site du CEPII
   html_gravity <- rvest::read_html("http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8")
+  
 
   # Récupérer la version de Gravity pour télécharger la dernière version disponible
   version <-
@@ -99,7 +150,7 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
 
     # Créer les formats parquet de Gravity
     print("Cr\uE9ation des fichiers parquet")
-    tradalyze::transfo_gravity_pq(
+    transfo_gravity_pq(
       csv_folder = gravity_folder,
       path_output = gravity_folder,
       version = version
@@ -111,44 +162,3 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
   } 
 } 
 
-
-
-
-# Fonction pour transformer un dossier Gravity en format parquet
-#' Transforme La base de données Gravity en format parquet.
-#'
-#' @param csv_folder Chemin d'accès au dossier contenant les fichiers csv de
-#' gravity
-#' @param path_output Chemin d'accès au dossier où seront stockés les fichiers
-#' parquet de Gravity (par défaut, le même que csv_folder).
-#' Ils seront stockés dans un dossier nommé "Gravity-parquet".
-#' @param version Version des fichiers Gravity. Trouvable sur la page
-#' [Gravity](http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8)
-#'
-#' @return Les fichiers parquet de Gravity.
-#' @export
-#'
-#' @examples # Pas d'exemple.
-transfo_gravity_pq <- function(csv_folder, path_output = csv_folder, version){
-
-  gravity_path <-
-    here::here(csv_folder, stringr::str_glue("Gravity_V{version}.csv"))
-
-
-  # Créer le dossier Gravity-parquet s'il n'existe pas
-  if (!dir.exists(here::here(path_output, "Gravity-parquet"))) {
-    dir.create(here::here(path_output, "Gravity-parquet"), recursive = TRUE)
-  }
-
-  # Ecrire la base gravity en parquet : un par année : gain de place + efficacité
-  gravity_path |>
-    # Ouvrir Gravity : pas en mémoire
-    arrow::read_csv_arrow(as_data_frame = FALSE) |>
-    # Grouper par année (un fichier parquet par année)
-    dplyr::group_by(year) |>
-    # Ecrire cette base en parquet
-    arrow::write_dataset(
-      path = here::here(path_output, "Gravity-parquet"),
-      format = "parquet"
-    )
-}

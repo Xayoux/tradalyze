@@ -2,7 +2,7 @@
 % Please edit documentation in R/dl_gravity.R
 \name{dl_gravity}
 \alias{dl_gravity}
-\title{Télécharge les données de la base de données Gravity}
+\title{Download the Gravity Database}
 \source{
 Base \href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8}{Gravity}
 du \href{http://www.cepii.fr/CEPII/fr/welcome.asp}{CEPII}
@@ -11,27 +11,27 @@ du \href{http://www.cepii.fr/CEPII/fr/welcome.asp}{CEPII}
 dl_gravity(dl_folder, dl_zip = FALSE)
 }
 \arguments{
-\item{dl_folder}{Chemin d'accès au dossier où seront stockés les fichiers
-csv de Gravity. Ils seront stockés dans un dossier nommé
-"Gravity_csv_V(version)". Ainsi si la version change un nouveau sous-dossier
-sera créé.}
+\item{dl_folder}{Character indicating the path to the folder where the data
+will be saved. Data will be saved in a sub-folder named "Gravity_csv_V(version)"
+allowing to have more than one version.}
 
-\item{dl_zip}{Si TRUE, télécharge le fichier zip de Gravity dans tous les cas.
-Si FALSE, vérifie si le fichier zip existe déjà. Si oui, ne télécharge pas et
-effectue uniquement le dezipage.}
+\item{dl_zip}{Logical indicating if the zip file must be dowloaded each time
+even if it already exist (TRUE) or not (FALSE : the default). If FALSE, if
+tjz ip file alreaqdy exist, only unzip and transform into parquet files.}
 }
 \value{
-Les fichiers parquet et csv de Gravity.
+A folder containing the csv files and a folder containing the
+parquet files of the Gravity Database.
 }
 \description{
-Télécharge la base de données Gravity depuis le site du CEPII dans sa
-dernière version disponible puis la transforme en format parquet avec un
-fichier par année.
-
-Si la fonction est lancée dans une session interactive, alors il sera
-demandé à l'utilisateur de confirmer s'il souhaite télécharger les données.
-Sinon le téélchargement s'effectuera automatiquement.
+Download the \href{http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8}{Gravity}
+Database created by the \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII} in
+its last version the transform it into parquet files with one file by year.
 }
 \examples{
-# Pas d'exemple
+## dl_gravity(
+##   dol_folder = "path-to save the data",
+##   dl_zip = TRUE
+## )
+
 }
