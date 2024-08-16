@@ -1,124 +1,135 @@
-#' @title
-#' Estimation de la qualité d'un produit à partir d'une équation à la
-#' Khandelwal et al (2013)
+#' @title Estimate Quality of a Trade Flow/Product (Khandelwal et al 2013)
 #'
 #' @description
-#' Estimation de la qualité d'un produit à partir d'une équation à la
-#' Khandelwal et al (2013).
+#' Allow to estimate the quality of a product with aggregated commercial
+#' data like [BACI](http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37).
+#' The estimate equation can be freely choosen and can be multiple to
+#' conduct robustness check. The creation of the data can be made
+#' with the function \link{create_quality_df} from this package, and the
+#' aggregation by prodict or sector can be made with the function
+#' \link{aggregate_compare} from this package.
 #'
 #' @details
-#' ## Equation estimée
-#' Cette fonction permet d'estimer économétriquement la 'qualité', où plus
-#' précisément la compétitivité hors prix d'un produit en se basant sur une
-#' modélisation proposée par Khandelwal et al (2013) et modifiée par
-#' Bas et al (2015) afin de pouvoir être utilisée avec les données de BACI.
+#' ## Estimate equation
+#' This function allow to estimate with a regression the "quality"
+#' (non-price competitiveness) of a product based on a modelisation
+#' proposed by Khandelwal et al (2013) and adapted to aggregated commercial
+#' data by Bas et al (2015)
 #'
-#' Cette modélisation se base sur une fonction de demande qui dépend du prix,
-#' de la qualité, du niveau général des prix et de la richesse du pays de
-#' destination. La "qualité" d'un produit va être définie comme étant toutes
-#' les caractéristiques qui vont faire augmenter la demande d'un produit pour
-#' un même prix.
+#' This modelisation is based on a demand function that depends on the price,
+#' quality, the level of price and the wealth of the destination country.
+#' The "quality" is defined as all the characteristics that increase the
+#' demand for a same price.
 #'
-#' Econométriquement, elle est estimée de la façon suivante :
+#' It is estimate with the following regression :
 #'
 #' \eqn{X_{ijkt} + \sigma_{k} p_{ijkt} = \beta PIB_{it} + \lambda D_{ij} + \alpha_{kjt} + \epsilon_{ijkt}}
 #'
-#' Cette équation met en relation la quantité échangée d'un produit k, une
-#' année t entre l'exportateur i et l'importateur j multipliée par le prix
-#' de ce produit (flux) lequel est multiplié par son élasticité prix (la
-#' demande décroit en fonction du prix) avec le PIB du pays d'origine, des
-#' variables de gravité et un effet fixe produit-importateur-année.
+#' X beeing the quantity of the trade flow; \eqn{\sigma_k} the elasticity of
+#' the product ; p the price of the trade flow ; PIB the PIB of the
+#' origin country ; D some gravity variables and \eqn{\alpha_{kjt}} a
+#' product-importer-year fixed effect.
 #'
-#' Le logarithme de la compétitivité hors-prix est défini comme le résidu de
-#' cette relation normalisé par l'élasticité prix du produit correspondant
-#' \eqn{\frac{\epsilon_{ijkt}}{\sigma_{k} - 1}}. Le niveau de la compétitivité
-#' hors prix est obtenu en prenant l'exponentielle. Le résultat en niveau est
-#' le résultat renvoyé par cette fonction. 
+#' The logarithm of the non-price competitiveness is defined as the residuals
+#' of this equation standardized by the elasticities of the product
+#' \eqn{\frac{\epsilon_{ijkt}}{\sigma_{k} - 1}}. The level of the "quality" for
+#' the flow is obtained by taking the exponential of this. The results of this
+#' function is the level of "quality".
 #'
-#' ## Utilisation des variables
-#' Cette fonction utilise la fonction \code{\link[fixest]{feols}} du du package
-#' \pkg{fixest} afin d'estimer la régression.
+#' ## Use of variables
+#' This function use the function \code{\link[fixest]{feols}} of \pkg{fixest}
+#' to estimate the regression.
 #'
-#' Pour indiquer les variables utilisées pour la régression, l'utilisateur
-#' peut simplement indiquer les noms des variables dans un vecteur de chaînes de
-#' caractères. Il est
-#' également possible de simplement passer une chaîne de caractères
-#' contenant les relations entre les variables. Si un vecteur de chaînes de
-#' caractères est passé, les relations entre les variables seront simplement
-#' additionnées. Par exemple : `x_var = c("var1", "var2")` est équivalent à
-#' `x_var = "var1 + var2"`. Pour des formes fonctionnelles plus complexes,
-#' il faut utiliser la deuxième option. Par exemple pour ajouter un terme
-#' d'interaction : `x_var = "var1 * var2"`.
+#' To indicate the variables used for the regression, the user can
+#' simply indicate the names of theses variables in a character vector in the
+#' `x_var`, `y_var` and `fe_var` parameters. It is also possible to indicate
+#' precisely the relation between the variable. By default it is simply an addition.
+#' For example `x_var = c("var1", "var2")` is equivalent to `x_var = "var1 + var2"`.
+#' For complex form it can be `x_var = "var1 * var2"`.
 #'
-#' Comme dans le package \pkg{fixest}, il est possible d'ajouter des effets
-#' fixes combinés en utilisant le symbole `^` entre les noms des variables
-#' à effet fixes. Par exemple : `fe_var = c("var1", "var2")` est équivalent à
-#' `fe_var = "var1 + var2"`. Ce qui donne deux effets fixes. Pour avoir un seul
-#' effet fixe combiné, il faut faire : `fe_var = "var1 ^ var2"`.
+#' It is possible to add combined fixed effects with the symbol '^' between
+#' the name of the fixed effects variables. For example `fe_var = c("var1", "var2")`
+#' is equivalent to `fe_var = "var1 + var2"` whihc means two fixed effects.
+#' To have only one combined fixed effect : `fe_var = "var1 ^ var2"`.
 #'
-#' Enfin il est possible d'estimer plusieurs régression simultanément. Pour
-#' cela ilf aut utiliser les fonctions stepwise (voir documentation de
-#' \code{\link[fixest]{feols}}). Par exemple :
-#' `var_x = "var1 + sw(var2, var3)"` permet d'estimer deux régressions, une
-#' avec `var1` et `var2` et une autre avec `var1` et `var3`.
+#' It is possible to estimate multiple regressions with stepwise functions :
+#' see \code{\link[fixest]{feols}}. For example `var_x = "var1 + sw(var2, var3)"`
+#' allow to estimate two regressions, one with `var1` and `var2` and the other
+#' with `var1` and `var3`.
 #'
+#' With the parmater `reg_formula`, you can directly give an object formula
+#' to estimate the regression. 
 #'
+#' @param data_reg Data to be used for the regression. Can be a path to a csv file.
+#' It can also be a path to a folder containing
+#' parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+#' also accepted, but absolutely not recommended because BACI data are too large
+#' and data must be in the first sheet. It is recommended to use the
+#' \link{create_quality_df} to obtain these data.
+#' @param reg_formula Formula object indicating the formula to be used for
+#' the regression. If this parameter is non NULL, `y_var, `x_var  et `fe_var`
+#' will not be taking into account.
+#' @param y_var Character indicating the name of the dependant variable
+#' (classically it should be "demand").
+#' @param x_var Character indicating the independant variables
+#' (see details for more informations).
+#' @param fe_var Character indictaing the fixed effects to be used
+#' (See details for more informations).
+#' @param path_latex_output Character indicating the path to where the
+#' LaTeX table should be saved. If NULL table will not be saved. 
+#' @param title_latex Title of the LaTeX Table. By default NULL.
+#' @param label_latex Label of the LaTeX table. By default NULL.
+#' @param print_reg_output Logical indicating whether the results of the
+#' regressions must be displayed (TRUE : the default) or not (FALSE). 
+#' @param return_output Logical indicating whether to return the output of
+#' the rregression and the data containing the quality (TRUE the default) or not
+#' (FALSE). If TRUE results are returned as a list with "lm" containing the
+#' regression and "data_reg" the data. 
 #'
+#' @return Results of the regression and data. Quality data are in level.
+#' The following variables are added to the original data :
+#' \describe{
+#'   \item{epsilon}{Numeric : residuals of the regression. If multiples
+#' equations are estimated, it will be followed by the number of the regression
+#' (epsilon_1, epsilon_2...)}
+#'   \item{quality}{Numeric : Level of the quality. If multiples
+#' equations are estimated, it will be followed by the number of the regression
+#' (quality_1, quality_2...)}
+#' }
+#' 
 #'
-#' @param data_reg Les données à utiliser pour l'estimation. Peut être un
-#' chemin vers un dossier parquet, un dataframe ou un objet arrow. Il est
-#' recommandé d'utiliser la fonction \link{create_quality_df} pour obtenir
-#' les données nécessaires.
-#' @param reg_formula Objet formula indiquant la formule à utiliser pour
-#' l'équation de régression. Si ce paramètre est renseigné, les paramètres
-#' `y_var, `x_var  et `fe_var` ne seront pas pris en compte. 
-#' @param y_var La variable dépendante de l'équation de régression.
-#' @param x_var Les variables indépendantes de l'équation de régression.
-#' @param fe_var Les variables pour les effets fixes de l'équation de régression.
-#' @param path_latex_output Le chemin où sauvegarder le tableau en format LaTeX.
-#' Par défaut, NULL.
-#' @param title_latex Le titre du tableau en format LaTeX. Par défaut, NULL.
-#' @param label_latex Le label du tableau en format LaTeX. Par défaut, NULL.
-#' @param print_reg_output Afficher les résultats de la régression si TRUE.
-#' @param return_output Retourner les résultats de la régression ainsi que
-#' les données contenant la qualité si TRUE. Les résultats sont retorunés
-#' sous forme de liste avec lm contenant la régression et data_reg contenant
-#' les données.
+#' @examples
+#' ## Estimate the regression and display regression table
+#' ## eq <- khandelwal_quality_eq(
+#' ##   data_reg = "path-to-parquet-folder",
+#' ##   y_var = "demand",
+#' ##   x_var = c("gdp_o", "contig", "dist") # variables taken from Gravity,
+#' ##   fe_var = "k^importer^t",
+#' ##   print_reg_output = TRUE,
+#' ##   return_output = TRUE
+#' ## )
+#' 
+#' ## Take the data
+#' ## eq$data_reg
+#' 
+#' ## Take the regression output
+#' ## eq$lm
+#' 
+#' @source
+#' [Khandelwal, A. K., Schott, P. K., & Wei, S. J. (2013). Trade liberalization and embedded institutional reform: Evidence from Chinese exporters. American Economic Review, 103(6), 2169-2195.](https://www.aeaweb.org/articles?id=10.1257/aer.103.6.2169)
 #'
-#' @return Les résultats de la régression ainsi que les données contenant la
-#' compétitivité hors-prix si return_output = TRUE.
-#' Les données de la compétitivité hors-prix renvoyées sont les données en
-#' niveau (mise à l'exponentielle).
+#' [Bas, M., Fontagné, L., Martin, P., & Mayer, T. (2015). À la recherche des parts de marché perdues (Research Report No. 2015–23). Conseil d’Analyse Economique.](https://www.cairn.info/revue-notes-du-conseil-d-analyse-economique-2015-4-page-1.htm)
 #' @export
-#'
-#' @examples # Pas d'exemple
-#' @source [Khandelwal, A. K., Schott, P. K., & Wei, S. J. (2013). Trade liberalization and embedded institutional reform: Evidence from Chinese exporters. American Economic Review, 103(6), 2169-2195.](https://www.aeaweb.org/articles?id=10.1257/aer.103.6.2169)
-#' @source [Bas, M., Fontagné, L., Martin, P., & Mayer, T. (2015). À la recherche des parts de marché perdues (Research Report No. 2015–23). Conseil d’Analyse Economique.](https://www.cairn.info/revue-notes-du-conseil-d-analyse-economique-2015-4-page-1.htm)
-#'
 khandelwal_quality_eq <- function(data_reg, reg_formula = NULL, y_var = NULL,
                                   x_var = NULL, fe_var = NULL,
                                   path_latex_output = NULL, title_latex = NULL,
                                   label_latex = NULL, print_reg_output = TRUE,
                                   return_output = TRUE){
+
+  # Check if fixest is installed
+  rlang::check_installed("fixest", reason = "Mandatory to perform the regression.")
   
-  # Ouvrir les données de data_reg
-  if (is.character(data_reg) == TRUE){
-    # Ouvrir les données depuis un dossier parquet
-    df_data_reg <-
-      data_reg |>
-      arrow::open_dataset() |>
-      dplyr::collect()
-  }
-  else if (is.data.frame(data_reg) == TRUE){
-    # Ouvrir les données depuis un dataframe : rien faire
-    df_data_reg <- data_reg
-  }
-  else{
-    # Ouvrir les données depuis format arrow : passage en format R
-    df_data_reg <-
-      data_reg |>
-      dplyr::collect()
-  }
+  df_data_reg <- tradalyze::.load_data(data_reg)
 
   # Créer la formule "manuellement" si formula = NULL
   if (is.null(reg_formula) == TRUE | !methods::is(reg_formula, "formula")){
