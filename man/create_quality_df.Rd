@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_quality_df.R
 \name{create_quality_df}
 \alias{create_quality_df}
-\title{Création d'un dataframe servant à estimer la qualité d'un produit}
+\title{Create a Dataframe Usefull for Estimate the Quality of a Product}
 \source{
 \href{http://www.cepii.fr/PDF_PUB/wp/2010/wp2010-23.pdf}{Gaulier, G. and Zignago, S. (2010) BACI: International Trade Database at the Product-Level. The 1994-2007 Version. CEPII Working Paper, N°2010-23}
 
@@ -16,78 +16,138 @@ create_quality_df(
   gravity,
   years = NULL,
   codes = NULL,
+  export_countries = NULL,
+  import_countries = NULL,
   gravity_variables = NULL,
   baci_variables = NULL,
-  revision_codes = "HS92",
-  print = FALSE,
-  return_output = TRUE,
-  return_parquet = FALSE,
+  revision_codes = c("HS0", "HS1", "HS2", "HS3", "HS4", "HS5", "HS6"),
+  return_output = FALSE,
+  return_arrow = FALSE,
   path_output = NULL,
-  format = "parquet",
   na.rm = TRUE
 )
 }
 \arguments{
-\item{baci}{Les données de BACI. Peut être un chemin vers un dossier parquet,
-un dataframe ou un objet arrow.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{gravity}{Les données de gravity. Peut être un chemin vers un dossier
-parquet, un dataframe ou un objet arrow.}
+\item{gravity}{Gravity data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because Gravity data are too large
+and data must be in the first sheet.}
 
-\item{years}{Les années à garder. Par défaut, toutes les années sont gardées.}
+\item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
-\item{codes}{Les codes de produits à garder. Par défaut, tous les codes sont
-gardés.}
+\item{codes}{Character vector indicating the product codes to be kept in the
+variable \code{k}.}
 
-\item{gravity_variables}{Les variables de gravité à garder. Par défaut, toutes
-les variables sont gardées.}
+\item{export_countries}{Character or numeric vector indicating the
+exporter countries to be kept in the variable \code{exporter} or \code{i}.}
 
-\item{baci_variables}{Les variables de BACI à garder. Par défaut, toutes les
-variables sont gardées. Les variables automatiquement gardées peu importe
-la sélection sont exporter, importer, k, t, v et q afin de permettre le bon
-déroulement de la suite.}
+\item{import_countries}{Character or numeric vector indicating the importer
+countries to be kept in the variable \code{importer} or \code{j}.}
 
-\item{revision_codes}{La révision de laquelle les codes fournis proviennent.
-Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12", "HS17" et
-"HS22". Par défaut, les codes sont supposés être en HS92.}
+\item{gravity_variables}{Variables to keep from gravity in the output dataframe.
+By default (if NULL) all the variables are beeing kept. No matter the value
+of this parameter, the following variables are beeing kept :
+exporter, importer, iso3_o, iso3_d.}
 
-\item{print}{Afficher le dataframe si TRUE. Par défaut, FALSE.}
+\item{baci_variables}{Variables to keep from baci in the output dataframe.
+Bu default (if NULL) all the variables are beeing kept. No matter the value
+of this parameter, the following variables are beeing kept :
+exporter, importer, k, t, v et q.}
 
-\item{return_output}{Retourner le dataframe si TRUE. Par défaut, TRUE.}
+\item{revision_codes}{A character indicating the HS revision of the product
+codes in BACI. By default this is the revision
+"HS0" (1988/1992). The value can also be : "HS1" (1996), "HS2" (2022), "HS3" (2007),
+"HS4" (2012) or "HS5" (2017). If the version of the
+\link{concordance} package is greater than 2.1.0 you can also
+choose "HS6" (2022).}
 
-\item{return_parquet}{Retourner le dataframe en format arrow si TRUE. Par
-défaut, FALSE.}
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
 
-\item{path_output}{Le chemin où sauvegarder le dataframe. Par défaut, NULL.}
+\item{return_arrow}{Logical indicating whether data must be return in an
+arrow format (TRUE the default) or not if \code{return_output = TRUE}.
+By default data are returned to arrow format.}
 
-\item{format}{Le format de sauvegarde du dataframe. Les valeurs possibles
-sont "parquet" et "csv". Par défaut, "parquet".}
+\item{path_output}{Path to save the data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
 
-\item{na.rm}{Supprimer les valeurs manquantes si TRUE. Par défaut, TRUE.}
+\item{na.rm}{Logical indicating whether NA should be remove from the data for
+the computation. By default it is set to TRUE. If FALSE you can obtain NA
+if NA are presents in your data be carefull.}
 }
 \value{
-Un dataframe prêt à l'emploi pour estimer la qualité d'un produit.
+Dataframe with the variable beeing kept from baci and gravity and the
+following variables :
+\describe{
+\item{sigma}{Nuemric : Elasticities of the product taken from the PLTE database.}
+\item{p}{Numeric : the "price" (unit value) of the trade flow (p = v / q)}
+\item{demand}{Numeric : The value of the demand for this trade flow.
+\eqn{demand = log(q) + (\sigma_k * log(p))}}
+}
 }
 \description{
-Cette fonction permet de combiner les données des bases
+This function allow to combine data from
 \href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI},
-\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=8}{Gravity} et
-\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=35}{Product Level Trade Elasticities}
-du \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII} afin d'obtenir un
-dataframe prêt à l'emploi afin d'estimer (nottament) la qualité d'un produit
-à partir d'une équation à la Khandelwal et al (2013).
+\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=8}{Gravity}
+and \href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=35}{Product Level Trade Elasticities}
+created by the \href{http://www.cepii.fr/CEPII/en/welcome.asp}{CEPII}. This
+dataframe can be used to estimate the quality of a product
+from an equation à la Khandelwal et al (2013) (see Bas et al 2015 for an
+application with aggregate commercial data).
 }
 \details{
-Les données de BACI et de gravity étant volumineuses, ces dernières sont
-traitées grâce au package arrow afin de limiter la prise de mémoire.
-Cependant, un passage en mémoire est obligatoire à certains moments de
-l'exécution de la fonction. Si les filtres (variables, années, codes) sont
-trop permissifs comparés à la capacité de l'ordinateur, le processus peut
-être fortement ralenti voir ne plus fonctionner. Dans ce cas, il est
-recommandé de filtrer d'avantage les données et de procéder par itérations
-successives.
+This feature uses \href{https://arrow.apache.org/docs/r/}{arrow} functionalities.
+However, the computation of the various metrics must be in memory
+(only this part is in memory). This can take some time depending on your
+configuration and the size of your data. If the size of the data is too
+large for your computer, it may crash. It is advisable to reduce the size
+of your database and run this function several times.
+
+The following variables are mandatory to have in baci data :
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{exporter}{Numeric/character : Iso numeric or character of the exporter}
+\item{importer}{Numeric/character : Iso numeric or character of the importer}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+}
+
+The following variables are mandatory to have in Gravity data
+\describe{
+\item{iso3_o}{Character : Code iso numeric for the origin country.}
+\item{iso3_d}{Character : Code iso numeric for the destination country.}
+\item{year}{Numeric : Year.}
+}
+
+And of course all variables you want to have with \code{gravity_variables}
+and \code{baci_variables}.
 }
 \examples{
-# Pas d'exemples.
+## create_quality_df(
+##   baci = "path-to-folder-baci-parquet",
+##   gravity = "path-to-gravity-folder-parquet",
+##   years = 2010:2020,
+##   gravity_variables = c("dist", "contig", "comlang_off"),
+##   revision_codes = "HS0",
+##   return_output = TRUE,
+##   return_parquet = FALSE,
+##   path_output = "path-to-folder-output-parquet"
+## )
 
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
+\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filter of data inside the function.
+\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
 }
