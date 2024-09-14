@@ -92,7 +92,7 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
 
   
   # Demander à l'utilisateur s'il souhaite dl cette version de gravity
-  question_dl <- stringr::str_glue("Voulez-vous t\u00E9l\u00E9charger Gravity {version} ? (Y/n) : ")
+  question_dl <- stringr::str_glue("Do you want to download Gravity {version} ? (Y/n) : ")
   reponse_dl <- svDialogs::dlg_message(question_dl, "yesnocancel")$res
 
   if (reponse_dl == "yes"){
@@ -144,21 +144,21 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
     }
 
     # Décompresser le fichier zip au même endroit
-    print("Extraction des fichiers de Gravity")
+    print("Extract csv files")
     gravity_zip |>
       utils::unzip(exdir = gravity_folder)
 
     # Créer les formats parquet de Gravity
-    print("Cr\uE9ation des fichiers parquet")
+    print("Create parquet files")
     transfo_gravity_pq(
       csv_folder = gravity_folder,
       path_output = gravity_folder,
       version = version
     )
 
-    print("Donn\u00E9es de Gravity t\u00E9l\u00E9charg\u00E9es")
+    print("Gravity data had been downloaded")
   } else {
-    print(stringr::str_glue("Refus de t\u00E9l\u00E9charger Gravity {version}"))
+    print(stringr::str_glue("Gravity {version} data will not be downloaded"))
   } 
 } 
 
