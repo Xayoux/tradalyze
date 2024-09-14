@@ -122,7 +122,7 @@ dl_baci <- function(version = NULL, revision = "HS92",
   # Load the HTML code of the BACI webpage
   html_baci <-
     rvest::read_html(
-      "http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=37"
+      "https://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=37"
     )
 
   # Scrap all the links to dl baci .zip

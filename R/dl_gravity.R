@@ -79,7 +79,7 @@ dl_gravity <- function(dl_folder, dl_zip = FALSE){
   tradalyze::.check_length_1(dl_zip, "dl_zip")
 
   # Lien vers la page de la base de données Gravity sur le site du CEPII
-  html_gravity <- rvest::read_html("http://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8")
+  html_gravity <- rvest::read_html("https://www.cepii.fr/CEPII/fr/bdd_modele/bdd_modele_item.asp?id=8")
   
 
   # Récupérer la version de Gravity pour télécharger la dernière version disponible
