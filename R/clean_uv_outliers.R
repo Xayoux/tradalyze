@@ -138,7 +138,7 @@ method_h06 <- function(df_baci, alpha_H, alpha_L, na.rm){
   tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is > 0
-  if (alpha_H >= 0){
+  if (alpha_H <= 0){
     stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
   }
   
@@ -147,7 +147,7 @@ method_h06 <- function(df_baci, alpha_H, alpha_L, na.rm){
   tradalyze::.check_length_1(alpha_L, "alpha_L")
 
   # Check if alpha_L is > 0
-  if (alpha_L >= 0){
+  if (alpha_L <= 0){
     stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
   }
 
@@ -189,7 +189,7 @@ method_sd <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
   tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is > 0
-  if (alpha_H >= 0){
+  if (alpha_H <= 0){
     stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
   }
   
@@ -198,7 +198,7 @@ method_sd <- function(df_baci, alpha_H, alpha_L, na.rm, rm_temp_var){
   tradalyze::.check_length_1(alpha_L, "alpha_L")
 
     # Check if alpha_L is > 0
-  if (alpha_L >= 0){
+  if (alpha_L <= 0){
     stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
   }
 
@@ -254,7 +254,7 @@ method_be11 <- function(df_baci, alpha_H, alpha_L, beta, na.rm, rm_temp_var){
   tradalyze::.check_length_1(alpha_H, "alpha_H")
 
   # Check if alpha_H is > 0
-  if (alpha_H >= 0){
+  if (alpha_H <= 0){
     stop(glue::glue("alpha_H must be a positive number, not {alpha_H}"))
   }
   
@@ -263,7 +263,7 @@ method_be11 <- function(df_baci, alpha_H, alpha_L, beta, na.rm, rm_temp_var){
   tradalyze::.check_length_1(alpha_L, "alpha_L")
 
   # Check if alpha_L is > 0
-  if (alpha_L >= 0){
+  if (alpha_L<= 0){
     stop(glue::glue("alpha_L must be a positive number, not {alpha_L}"))
   }
 
