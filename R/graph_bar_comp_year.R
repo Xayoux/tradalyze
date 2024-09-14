@@ -65,7 +65,8 @@
 #'
 #' By default facet are "free_y".
 #'
-#'
+#' @param x Name of the variable used for the x axis.
+#' @param y Name of the variable used for the y axis.
 #' @param double_bar Logical indicating whether bar must be stacked (TRUE), with
 #' darker indicating the `year_1` and the clearer indicating the `year_2`, or
 #' not (FALSE : the default value). In this case `year_2` is indicating by a shape.
