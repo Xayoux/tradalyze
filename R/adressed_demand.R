@@ -146,9 +146,6 @@ adressed_demand <- function(baci, years = NULL, codes = NULL,
       import_countries = import_countries
     )
 
-  # Check if t, k, v and other var are present in baci
-  tradalyze::.check_var_exist(baci, "baci", c("t", "k", "v", var_exporter, var_k, var_importer))
-
 
   # Agréger le commerce par "Régions exportatrices", importer et produits HS6.
   # Permet une aggégration des exportateurs mais reste sur le niveau
@@ -247,7 +244,7 @@ adressed_demand <- function(baci, years = NULL, codes = NULL,
         dplyr::mutate(
           DA_100_diff = DA_100 / DA_100_exporter_ref
         ) |>
-        dplyr::filter(!is.na(DA_diff))
+        dplyr::filter(!is.na(DA_100_diff))
     }
   }
 
