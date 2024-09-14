@@ -28,7 +28,7 @@
 .load_data <- function(data){
   data_class <- class(data)
   # Test if data is a path or a dataframe or an arrow object
-  if (!is.character(data) & !is.data.frame(data) & !"ArrowObject" %in% data_class){
+  if (!is.character(data) & !is.data.frame(data) & !"ArrowObject" %in% data_class & !"arrow_dplyr_query" %in% data_class){
     stop(stringr::str_glue("\ndata must be a path to a csv or excel file or a path to a parquet folder. It can also be a dataframe or an arrow object.\n\nIt can't be a {data_class}.\n"))
   }
 
