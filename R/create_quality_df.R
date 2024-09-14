@@ -191,12 +191,12 @@ create_quality_df <- function(baci, gravity, years = NULL, codes = NULL,
 
   # Check validity of export parameters
   tradalyze::.export_data(
-    data = df,
+    data = NULL,
     return_output = return_output,
     return_arrow = return_arrow,
     path_output = path_output,
-    eval = TRUE,
-    collect = TRUE
+    eval = FALSE,
+    collect = NULL
   )
 
   # Check if na.rm is logical and length 1
