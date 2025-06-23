@@ -428,8 +428,8 @@ dl_baci <- function(version = NULL, revision = "HS92",
     # file to be copy
     files_to_copy <-
       c(
-        "country_codes_V202401b.csv",
-        "product_codes_HS92_V202401b.csv",
+        stringr::str_glue("country_codes_V{version}.csv"),
+        stringr::str_glue("product_codes_{revision}_V{version}.csv"),
         "Readme.txt"
       )
 
@@ -437,12 +437,12 @@ dl_baci <- function(version = NULL, revision = "HS92",
     path_files_to_copy <- file.path(path_baci_csv_folder, files_to_copy)
 
      # Create the dir for the info files
-    dir.create(here::here(dl_folder, stringr::str_glue("BACI_{version}_V{revision}-infos")))
+    dir.create(here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}-infos")))
 
     # Copy files
     file.copy(
       from = path_files_to_copy,
-      to = here::here(dl_folder, stringr::str_glue("BACI_{version}_V{revision}-infos")),
+      to = here::here(dl_folder, stringr::str_glue("BACI_{revision}_V{version}-infos")),
       overwrite = TRUE
     )
   }
