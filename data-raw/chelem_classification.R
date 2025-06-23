@@ -1,5 +1,6 @@
+# chelem_classification dataset ---------------------------
 ## code to prepare `chelem_classification` dataset goes here
-# Importer la classification CHELEM géographique
+# Import the geographic CHELEM classification
 df_chelem_geo_classification <-
   here::here("data-raw", "CHELEM_classification_geo_2022_02b.xlsx") |>
   readxl::read_xlsx(sheet = "CHELEM geo-classification") |>
@@ -7,17 +8,17 @@ df_chelem_geo_classification <-
   dplyr::rename(iso = code_a)
 
 
-# Créer un dataframe dans lequel chaque région est définie
-# Pour chaque région on a les pays/sous-régions qui la compose
+# Create a df in which each country/sub-region is link to a region
+# For each region, we have countries/sub-regions that make up the region.
 list_regions <-
   df_chelem_geo_classification |>
-  # Garder que les lignes dont le niveau d'aggrégation est de 2
-  # Forte aggrégation mais plus faible que le niveau 1 qui aggrège tout
-  # Contient les régions ainsi que le détail des pays composants ces régions
+  # Keep only rows where the level of the aggregate is 2
+  # Highly aggregated, but less aggregated than the level 1 that aggregates everything
+  # We have regions and details about the region that make it up.
   dplyr::filter(!is.na(composition), level %in% 2) |>
   dplyr::select(iso, name, composition) |>
-  # Séparer les composants : chaque composanst est séparé par "+"
-  # On veut une ligne par composant indiquant à quelle région il appartient
+  # Each component of the region is separated by a "+"
+  # We want a row by country indicating its region
   tidyr::separate_rows(composition, sep = "\\+") |>
   dplyr::rename(
     iso_region = iso,
@@ -25,38 +26,42 @@ list_regions <-
     iso_country = composition
   )
 
-# Créer un dataframe qui répertorie toutes les sous-régions
-# Permet de décomposer ces régions en pays
+
+# Create a df in wich we define each sub-region
+# Allow to decompose sub-region in different countries
+# We want to use it to replace sub-regions in the first df
 list_sub_regions <-
   df_chelem_geo_classification |>
-  # Sélectionner les lignes dont les pays/sous-régions sont présent dans la
-  # définition des régions majeures
-  # Garder uniquement les sous-régions : ont une composition indiquée
+  # Keep only sub-regions present in the first df :
+  # Keep rows where the country iso code is present in the first df
+  # if the column `composition` is NA it is a country
+  # Otherwise it is a sub-region bc it is compose by multiple countries
   dplyr::filter(
     iso %in% unique(list_regions$iso_country),
     !is.na(composition)
   ) |>
   dplyr::select(iso, name, composition)
 
-# Fusionner les deux dataframes de régions/sub_regions
-# Si iso_country est une région on a sa composition
+
+# Full join the first and second df
+# If iso_country is a sub_region, we now have its composition
 chelem_classification <-
   list_regions |>
-  # Fusionner df regions et sub_regions -> ajoute la composition
-  # des sous-regions
+  # By merging the 2 df we add the composition of the sub regions to the first df
   dplyr::full_join(list_sub_regions, by = c("iso_country" = "iso")) |>
-  # Chaque composant de sous_region = 1 ligne
+  # Separate each component of the sub-region to have 1 row by component
   tidyr::separate_rows(composition, sep = "\\+") |>
-  # Si composition n'est pas NA alors le iso_country correspond à une
-  # sous-region. Il est donc remplacé par les codes pays
+  # If compositition is NOT NA : iso_country is a sub_region
+  # We replace the sub-region ISOs with the country ISOs that make up the sub-region.
   dplyr::mutate(
     iso_country = dplyr::if_else(is.na(composition), iso_country, composition)
   ) |>
-  # Garder uniquement les variables d'intérêt : noms et codes des régions et pays
+  # Keep only variables of interest : name and codes of countries and regions
   dplyr::select(!c(name, composition)) |>
-  # Certaines composition terminent par "+...". On enlève donc toutes les
-  # lignes qui contiennent autre chose que des lettres
+  # It can append that certain composition ends by "+...".
+  # We will remove all the lines that have any characters other than letters
+  # (ISO codes are only made up of letters).
   dplyr::filter(grepl("^[[:alpha:]]+$", iso_country))
 
-# Exporter le dataframe en .rda
+# Export the classification dataframe in .rda
 usethis::use_data(chelem_classification, overwrite = TRUE)

@@ -2,11 +2,11 @@
 % Please edit documentation in R/graph_lines_comparison.R
 \name{graph_lines_comparison}
 \alias{graph_lines_comparison}
-\title{Graphique de la demande adressée.}
+\title{Create Line Graph}
 \usage{
 graph_lines_comparison(
   baci,
-  x = "t",
+  x,
   y,
   linewidth = 1,
   var_linetype = NULL,
@@ -24,7 +24,7 @@ graph_lines_comparison(
   caption = "",
   color_legend = "",
   linetype_legend = "",
-  type_theme = "bw",
+  type_theme = c("bw", "classic", "minimal"),
   var_facet = NULL,
   path_output = NULL,
   width = 15,
@@ -34,96 +34,172 @@ graph_lines_comparison(
 )
 }
 \arguments{
-\item{baci}{Les données de la demande adressée. Il est possible de passer
-un chemin d'accès vers un fichier csv ou parquet ou un dataframe R.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{x}{La variable à mettre en abscisse. Par défaut, c'est le temps : \code{t}}
+\item{x}{Name of the variable used for the x axis. By default it is "t".}
 
-\item{y}{La variable à mettre en ordonnée. Il n'y a pas de paramètre par
-défaut, la variable choisie étant dépendante du type de demande adressée
-calculée.}
+\item{y}{Name of the variable used for the y axis.}
 
-\item{linewidth}{L'épaisseur de la ligne du graphique. Par défaut, c'est 1.}
+\item{linewidth}{Numeric indicating the width of the lines. By default it is
+set to 1.}
 
-\item{var_linetype}{La variable qui va définir le type de ligne. Par défaut,
-c'est \code{NULL}, les lignes seront toutes les mêmes.}
+\item{var_linetype}{Character indicating the name of the variable use
+to define the type of the lines. By default it is set to NULL : all the
+lines will be the same.}
 
-\item{manual_linetype}{Un vecteur indiquant à quelle entité quel type de ligne
-doit correspondre.}
+\item{manual_linetype}{Character indicating the linetype to be used for each category.
+Can be a vector of linetype or a list linking each linetype to a category.
+By default this variable is NULL if no manual linetype is used. Used only
+if \code{var_linetype = TRUE}.}
 
-\item{var_color}{La variable à mettre en couleur. Par défaut, c'est \code{NULL}.}
+\item{var_color}{Name of the variable to be used to color the
+lines. By default it is set to null indicating that all lines will have the
+same default color.}
 
-\item{palette_color}{La palette de couleur à utiliser. Par défaut, c'est \code{NULL}.
-Aucune palette de couleur ne sera utilisée/}
+\item{palette_color}{Name of the palette to be used. See
+\link[ggplot2]{scale_fill_brewer}. Be carefull, if the number of colors
+in the palette is too small compared to the number of categories in
+the variable \code{var_color}, an error will be returned.}
 
-\item{manual_color}{Les couleurs à utiliser. Par défaut, c'est \code{NULL}. Aucune
-couleur ne sera utilisée.}
+\item{manual_color}{Colors to be used for each category. Can be a vector
+of colors or a list linking each color to a category. By default this variable
+is NULL if no manual color is used.}
 
-\item{na.rm}{Indique si les valeurs manquantes doivent être retirées. Par
-défaut, c'est \code{TRUE}.}
+\item{na.rm}{Logical indicating whether NA should be exclude of the
+graph (avoid warning message). TRUE is the default value.}
 
-\item{x_breaks}{Les breaks à utiliser sur l'axe des x. Par défaut, c'est \code{NULL}.
-dans ce cas, les breaks vont du min au max avec un écart de 2 entre chaque valeur.}
+\item{x_breaks}{Values of the breaks on the x axis. By default the value is
+NULL. In this case values are automatically choosen.}
 
-\item{y_breaks}{Les breaks à utiliser sur l'axe des y. Par défaut, c'est \code{NULL}.
-Dans ce cas, les valeurs sont prises par défaut.}
+\item{y_breaks}{Values of the breaks on the y axis. By default the value is
+NULL. In this case values are automatically choosen.}
 
-\item{x_title}{Le titre de l'axe des x. Par défaut, c'est \code{""}.}
+\item{x_title}{Title of the x axis. By default it is set to an empty string.}
 
-\item{y_title}{Le titre de l'axe des y. Par défaut, c'est \code{""}.}
+\item{y_title}{Title of the y axis. By default it is set to an empty string.}
 
-\item{title}{Le titre du graphique. Par défaut, c'est \code{""}.}
+\item{title}{Title of the graph. By default it is set to an empty string.}
 
-\item{subtitle}{Le sous-titre du graphique. Par défaut, c'est \code{""}.}
+\item{subtitle}{Subtitle of the graph. By default it is set to an empty string.}
 
-\item{caption}{La caption du graphique. Par défaut, c'est \code{""}.}
+\item{caption}{Caption of the graph. By default it is set to an empty string.}
 
-\item{color_legend}{Le titre de la légende des couleurs. Par défaut, c'est \code{""}.}
+\item{color_legend}{Title of the legend for the colors. By default it is
+set to "".}
 
-\item{linetype_legend}{Le titre de la légende des types de ligne. Par défaut,
-c'est \code{""}.}
+\item{linetype_legend}{Title of the legend for the linetype. By default it
+is set to "". if the variable for the linetype and the color is the same,
+there will only be one legend.}
 
-\item{type_theme}{Le type de thème à utiliser. Par défaut, c'est \code{bw}. Les
-autres options sont \code{classic} et \code{minimal}.}
+\item{type_theme}{General theme of the graph. It can be "bw" (the default)
+\code{ggplot2::theme_bw()}, "classic" for \code{ggplot2::theme_classic()} or "minimal"
+for \code{ggplot2::theme_minimal()}.}
 
-\item{var_facet}{La variable à utiliser pour les facettes. Par défaut, c'est
-\code{NULL}. Si utilisé, le paramètres \code{scales = "free_y"} est utilisé.}
+\item{var_facet}{Name of the variable to be used to divide the graphs in
+differents part with \code{ggplot2::facet_wrap()}. By default it his set on NULL
+indicating that the graph will not be divide. Depends on the level of
+aggregation of the data and the construction of the data.}
 
-\item{path_output}{Le chemin d'accès pour sauvegarder le graphique. Par défaut,
-c'est \code{NULL}.}
+\item{path_output}{Path to save the data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
 
-\item{width}{La largeur du graphique. Par défaut, c'est 15.}
+\item{width}{Width of the saved graph. Bu default it is set to 15}
 
-\item{height}{La hauteur du graphique. Par défaut, c'est 8.}
+\item{height}{Height of the saved graph. By default it is set to 8}
 
-\item{print}{Indique si le graphique doit être affiché. Par défaut, c'est \code{TRUE}.}
+\item{print}{Logical indicating if the graph should be printed (default)
+or not.}
 
-\item{return_output}{Indique si le graphique doit être retourné. Par défaut,
-c'est \code{TRUE}.}
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
 }
 \value{
-Un graphique représentant l'évolution de la demande adressée.
+Graph representing the time evolution of a variable.
 }
 \description{
-Cette fonction permet de générer un graphique représentant l'évolution de la
-demande adressée en fonction du temps. Selon les variables indiquées en input,
-la demande adressée peut être en valeur, en base 100 ou par rapport à un
-pays de référence.
+Represent a line graph allowing to represent the evolution of
+a variable.
 }
-\details{
-La fonction permet de créer un graphique pour représenter l'évolution de la
-demande adressée en fonction du temps. Elle utilise les fonctions de ggplot2
-pour la création du graphique.
+\section{General informations}{
+This function don't modify data, so you must provide exact data you want
+to represent.
 
-Il est important de noter, que cette fonction ne calcule pas la demande
-adressée. Celle-ci doit être calculées précédemment (de préférence avec
-la fonction \link{adressed_demand}). Il est possible de passer d'autres variables
-que celles définies à partir des fonctions de ce package. Néanmoins cela reste
-aux risques et périls de l'utilisateur si le rendu n'est pas cohérent.
-
-Grâce au paramètre \code{return_output}, il est possible de récupérer le graphique
-afin de pouvoir le modifier presque entièrement par la suite.
+Thanks to the \code{return_output} parameter, it is possible to return the graph,
+allowing for further modifications.
 }
+
+\section{Theme default parameters}{
+\subsection{Grid lines}{
+
+Major and minor gridlines are removed (\code{panel.grid.minor()} and
+\code{panel.grid.major()}).
+}
+
+\subsection{Titles options}{
+\itemize{
+\item The size of the title is 26 and it is centered.
+\item the size of the subtitle is 22 and it is centered.
+\item The size of the caption is 16 and it is left adjust.
+}
+}
+
+\subsection{x axis options}{
+\itemize{
+\item The text of the x axis if at an angle of 45° and tight adjust. It has a
+size of 18 and a "black" color.
+\item The size of the x axis title is 22 and \code{vjust = -0.5}.
+}
+}
+
+\subsection{y axis options}{
+\itemize{
+\item The size of the y axis text is 18 and its color is "black".
+\item the size of the y axis title is 22.
+}
+}
+
+\subsection{Legend options}{
+\itemize{
+\item legend position is right
+\item Text of the legend has a size of 18 and a "black" color.
+\item \code{legend.key.spacing.y = ggplot::unit(0.3, "cm")}.
+\item the title of the legend has a size of 22, a "black" color and is centered.
+}
+}
+
+\subsection{Facet options}{
+\itemize{
+\item The strip of the facet has a "black" colour and is fill with the following
+color : \code{"#D9D9D9"}.
+\item The text of the strip has a size of 18 and a "black" color.
+}
+
+By default facet are "free_y".
+}
+}
+
 \examples{
-# Pas d'exemples.
+## Basic example
+## graph_lines_comparison(
+##   baci = "data-folder-parquet",
+##   x = "t",
+##   y = "adressed-demand",
+##   linewidth = 1,
+##   var_linetype = "exporter",
+##   var_color = exporter,
+##   palette_color = "Paired",
+##   type_theme = "minimal",
+##   var_facet = "category"
+## )
+
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
 }

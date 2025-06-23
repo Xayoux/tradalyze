@@ -17,8 +17,10 @@ Vous pouvez installer le package depuis
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Xayoux/tradalyze")
+devtools::install_github("Xayoux/tradalyze", ref = "refonte_totale")
 ```
+
+Un exemple d'utilisation est donné sur la page [use-tradalyze](https://github.com/Xayoux/use-tradalyze). 
 
 ## Prérequis
 

@@ -1,235 +1,230 @@
+#' @title Sum values in the Desired Variable
+#'
+#' @param df Dataframe
+#' @param var_aggregate Character vector of variables to be used for
+#' the aggregation of the sum
+#' @param var_share_indiv Variable to sum
+#' @param na.rm Exlude NA or not
+#' @return Dataframe with variable sum at the desired level
+sum_variable <- function(df, var_aggregate, var_share_indiv, na.rm){
+  df_summarized <-
+    df |>
+    dplyr::summarize(
+      .by = var_aggregate,
+      !!var_share_indiv := sum(.data[[var_share_indiv]], na.rm = na.rm)
+    )
+
+  return(df_summarized)
+}
+
+
+#' @title Compute the Market Share for the Desired Variable
+#'
+#' @param df Dataframe
+#' @param var_aggregate Character vector of variables to be used
+#' for the aggregation of the market share
+#' @param var_share_indiv Variable on which to compute the market share
+#' @return Dataframe with the market share computed
+market_share_variable <- function(df, var_aggregate, var_share_indiv){
+  df_market_share <-
+    df |>
+    dplyr::mutate(
+      .by = var_aggregate,
+      !!glue::glue("market_share_{var_share_indiv}") := .data[[var_share_indiv]] / sum(.data[[var_share_indiv]]) * 100
+    )
+
+  return(df_market_share)
+}
+
 #' @title
-#' Calculer des parts de marché
+#' Compute Market Share
 #'
 #' @description
-#' Fonction qui permet de calculer les parts de marché des exportateurs pour
-#' chaque produit / couple produit-importateur. Cette utilisation est celle qui
-#' a été pensé à la création de la fonction. Mais elle peut être utilisée pour
-#' calculer les parts de marché des importateurs pour chaque produit par exemple.
-#' La définition de la part de marché (de qui, pour qui...) dépend des noms de
-#' colonnes entrées en argument de la fonction.
+#' Use the data to calculate the market share of the desired variables. The
+#' level of of aggregation is freely selectable. 
 #'
 #' @details
-#' La fonction va agréger les flux pour chaque couple année-produit-`summarize_v`
-#' puis à partir de cette agrégation calculer les parts de marché. De base, ces
-#' parts sont calculées pour chaque produit-année. Mais avec le paramètre `by`,
-#' il est possible de changer la définition de la part de marché. Par exemple,
-#' si `by = "importer"`, les parts de marché seront calculées pour chaque
-#' année-produit-importateur. Elle sera alors interprétée comme étant la part
-#' de marché de l'exportateur sur le marché du produit pour cet importateur.
+#' This function aggregate (sum) trade flow for each `var_aggregate` group for the
+#' desired variables : `var_share`. Then shares are computed for each variables
+#' in `var_share` with level of aggregation corresponding to `var_aggregate` minus
+#' the last variable store in `var_aggregate`. Market shares are returned in
+#' percentage. 
 #'
-#' Les parts de marchés sont de base pensées et calculées avec les exportateurs
-#' étant les pays définis par les variables `i` ou `exporteur`. Mais si la
-#' variable d'intérêt est une variable de groupement régional par exemple,
-#' il suffit de rentrer son nom pour que les parts de marché soient calculées.
+#' This feature uses [arrow](https://arrow.apache.org/docs/r/) functionalities
+#' to load and filter the data. However, the computation of the must be in memory.
+#' This can take some time depending on your
+#' configuration and the size of your data. If the size of the data is too
+#' large for your computer, it may crash. It is advisable to reduce the size
+#' of your database and run this function several times.
 #'
-#' Cependant, les parts de marché ne peuvent être calculées que sur un 'niveau'
-#' après le produit : des parts de marché calculées au niveau
-#' produit-région-importateur ne sont pas possibles. De même, les parts de
-#' marché prennent toujours en compte la dimmension temps et produit.
+#' @param var_aggregate A character vector specifying the variables used to
+#' aggregate the data in the calculation of market shares.
 #'
-#' Cette fonction utilise les fonctionnalité du package
-#' [arrow](https://arrow.apache.org/docs/r/) pour performer des calculs sans
-#' avoir à charger BACI en mémoire. Cependant le calcul de la médiane
-#' pondérée nécessite le passage de la base (uniquement la partie nécessaire)
-#' en mémoire. Si la base est trop importante, les calculs peuvent prendre un
-#' certain temps, voir entraîner un problème de mémoire de l'ordinateur. Si
-#' cela arrive, il est conseillé de réduire le nombre d'années sur lesquelles
-#' la fonction doit calculer les gammes et d'exécuter plusieurs fois la fonction
-#' jusqu'à avoir toutes les années voulues.
+#' This parameter determines how the market share will be calculated by defining
+#' the group of variables that will be used for aggregation. 
 #'
-#' @param baci Peut être un  chemin d'accès vers le dossier contenant
-#' les données de BACI au format parquet. Peut également être un dataframe ou
-#' bien des données au format arrow (requête ou non) permettant ainsi de chaîner
-#' les opérations entre elles. ce paramètre est obligatoire.
-#' @param summarize_k Nom de la variable "produit" à partir de
-#' laquelle sera calculée la part de marché. Par défaut c'est la variable `k`
-#' (le code produit HS6) qui sera utilisé. On peut l'utiliser également pour une
-#' variable "chapitre" ou "secteur" par exemple.
-#' @param summarize_v Nom de la variable ( en chaîne de caractère) sur laquelle
-#' l'agrégation des flux va s'effectuer. Par défaut, c'est la variable
-#' `exporteur` qui est prise en compte.
-#' @param by Nom de la variable (en chaîne de caractère) sur laquelle les parts
-#' de marché peuvent être calculées à un niveau plus fin. Par défaut, les parts
-#' de marché sont calculées au niveau année-produit. Ce paramètre permet de
-#' rajouter une dimmension, qui sera classiquement `importeur`.
-#' @param seuil Valeur numérique entre 0 et 100 qui permet de filtrer les
-#' données dans le dataframe en fonction de la part de marché. Seules les
-#' observations ayant une part de marché supérieure ou égale à ce seuil seront
-#' gardées. Par défaut, le seuil est de 0 : toutes les observations sont
-#' gardées.
-#' @param years Vecteur de numériques qui permet de filtrer les données en
-#' fonction des années. Par défaut, toutes les années sont gardées.
-#' @param codes Vecteur de chaînes de caractères qui permet de filtrer les
-#' données en fonction des codes produits. Par défaut, tous les codes sont
-#' gardés.
-#' @param path_output Chemin d'accès vers le fichier où les données seront
-#' sauvegardées. Par défaut, les données ne sont pas sauvegardées. Les formats
-#' possibles sont .csv, .xlsx et .parquet.
-#' @param return_output Booléen qui permet de retourner les données. Par défaut, les
-#' données ne sont pas retournées.
-#' @param return_pq Booléen pour indiquer si les données doivent être retournées
-#' en format arrow si TRUE. Par défaut : FALSE.
+#' - **Market Power** When there is only exporter or importer
+#' (e.g, `c("t", "k", "exporter")`), the function calculates the market share
+#' of the exporter for the product k in year t. This could reveal that
+#' Country A export z% of product k in year t.
 #'
-#' @return Un dataframe avec les parts de marché calculées.
-#' @export
+#' If the aggregation is more detailed, the order of the variables in
+#' `var_aggregate` is crucial as it changes the
+#' perspective of the market share analysis:
+#'
+#' - **Exporter Perspective**: When the exporter is listed first
+#' (e.g., `c("t", "k", "exporter", "importer")`), the function calculates
+#' the market share of the exporter within each importer. This allows you to
+#' determine the proportion of a product exported
+#' from a particular country to different importing countries. For example,
+#' using this configuration could reveal that country A exports x%
+#' of its product k to country B.
+#'
+#' - **Importer Perspective**: When the importer is listed first
+#' (e.g., `c("t", "k", "importer", "exporter")`), the function calculates
+#' the market share of the importer for products coming from each exporter.
+#' This configuration helps in understanding the share of imports from specific
+#' exporters into a particular importing country. For instance, this setup
+#' could show that Country B imports y% of its product k from Country C.
+#'
+#' By adjusting the variables and their order in `var_aggregate`, you can
+#' flexibly analyze market shares from different perspectives, providing
+#' valuable insights into trade dynamics based on the specified aggregation.
+#' @param var_share A character vector indicating variables to be used to
+#' compute the market share. These variables must be numeric. 
+#' 
+#' @inheritParams .filter_baci
+#' @inheritParams .export_data
+#' @inheritParams add_chelem_classification
+#' @inheritParams clean_uv_outliers
+#'
+#' @return Dataframe with the following variables :
+#' \describe{
+#'   \item{var_aggregate}{All the variables in var_aggregate}
+#'   \item{var_share}{All the variables in var_share}
+#'   \item{market_share_var_share}{the MArket share of each variable in
+#' `var_share`. If `var_share = "v"`, the name will be `market_share_v`.}
+#' }
 #'
 #' @examples # Pas d'exemple.
-market_share <- function(baci, summarize_k = "k",
-                         summarize_v = "exporter", by = NULL,
-                         seuil = 0, years = NULL, codes = NULL,
-                         path_output = NULL, return_output = FALSE,
-                         return_pq = FALSE){
+#' ## Share of v of the exporter for product 280530 and years 2020 to 2022
+#' ## market_share(
+#' ##   baci = "folder-baci-parquet",,
+#' ##   years = 2020:2022,
+#' ##   codes = "280530",
+#' ##   var_aggregate = c("t", "k", "exporter"), # Exporter in last is very important
+#' ##   var_share = "v",
+#' ##   return_arrow = FALSE  
+#' ## )
+#'
+#' ## Proportion of v and q exported from exporters to each importer
+#' ## Country A export x% of product k to Country B
+#' ## market_share(
+#' ##   baci = "folder-baci-parquet",,
+#' ##   years = 2020:2022,
+#' ##   codes = "280530",
+#' ##   var_aggregate = c("t", "k", "exporter", "importer"), # Importer in last is very important
+#' ##   var_share = c("v", "q"),
+#' ##   return_arrow = FALSE  
+#' ## )
+#'
+#' ## Proportion of v and q imported from each exporters to an importer
+#' ## Country B import x% of its product k from Country B
+#' ## market_share(
+#' ##   baci = "folder-baci-parquet",,
+#' ##   years = 2020:2022,
+#' ##   codes = "280530",
+#' ##   var_aggregate = c("t", "k", "importer", "exporter"), # Exporter in last is very important
+#' ##   var_share = c("v", "q"),
+#' ##   return_arrow = FALSE  
+#' ## )
+#'
+#' @seealso
+#' [.load_data()] For more informations concerning the loading.
+#' [.filter_baci()] For more informations concerning the filter of data inside the function.
+#' [.export_data()] For more informations concerning the export of the data inside the function.
+#'
+#' @export
+market_share <- function(baci, years = NULL, codes = NULL,
+                         export_countries = NULL, import_countries = NULL,
+                         var_aggregate, var_share, na.rm = TRUE,
+                         return_output = TRUE,
+                         return_arrow = TRUE, path_output = NULL){
 
-  # Messages d'erreur -------------------------------------------------------
-  # Erreur si seuil est inférieur à 0
-  if(seuil < 0 | seuil > 100){
-    stop("seuil doit \uEAtre sup\uE9rieur ou \uE9gal \uE0 0 et inf\uE9rieur ou \uE9gal \uE0 100.")
-  }
+  # Check if export parameters are valid
+  tradalyze::.export_data(
+    data = NULL,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = FALSE,
+    collect = NULL
+  )
 
-  # Erreur si seuil n'est pas un numérique
-  if(!is.numeric(seuil)){
-    stop("seuil doit \uEAtre un num\uE9rique.")
-  }
+  # Check if var_aggregate is character
+  tradalyze::.check_character(var_aggregate, "var_aggregate")
 
-  # Erreur si years n'est pas NULL ou une liste de numériques
-  if(!is.null(years) & !is.numeric(years)){
-    stop("years doit \uEAtre NULL ou une liste de num\uE9riques.")
-  }
+  # Check if var_share is character
+  tradalyze::.check_character(var_share, "var_share")
 
-  # Erreur si codes n'est pas NULL ou une liste de chaînes de caractères
-  if(!is.null(codes) & !is.character(codes)){
-    stop("codes doit \uEAtre NULL ou une liste de cha\uEEnes de caract\uE8res.")
-  }
+  # Check if na.rm is logical and length 1
+  tradalyze::.check_logical(na.rm, "na.rm")
+  tradalyze::.check_length_1(na.rm, "na.rm")
+  
+  # The second aggregation (to compute market share) : the last variable is removed
+  var_aggregate_2 <- var_aggregate[-length(var_aggregate)]
 
-  # Erreur si path_output n'est pas NULL ou une chaîne de caractères
-  if(!is.null(path_output) & !is.character(path_output)){
-    stop("path_output doit \uEAtre NULL ou une cha\uEEne de caract\uE8res.")
-  }
+  # Load baci data
+  df_baci <- tradalyze::.load_data(baci)
 
-  # Erreur si path_output n'est pas un fichier .csv ou .xlsx ou parquet
-  if(!is.null(path_output)){
-    if(!tools::file_ext(path_output) %in% c("csv", "xlsx", "parquet")){
-      stop("path_output doit \uEAtre un fichier '.csv', '.xlsx' ou '.parquet'.")
-    }
-  }
+  # Filter baci data
+  df_baci <-
+    tradalyze::.filter_baci(
+      df_baci = df_baci,
+      years = years,
+      codes = codes,
+      export_countries = export_countries,
+      import_countries = import_countries
+    )  |>
+    dplyr::collect()
 
-  # Erreur si return_output n'est pas un booléen
-  if(!is.logical(return_output)){
-    stop("return_output doit \uEAtre un bool\uE9en.")
-  }
+  # Check if variables are in the df
+  tradalyze::.check_var_exist(df_baci, "baci", c(var_aggregate, var_share))
+  
+  # Compute the sum of each variable wanted for the share
+  df_baci <-
+    purrr::map(
+      var_share,
+      \(var_share) sum_variable(
+        df = df_baci,
+        var_aggregate = var_aggregate,
+        var_share_indiv = var_share,
+        na.rm = na.rm
+      )
+    ) |>
+    purrr::reduce(dplyr::full_join, by = var_aggregate) # full_join df in the list
 
-  # Message d'erreur si return_pq n'est pas un booléen
-  if (!is.logical(return_pq)) {
-    stop("return_pq doit \uEAtre un bool\uE9en")
-  }
+  # Compute the marjet-share for each variable wanted
+  df_baci <-
+    purrr::map(
+      var_share,
+      \(var_share) market_share_variable(
+        df = df_baci,
+        var_aggregate = var_aggregate_2,
+        var_share_indiv = var_share
+      )
+    ) |>
+    purrr::reduce(dplyr::full_join, by = c(var_aggregate, var_share))
 
-  # Message d'avertissement si return_output = FALSE et return_pq = TRUE
-  if (return_output == FALSE & return_pq == TRUE){
-    message("Les donn\uE9es ne seront pas retourn\uE8es car return_output = FALSE")
-  }
-
-
-  # Calcul de parts de marché -----------------------------------------------
-  # Ouvrir les données de BACI
-  if (is.character(baci) == TRUE){
-    # Ouvrir les données depuis un dossier parquet
-    df_baci <-
-      baci |>
-      arrow::open_dataset()
-  }
-  else if (is.data.frame(baci) == TRUE){
-    # Ouvrir les données depuis un dataframe : passage en format arrow
-    df_baci <-
-      baci |>
-      arrow::arrow_table()
-  }
-  else{
-    # Ouvrir les données depuis format arrow : rien à faire
-    df_baci <- baci
-  }
-
-  # Garder les années voulues si years != NULL
-  if(!is.null(years)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(t %in% years)
-  }
-
-  # Garder les codes voulus si codes != NULL
-  if(!is.null(codes)){
-    df_baci <-
-      df_baci |>
-      dplyr::filter(k %in% codes)
-  }
-
-  # Calculer les parts de marché
-  if (is.null(by)){
-    df_baci <-
-      df_baci |>
-      # Somme les valeurs et quantités de chaque exportateur pour chaque produit
-      dplyr::summarize(
-        .by = c(t, {{summarize_k}}, {{summarize_v}}),
-        v = sum(v, na.rm = TRUE),
-        q = sum(q, na.rm = TRUE)
-      ) |>
-      dplyr::collect() |>
-      dplyr::mutate(
-        .by = c(t, {{summarize_k}}),
-        market_share = v / sum(v, na.rm = TRUE) * 100
-      ) |>
-      #arrow::arrow_table() |>
-      dplyr::arrange(t, !!dplyr::sym(summarize_k), !!dplyr::sym(summarize_v)) |>
-      dplyr::filter(market_share >= seuil)
-  }
-  else {
-    df_baci <-
-      df_baci |>
-      # Somme les valeurs et quantités de chaque exportateur pour chaque produit
-      dplyr::summarize(
-        .by = c(t, {{summarize_k}}, {{summarize_v}}, {{by}}),
-        v = sum(v, na.rm = TRUE),
-        q = sum(q, na.rm = TRUE)
-      ) |>
-      dplyr::collect() |>
-      dplyr::mutate(
-        .by = c(t, {{summarize_k}}, {{summarize_v}}),
-        market_share = v / sum(v, na.rm = TRUE) * 100
-      ) |>
-      arrow::arrow_table() |>
-      dplyr::arrange(t, !!dplyr::sym(summarize_k), !!dplyr::sym(summarize_v), !!dplyr::sym(by)) |>
-      dplyr::filter(market_share >= seuil)
-  }
-
-  # Sauvegarder les données si path_output != NULL
-  # Sauvegarder en .xslx si path_output est un chemin .xlsx
-  if(!is.null(path_output)){
-    if(tools::file_ext(path_output) == "xlsx"){
-      df_baci <-
-        df_baci |>
-        dplyr::collect()
-
-      openxlsx::write.xlsx(df_baci, path_output, row.names = FALSE)
-    }
-    else if(tools::file_ext(path_output) == "csv"){
-      readr::write_csv(df_baci, path_output)
-    }
-    else if(tools::file_ext(path_output) == "parquet"){
-      arrow::write_dataset(df_baci, path_output, format = "parquet")
-    }
-  }
-
-  # Retourner les données si return = TRUE
-  if (return_output == TRUE){
-    if (return_pq == TRUE){
-      return(df_baci)
-    }
-    else{
-      df_baci <-
-        df_baci |>
-        dplyr::collect()
-
-      return(df_baci)
-    }
-  }
+  
+  # Export the data
+  tradalyze::.export_data(
+    data = df_baci,
+    return_output = return_output,
+    return_arrow = return_arrow,
+    path_output = path_output,
+    eval = TRUE,
+    collect = TRUE
+  )
 }
+

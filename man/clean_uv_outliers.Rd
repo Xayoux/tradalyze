@@ -2,7 +2,7 @@
 % Please edit documentation in R/clean_uv_outliers.R
 \name{clean_uv_outliers}
 \alias{clean_uv_outliers}
-\title{Déterminer et filtrer les outliers des valeurs unitaires dans BACI}
+\title{Find and Filter Outliers in BACI database}
 \source{
 \href{https://pse.hal.science/hal-00959394/}{Lionel Fontagné, Sophie Hatte. European High-End Products in International Competition. 2013.}
 
@@ -15,104 +15,457 @@ clean_uv_outliers(
   baci,
   years = NULL,
   codes = NULL,
-  method = "classic",
-  seuil_H,
-  seuil_L,
-  visualisation = FALSE,
-  path_output = NULL,
-  return_output = FALSE,
-  return_pq = FALSE
+  export_countries = NULL,
+  import_countries = NULL,
+  method = c("classic", "fh13", "h06", "sd", "be11"),
+  alpha_H,
+  alpha_L,
+  beta = NULL,
+  na.rm = TRUE,
+  outliers.rm = FALSE,
+  rm_temp_var = NULL,
+  return_output = TRUE,
+  return_arrow = TRUE,
+  path_output = NULL
 )
 }
 \arguments{
-\item{baci}{Peut être un  chemin d'accès vers le dossier contenant
-les données de BACI au format parquet. Peut également être un dataframe ou
-bien des données au format arrow (requête ou non) permettant ainsi de chaîner
-les opérations entre elles. ce paramètre est obligatoire.}
+\item{baci}{BACI data. Can be a path to a csv file.
+It can also be a path to a folder containing
+parquet files. Dataframe and ArrowObject are also accepted. Xlsx files are
+also accepted, but absolutely not recommended because BACI data are too large
+and data must be in the first sheet.}
 
-\item{years}{Années à garder dans les données. Si NULL, toutes les années
-sont gardées.}
+\item{years}{Numeric vector indicating the years to be kept in the variable \code{t}.}
 
-\item{codes}{Codes à garder dans les données. Si NULL, tous les codes sont
-gardés.}
+\item{codes}{Character vector indicating the product codes to be kept in the
+variable \code{k}.}
 
-\item{method}{Méthode de détermination des outliers. Peut être 'classic',
-'fh13', 'h06', 'sd', ou 'be11'.}
+\item{export_countries}{Character or numeric vector indicating the
+exporter countries to be kept in the variable \code{exporter} or \code{i}.}
 
-\item{seuil_H}{Seuil supérieur pour la détermination des outliers. Doit
-être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.}
+\item{import_countries}{Character or numeric vector indicating the importer
+countries to be kept in the variable \code{importer} or \code{j}.}
 
-\item{seuil_L}{Seuil inférieur pour la détermination des outliers. Doit
-être compris entre 0 et 1 pour les méthodes 'classic' et 'fh13'.}
+\item{method}{Method to determine outliers. It can be \code{classic} (the default),
+\code{fh13}, \code{h06}, \code{sd}, \code{be11} (see details for more informations).}
 
-\item{visualisation}{Booléen pour déterminer si les données exportées
-doivent contenir les outliers ainsi que les variables pour les déterminer
-ou non.}
+\item{alpha_H}{Numeric : Parameter to determine the upper outlier. Its
+meaning depends on the method chosen}
 
-\item{path_output}{Chemin vers le dossier où exporter les données en format
-parquet. Si NULL, les données ne sont pas exportées.}
+\item{alpha_L}{Numeric : Parameter to determine the lower outlier. Its
+meaning depends on the method chosen}
 
-\item{return_output}{Booléen pour déterminer si les données doivent être
-retournées.}
+\item{beta}{Numeric : Parameter to determine temporal outliers in the \code{be11} method.
+It can be NULL if another method is selected.}
 
-\item{return_pq}{Booléen pour indiquer si les données doivent être retournées
-en format arrow si TRUE. Par défaut : FALSE.}
+\item{na.rm}{Logical indicating whether NA should be remove from the data for
+the computation. By default it is set to TRUE. If FALSE you can obtain NA
+if NA are presents in your data be carefull.}
+
+\item{outliers.rm}{Logical indicating whether outliers should be removed from the
+data or not (the default).}
+
+\item{rm_temp_var}{Logical indicating whether temporary variables should be
+removed from the data or not (the default) (see details for more informations
+about these variables).}
+
+\item{return_output}{Logical indicating whether data must be returned or not.
+By default data are returned after this function.}
+
+\item{return_arrow}{Logical indicating whether data must be return in an
+arrow format (TRUE the default) or not if \code{return_output = TRUE}.
+By default data are returned to arrow format.}
+
+\item{path_output}{Path to save the data. If NULL (default), the data
+will not be saved. If \code{path_output} ends with a '.csv' extension, the data
+will be saved in csv format. If no extension is given, the data will be
+saved in a dataset parquet format in the specified folder. See the
+\link[arrow]{arrow} package.}
 }
 \value{
-Un dataframe arrow contenant les données nettoyées des outliers.
+BACI data with appropriate variables depending on the method.
+Outliers can be removed or not.
 }
 \description{
-Détermine les outliers dans la distribution des valeurs unitaires de BACI
-et peut les retirer du jeu de données afin d'essayer d'éviter des biais
-dans les mesures.
+Identify outliers based on their unit value in the BACI database. These
+outliers can be removed from the database. Five methods are available to
+find outliers (see details for more information):
+\itemize{
+\item classic
+\item fh13
+\item h06
+\item sd
+\item be11
+}
 }
 \details{
-Les valeurs unitaires calculées à partir de BACI peuvent contenir des
-outliers assez importants. En effet, les valeurs unitaire sont calculées
-en divisant la valeur des exportations par la quantité exportée. Ces
-dernières peuvent être sujettes à un certain nombre d'erreurs et leur
-fiabilité n'est pas toujours garantie.
+Unit values (\eqn{uv = v / q}) calculated from BACI may contain some
+significant outliers. The quantity data taken from UN COMTRADE may be
+subject to some measurement errors. To avoid any bias, it is recommended
+to remove outliers.
+}
+\section{Methods}{
+\subsection{classic}{
+\subsection{Explications}{
 
-Pour éviter que ces valeurs ne biaisent les analyses, il peut être recommandé
-de supprimer les outliers de la distribution des valeurs unitaires. Cette
-fonction permet de déterminer les outliers selon quatre méthodes différentes:
+The "classic" method, available with \code{method = "classic"}, looks at the
+distribution of unit values for each group year-product. The unit value
+of is treated as an outlier with the following rule:
 \itemize{
-\item La méthode 'classic' détermine les outliers en fonction des quantiles de
-la distribution des valuers unitaires par année-produit. Si la valeur
-unitaire est supérieure au quantile déterminé par \code{seuil_H} ou inférieure
-au quantile déterminé par \code{seuil_L}, alors elle est considérée comme un
-outlier.
-\item La méthode 'fh13' qui provient de l'article de
-\href{https://pse.hal.science/hal-00959394/}{Fontagné & Hatte (2013)} détermine
-les outliers en fonction de la différence entre la valeur unitaire et la
-moyenne des valeurs unitaires par produit (de toute la période). Si la
-différence est supérieure au quantile déterminé par \code{seuil_H} ou inférieure
-au quantile déterminé par \code{seuil_L}, alors elle est considérée comme un
-outlier. La distribution des différences peut être celle de toutes les
-valeurs unitaires ou celle des valeurs unitaires par produit selon le
-paramètre \code{whole}.
-\item La méthode 'h06' qui provient de l'article de
-\href{https://www.sciencedirect.com/science/article/abs/pii/S0022199605000516}{Hallak (2006)}
-détermine les outliers en fonction de la moyenne des valeurs unitaires par
-produit, exportateur et année. Si la valeur unitaire est supérieure à la
-moyenne multipliée par \code{seuil_H} ou inférieure à la moyenne divisée par
-\code{seuil_L}, alors elle est considérée comme un outlier.
-\item la méthode 'sd' détermine les outliers comme étant les flux dont la
-différence entre la valeur unitaire et la moyenne produit-année est
-supérieure à un certain nombre de fois l'écart-type de cette différence, ou
-inférieure un nombre de fois à l'opposé de l'écart-type de cette différence.
-\item La méthode 'be11' qui provient de l'article de
-\href{http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf}{Berthou & Emlinger (2011)}
-détermine les outliers en fonction de la médiane des
-valeurs unitaires par produit-année. Si la valeur unitaire est supérieure à
-la médiane multipliée par \code{seuil_H} ou inférieure à la médiane divisée par
-\code{seuil_L}, alors elle est considérée comme un outlier. De plus, si la valeur
-unitaire est supérieure à la valeur unitaire précédente ou suivante
-multipliée par 1000, alors elle est considérée comme un outlier.
+\item if : \eqn{uv < UV_{\alpha L}}
+\item if : \eqn{uv > UV_{\alpha H}}
 }
 
-La fonction permet de garder ou non les outliers dans les données.
+where \code{alpha_H} (\eqn{\alpha H}) and \code{alpha_L} (\eqn{\alpha L}) are the
+quantiles of the distribution of unit values for each group annual product.
+\code{alpha_H} and \code{alpha_L} must be greater than 0 and less than 1 ;
+\eqn{UV_{\alpha L}} and \eqn{UV_{\alpha H}} are the value taken by the distribution
+of unit values for these quantiles.
 }
+
+\subsection{Requirement}{
+
+The following parameters are needed to perform this method : \code{baci},
+\code{alpha_H}, \code{alpha_L}, \code{na.rm}, \code{outliers.rm}.
+
+The following variables are needed to perform this method :
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+}
+}
+
+\subsection{Return}{
+
+The following variables are returned
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+\item{uv}{Numeric : Unit value of the trade flow}
+\item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+the unit value is a lower outlier. 0 if the unit value is not an outlier. This
+variable can be removed with \code{outliers.rm = TRUE}.}
+}
+All others variables present in the data are also returned.
+}
+
+}
+
+\subsection{fh13}{
+\subsection{Explications}{
+
+The fh13 method, available with \code{method = fh13}, is taken from.
+\href{https://pse.hal.science/hal-00959394/}{Fontagné & Hatte (2013)}. This
+method calculates the difference between the unit value and the mean of the
+unit values for each product group. The unit value is an outlier if:
+\itemize{
+\item \eqn{uv < UV_{\alpha L}}
+\item \eqn{uv > UV_{\alpha H}}
+}
+
+where \code{alpha_H} (\eqn{\alpha H}) and \verb{alpha L} (\eqn{\alpha_L}) are the
+quantiles of the distribution of the mean differences of the unit values
+for each product group. \code{alpha_H} and \code{alpha_L} must be greater than 0 and
+less than 1; \eqn{UV_{\alpha L}} and \eqn{UV_{\alpha H}} are the value taken by the
+distribution of the mean differences for these quantiles.
+}
+
+\subsection{Requirement}{
+
+The following parameters are needed to perform this method : \code{baci},
+\code{alpha_H}, \code{alpha_L}, \code{na.rm}, \code{outliers.rm}, \code{rm_temp_var}.
+
+The following variables are needed to perform this method :
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+}
+}
+
+\subsection{Return}{
+
+The following variables are returned
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+\item{uv}{Numeric : Unit value of the trade flow}
+\item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+the unit value is a lower outlier. 0 if the unit is not an outlier. This
+variable can be unselected with \code{outliers.rm = TRUE}.}
+\item{mean_diff_k}{Numeric : The difference between the unit value and the
+mean of unit values for each product group. This variable can be removed
+with \code{rm_temp_var = TRUE}.}
+}
+
+All others variables present in the data are also returned.
+}
+
+}
+
+\subsection{h06}{
+\subsection{Explications}{
+\itemize{
+\item \eqn{uv < UV_{ikt} / \alpha_L}
+\item \eqn{uv > UV_{ikt} * \alpha_H}
+}
+
+with \code{alpha_H} (\eqn{\alpha_H}) and \code{alpha_L} (\eqn{\alpha_L}) two constant
+and \eqn{UV_{ikt}} the mean of unit values for each group exporter-year-product.
+}
+
+\subsection{Requirement}{
+
+The following parameters are needed to perform this method : \code{baci},
+\code{alpha_H}, \code{alpha_L}, \code{na.rm}, \code{outliers.rm}.
+
+The following variables are needed to perform this method :
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{i}{Numeric/character : Iso numeric or character of the exporter}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+}
+}
+
+\subsection{Return}{
+
+The following variables are returned (at minimum)
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{i}{Numeric/character : Iso numeric or character of the exporter}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+\item{uv}{Numeric : Unit value of the trade flow}
+\item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+the unit value is a lower outlier. 0 if the unit is not an outlier. This
+variable can be unselected with \code{outliers.rm = TRUE}}
+}
+
+All others variables present in the data are also returned.
+}
+
+}
+
+\subsection{sd}{
+\subsection{Explications}{
+
+the sd method, available with \code{method= "sd"}, caclculates the difference
+between the unit value and the mean of the unit values for each
+product-year group. It then calculates the standard deviation of these differences
+for each product-year group. A unit value
+is an outlier if:
+\itemize{
+\item \eqn{UV_{tk} < sd_{tk} * (-\alpha_L)}
+\item \eqn{UV_{tk} > sd_{tk} * \alpha_H}
+}
+
+with \code{alpha_H} (\eqn{\alpha_H}) and \code{alpha_L} (\eqn{\alpha_L}) two constant
+and \eqn{sd_{tk}} the standard deviation of the distribution of the mean
+differences for each group year-product and \eqn{UV_{tk}} the difference between the
+unit value and the mean of unit values for each year-product group.
+}
+
+\subsection{Requirement}{
+
+The following parameters are needed to perform this method : \code{baci},
+\code{alpha_H}, \code{alpha_L}, \code{na.rm}, \code{outliers.rm}, \code{rm_temp_var}.
+
+The following variables are needed to perform this method :
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+}
+}
+
+\subsection{Return}{
+
+The following variables are returned (at minimum)
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+\item{uv}{Numeric : Unit value of the trade flow}
+\item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+the unit value is a lower outlier. 0 if the unit is not an outlier. This
+variable can be unselected with \code{outliers.rm = TRUE}}
+\item{mean_diff_k_t}{Numeric : The difference between the unit value and the
+mean of unit values for each product group. This variable can be removed
+with \code{rm_temp_var = TRUE}.}
+\item{sd_k_t}{Numeric : the standard deviation of \code{mean_diff_k_t}
+for each product group. This variable can be removed
+with \code{rm_temp_var = TRUE}.}
+}
+
+All others variables present in the data are also returned.
+}
+
+}
+
+\subsection{be11}{
+\subsection{Explications}{
+
+The method be11, available with \code{method = "be11"}, is taken from
+\href{http://www.cepii.fr/PDF_PUB/wp/2011/wp2011-10.pdf}{Berthou & Emlinger (2011)}.
+It calculates the median of the unit value distribution for each
+exporter-product-year group. It then calculates the lag and lead of each
+unit value (group exporter-importer-product). The unit value is an outlier if:
+\itemize{
+\item \eqn{uv < UV_{ikt} / \alpha_L}
+\item \eqn{uv > UV_{ikt} * \alpha_H}
+}
+
+for the cross-section outliers. And the unit value will be a temporal outlier if:
+\itemize{
+\item \eqn{uv < lag_{ijk} * \beta}
+\item \eqn{uv > lag_{ijk} * \beta}
+}
+
+Where \code{alpha_H} (\eqn{\alpha_H}) and \code{alpha_L} (\eqn{\alpha_L}) are two constant ;
+\eqn{UV_ikt} is the median of the unit value distribution for each group
+exporter-product-year ; \eqn{\beta} a constant ; \eqn{lag_{ijk}} and
+\eqn{lead_{ijk}} the lag and lead of the unit value.
+}
+
+\subsection{Requirement}{
+
+The following parameters are needed to perform this method : \code{baci},
+\code{alpha_H}, \code{alpha_L}, \code{beta}, \code{na.rm}, \code{outliers.rm}, \code{rm_temp_var}.
+
+The following variables are needed to perform this method :
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{i}{Numeric/character : Iso numeric or character of the exporter}
+\item{j}{Numeric/character : Iso numeric or character of the importer}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+}
+}
+
+\subsection{Return}{
+
+The following variables are returned
+\describe{
+\item{k}{Character : code product (or any other product indentifier)}
+\item{t}{Numeric : Year}
+\item{i}{Numeric/character : Iso numeric or character of the exporter}
+\item{j}{Numeric/character : Iso numeric or character of the importer}
+\item{v}{Numeric : Value of the trade flow}
+\item{q}{Numeric : Quantity of the trade flow}
+\item{uv}{Numeric : Unit value of the trade flow}
+\item{outlier}{Numeric : 1 if the unit value is an upper outlier, -1 if
+the unit value is a lower outlier, 2 if the unit value is a temporal outlier.
+0 if the unit is not an outlier. This variable can be unselected
+with \code{outliers.rm = TRUE}}
+\item{median_i_k_t}{Numeric : The median of the unit value distribution
+for each exporter-product-year group. This variable can be removed
+with \code{rm_temp_var = TRUE}.}
+\item{lag_i_j_k}{Numeric : The lag of the unit value.
+This variable can be removed with \code{rm_temp_var = TRUE}.}
+\item{lead_i_j_k}{Numeric : The lead of the unit value.
+This variable can be removed with \code{rm_temp_var = TRUE}.}
+}
+
+All others variables present in the data are also returned.
+}
+
+}
+}
+
+\section{Computation}{
+This feature uses \href{https://arrow.apache.org/docs/r/}{arrow} functionalities.
+However, the computation of the various metrics must be in memory
+(only this part is in memory). This can take some time depending on your
+configuration and the size of your data. If the size of the data is too
+large for your computer, it may crash. It is advisable to reduce the size
+of your database and run this function several times.
+}
+
 \examples{
-# Pas d'exemples.
+## find outliers with classic method. Keep outliers return arrow object
+## clean_uv_outliers(
+##   baci = "baci-folder-parquet",
+##   method = "classic",
+##   alpha_H = 0.95,
+##   alpha_L = 0.05,
+##   na.rm = TRUE,
+##   outliers.rm = FALSE,
+##   return_output = TRUE,
+##   return_arrow = TRUE
+## )
+
+## find outliers with fh13 method. Don't keep outliers return R dataframe
+## object. Keep temporary variables
+## clean_uv_outliers(
+##   baci = "baci-folder-parquet",
+##   method = "fh13",
+##   alpha_H = 0.95,
+##   alpha_L = 0.05,
+##   na.rm = TRUE,
+##   outliers.rm = TRUE,
+##   rm_temp_var = FALSE
+##   return_output = TRUE,
+##   return_arrow = FALSE
+## )
+
+## find outliers with h06 method. Don't keep outliers, save in parquet format.
+## clean_uv_outliers(
+##   baci = "baci-folder-parquet",
+##   method = "h06",
+##   alpha_H = 5,
+##   alpha_L = 5,
+##   na.rm = TRUE,
+##   outliers.rm = TRUE,
+##   return_output = FALSE,
+##   return_arrow = FALSE,
+##   path_output = "folder-output-parquet"
+## )
+
+## find outliers with sd method. Don't keep outliers, save in csv format.
+## clean_uv_outliers(
+##   baci = "baci-folder-parquet",
+##   method = "sd",
+##   alpha_H = 3,
+##   alpha_L = 3,
+##   na.rm = TRUE,
+##   outliers.rm = TRUE,
+##   rm_temp_var = TRUE
+##   return_output = FALSE,
+##   return_arrow = FALSE,
+##   path_output = "file-output-csv.csv"
+## )
+
+## find outliers with be11 method. Don't keep outliers, return arrow format,
+## keep only year 2015 to 2017.
+## clean_uv_outliers(
+##   baci = "baci-folder-parquet",
+##   years = 2015:2017,
+##   method = "be11",
+##   alpha_H = 10,
+##   alpha_L = 10,
+##   beta = 1000,
+##   na.rm = TRUE,
+##   outliers.rm = TRUE,
+##   rm_temp_var = FALSE,
+##   return_output = TRUE,
+##   return_arrow = TRUE
+## )
+
+}
+\seealso{
+\code{\link[=.load_data]{.load_data()}} For more informations concerning the loading.
+\code{\link[=.filter_baci]{.filter_baci()}} For more informations concerning the filter of data inside the function.
+\code{\link[=.export_data]{.export_data()}} For more informations concerning the export of the data inside the function.
 }

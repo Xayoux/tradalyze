@@ -2,51 +2,105 @@
 % Please edit documentation in R/extract_product.R
 \name{extract_product}
 \alias{extract_product}
-\title{Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.}
+\title{Create a Dataframe with the HS Codes Wanted and their Description.}
 \source{
 \href{https://github.com/insongkim/concordance}{Steven Liao, In Song Kim, Sayumi Miyano, Hao Zhang (2020). concordance: Product Concordance. R package version 2.0.0. https://CRAN.R-project.org/package=concordance}
 }
 \usage{
 extract_product(
   codes_vector,
-  path_output,
-  revision_origin = "HS22",
-  revision_destination = NULL,
-  export = TRUE,
-  return_df = TRUE,
-  correspondance = FALSE
+  path_output = NULL,
+  revision_origin = c("HS0", "HS1", "HS2", "HS3", "HS4", "HS5", "HS6"),
+  revision_destination = c("none", "HS0", "HS1", "HS2", "HS3", "HS4", "HS5", "HS6"),
+  return_output = TRUE
 )
 }
 \arguments{
-\item{codes_vector}{Un vecteur contenant les codes ou numéros de chapitres que l'on souhaite extraire.}
+\item{codes_vector}{A vector of characters containing, 6-digit codes,
+sections, or chapter of the HS classification.}
 
-\item{path_output}{Chemin d'accès au fichier de sortie. Doit être un fichier .xlsx ou .csv.}
+\item{path_output}{Path to save the output. If NULL (the default), output
+will not be saved. Saving is possible in "csv" or "xlsx" format.}
 
-\item{revision_origin}{Un caractère indiquant la révision des codes HS d'origine. Par défaut, revision_origin = "HS22".
-Les valeurs possibles sont "HS22", "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".}
+\item{revision_origin}{A character indicating the HS revision of the
+codes given in the \verb{codes_vector parameters}. By default this is the revision
+"HS0" (1988/1992). The value can be : "HS1" (1996), "HS2" (2022), "HS3" (2007),
+"HS4" (2012) or "HS5" (2017). If the version of the
+\link{concordance} package is greater than 2.1.0 you can also
+choose "HS6" (2022).}
 
-\item{revision_destination}{Un caractère indiquant la révision des codes HS de destination.
-Par defaut, revision_destination = NULL. Les valeurs possibles sont "HS92", "HS96", "HS02", "HS07", "HS12" et "HS17".
-Si NULL alors, il n'y a pas de conversion des codes dans une autre révision.}
+\item{revision_destination}{Character. If "none" (the default), no
+concordance is made between the given codes and codes from another revision.
+If a revision number is supplied, concordance will be made.  The values for
+the revision number are: "HS0" (1988/1992), "HS1" (1996), "HS2" (2022),
+"HS3" (2007), "HS4" (2012) or "HS5" (2017). If the version of the
+\link{concordance} package is greater than 2.1.0, you can also
+select "HS6" (2022). \code{revision_destination} can't be the same as
+\code{revision_origin}.}
 
-\item{export}{Un booléen indiquant si l'on souhaite exporter le fichier. Par défaut, export = TRUE.}
-
-\item{return_df}{Un booléen indiquant si l'on souhaite retourner le dataframe. Par défaut, return_df = TRUE.}
-
-\item{correspondance}{Un booléen qui indique si l'on souhaite convertir les codes HS6 données
-en des codes HS6 d'une autre révision. Par defaut, correspondance = FALSE. Si TRUE alors, revision_destination ne
-doit pas être NULL (et inversement).}
+\item{return_output}{Logical indicating whether output must be returned
+or not. By default output is returned.}
 }
 \value{
-Un fichier .xlsx ou .csv contenant tous les codes HS6 souhaités ainsi que leur description.
+A dataframe containing the 6-digits codes and their description
+for the wanted original revision (\code{revision_origin}).
 \describe{
-\item{HS...}{codes HS6 de la nomenclature ...}
-\item{description_HS...}{description des codes HS6 de la nomenclature ...}
+\item{HS_revision_origin}{6-digit codes for the \code{revision_origin}}
+\item{desc_revision_origin.}{Description of the code for the \code{revision_origin}}
 }
+
+If a \code{revision_destination} is supplied. Two others columns are made :
+\describe{
+\item{HS_revision_destination}{6-digit codes for the \code{revision_destination}}
+\item{desc_revision_destination.}{Description of the code for the \code{revision_destination}}
+}
+
+The output can also be a csv or xlsx file.
 }
 \description{
-Créer un fichier xlsx ou csv contenant tous les codes hs6 souhaités ainsi que leur descriptionet leur équivalent dans une autre nomenclature.
+Take a vector of HS codes, sections or chapters and return a
+data frame with all the corresponding 6-digit HS codes and their description.
+These codes can be in any revision. It is also possible to make a
+correspondence between the codes of the original revision and another
+revision. This is useful for the
+\href{http://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37}{BACI}
+database because, depending on the revision of BACI chosen, the codes must
+be in the good revision (1992 revision if you want the oldest data). The
+concordance between revisions is done with the \link[concordance]{concord_hs}
+function of the \link{concordance} package. The list of codes
+is also taken from that package.
+}
+\details{
+To use the latest revision ("HS6" for the 2022 revision) you must
+have a version greater or equal to 2.1.0 of the \link{concordance}
+package. This version is not available on CRAN. To download it, please
+uninstall the concordance package and run the following code :
+\code{devtools::install_github("insongkim/concordance", dependencies=TRUE)}.
+Make sure that you also have devtools. See the
+\href{https://github.com/insongkim/concordance}{github page} of the concordance
+package. If you use the function without the correct version of the
+concordance, you will be asked if the function can download it for you.
 }
 \examples{
-# Pas d'exemple disponible.
+# Obtain the codes and the descriptions for the chapter 71,
+# the section 0105 and the code 020120 for the "HS5" revision.
+## extract_product(
+##   codes_vector = c("71", "0105", "020120"),
+##   path_output = NULL,
+##   revision_origin = "HS5",
+##   revision_destination = "none",
+##   return_output = TRUE
+## )
+
+
+# Make a concordance between the codes of the HS5 revision and the HS0 revision
+## extract_product(
+##   codes_vector = c("71", "0105", "020120"),
+##   path_output = NULL,
+##   revision_origin = "HS5",
+##   revision_destination = "HS0",
+##   return_output = TRUE
+## )
+
+
 }

@@ -17,3 +17,5 @@ utils::globalVariables(c("year", "code", "v", "k", "uv", "mean_diff", "i",
                          "quality_ref_year", "quality_100",
                          "quality_exporter_ref", "quality_year_ref",
                          "quality_100_exporter_ref"))
+
+utils::globalVariables(".")

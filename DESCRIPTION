@@ -14,30 +14,40 @@ BugReports: https://github.com/Xayoux/tradalyze/issues
 Imports: 
     arrow (>= 16.0.0),
     cli,
-    concordance (>= 2.0.0),
-    curl (>= 5.0.0),
     data.table (>= 1.15.0),
     dplyr (>= 1.1.0),
-    fixest (>= 0.12.0),
     ggplot2 (>= 3.5.0),
     glue (>= 1.7.0),
     here (>= 1.0.0),
     lifecycle,
-    matrixStats (>= 1.3.0),
+    magrittr,
     methods (>= 4.4.0),
-    modi (>= 0.1.2),
     openxlsx,
     purrr (>= 1.0.0),
-    readr,
+    readxl,
     rlang,
-    rvest (>= 1.0.0),
     scales (>= 1.3.0),
     stats (>= 4.4.0),
     stringr (>= 1.5.0),
-    svDialogs (>= 1.1.0),
     tidyr (>= 1.3.0),
+    tools (>= 4.4.0),
     utils (>= 4.4.0),
     withr
 Depends: 
     R (>= 2.10)
 LazyData: true
+Suggests: 
+    concordance (>= 2.1.0),
+    curl (>= 5.0.0),
+    devtools (>= 2.4.0),
+    fixest (>= 0.12.0),
+    matrixStats (>= 1.3.0),
+    modi (>= 0.1.2),
+    readr (>= 2.1.0),
+    rvest (>= 1.0.0),
+    svDialogs (>= 1.1.0),
+    testthat (>= 3.0.0),
+    writexl (>= 1.5.0)
+Config/testthat/edition: 3
+Remotes: 
+    insongkim/concordance
